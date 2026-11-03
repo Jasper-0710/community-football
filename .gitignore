@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.tools/
+.npm-cache/
+artifacts/
+coverage/
+.DS_Store
+__MACOSX/
+._*
+project.private.config.json
+*.log
+*.local
+.env*
+!.env.example

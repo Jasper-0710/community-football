@@ -1,0 +1,27 @@
+{
+  "name": "邻里绿茵",
+  "appid": "",
+  "description": "中社超上海赛区社区足球赛事原型",
+  "versionName": "0.1.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "邻里绿茵 · 中社超上海赛区",
+    "router": {
+      "mode": "hash"
+    }
+  },
+  "mp-weixin": {
+    "appid": "wx52f6e75968af08d3",
+    "setting": {
+      "urlCheck": true,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true
+  },
+  "vueVersion": "3",
+  "uniStatistics": {
+    "enable": false
+  }
+}

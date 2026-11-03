@@ -1,0 +1,9 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationStyle": "custom", "navigationBarTitleText": "邻里绿茵" } },
+    { "path": "pages/match/detail", "style": { "navigationStyle": "custom", "navigationBarTitleText": "比赛详情" } },
+    { "path": "pages/article/detail", "style": { "navigationStyle": "custom", "navigationBarTitleText": "赛事动态" } },
+    { "path": "pages/team/detail", "style": { "navigationStyle": "custom", "navigationBarTitleText": "球队主页" } }
+  ],
+  "globalStyle": { "backgroundColor": "#f6f7f4", "navigationBarTextStyle": "black" }
+}

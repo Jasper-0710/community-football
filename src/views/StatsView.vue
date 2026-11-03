@@ -1,0 +1,17 @@
+<script setup lang="ts">
+// Remove native component hosts so flex/grid layout matches H5; accept app-level design classes.
+defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } })
+import { ref, computed } from 'vue'
+import type { Tournament } from '@/domain/types'
+import { playerRanking, standings } from '@/domain/tournament'
+import StandingsTable from '@/components/StandingsTable.vue'
+import AppIcon from '@/components/AppIcon.vue'
+import TeamBadge from '@/components/TeamBadge.vue'
+const props = defineProps<{ data: Tournament }>()
+const active = ref('standings')
+const tabs = [{ id: 'standings', label: '小组积分' }, { id: 'goals', label: '射手榜' }, { id: 'assists', label: '助攻榜' }, { id: 'teams', label: '球队数据' }]
+const ranks = computed(() => playerRanking(props.data, active.value === 'assists' ? 'assists' : 'goals'))
+const teamRows = computed(() => standings(props.data).sort((a, b) => b.goalsFor - a.goalsFor))
+function open(id: string) { uni.navigateTo({ url: `/pages/team/detail?id=${id}` }) }
+</script>
+<template><view class="inner-page"><view class="page-heading"><view><text class="eyebrow">EVERY EFFORT COUNTS</text><text class="page-title">让每份努力，被看见。</text><text class="page-description">从每一粒进球，读懂这片绿茵场。</text></view><view class="page-emblem"><AppIcon name="trophy" tone="green" :size="44"/></view></view><view class="page-tabs stats-tabs"><button hover-class="none" role="button" tabindex="0" class="ui-button" v-for="tab in tabs" :key="tab.id" :class="{ active: active === tab.id }" @click="active = tab.id">{{ tab.label }}</button></view><view v-if="active === 'standings'" class="stats-groups"><view v-for="group in (['A', 'B'] as const)" :key="group" class="panel stats-panel"><view class="section-heading"><text class="h2">{{ group }} 组</text><text class="muted small-text">小组赛已结束</text></view><StandingsTable :data="data" :group="group" /></view></view><view v-else-if="active === 'teams'" class="panel ranking-panel"><view class="team-stat-row table-header"><text>球队</text><text>小组赛进球</text><text>失球</text><text>胜率</text></view><button hover-class="none" role="button" tabindex="0" v-for="row in teamRows" :key="row.team.id" class="ui-button team-stat-row" @click="open(row.team.id)"><view><TeamBadge :team="row.team" :size="30"/><text>{{ row.team.name }}</text></view><text class="ranking-value">{{ row.goalsFor }}</text><text>{{ row.goalsAgainst }}</text><text>{{ row.played ? Math.round(row.won / row.played * 100) : 0 }}%</text></button></view><view v-else class="panel ranking-panel"><view class="player-rank-row table-header"><text>排名</text><text>球员 / 所属球队</text><text>{{ active === 'goals' ? '进球' : '助攻' }}</text></view><button hover-class="none" role="button" tabindex="0" v-for="(row, i) in ranks" :key="row.player.id" class="ui-button player-rank-row" @click="open(row.team.id)"><text class="ranking-index" :class="{ 'top-rank': i < 3 }">{{ String(i + 1).padStart(2, '0') }}</text><view class="player-rank-info"><view class="player-number" :style="{ color: row.team.color }">{{ row.player.number }}</view><view><text class="h3">{{ row.player.name }}</text><text class="muted small-text">{{ row.team.name }} · {{ row.player.position }}</text></view></view><text class="ranking-value">{{ row.value }}</text></button></view><view class="inline-note"><AppIcon name="info" :size="16" tone="muted"/><text>{{ active === 'standings' || active === 'teams' ? '积分与球队数据仅统计已结束的小组赛。排序：积分 → 净胜球 → 进球数；演示同分时按球队标识稳定排序。' : '射手与助攻榜根据所有已结束比赛的模拟进球事件统计，不计入进行中的比赛。' }}</text></view></view></template>

@@ -1,0 +1,9 @@
+flowchart TD
+    User[观众 / 球员 / 社区支持者] --> UI[uni-app 页面与共享组件]
+    UI --> State[加载状态与页面筛选]
+    State --> Port[TournamentRepository.load]
+    Port --> Mock[本地演示事实]
+    Port -.后续替换.-> API[真实接口适配器]
+    State --> Domain[积分 / 球员榜 / 晋级纯函数]
+    UI --> Favorites[本地关注存储适配]
+    Favorites --> Storage[设备存储]
