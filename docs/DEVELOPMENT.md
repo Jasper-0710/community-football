@@ -8,6 +8,7 @@ Git 仓库根目录是包含 `package.json`、`package-lock.json` 和 `src/` 的
 - `node_modules/`、`dist/`、缓存、预览截图、`__MACOSX/` 和微信开发者工具的 `project.private.config.json` 已由 `.gitignore` 排除。
 - 每台电脑分别安装依赖、构建小程序。不要从另一台电脑复制 `node_modules/`，其中的原生程序与操作系统和 CPU 架构有关。
 - 小程序 AppID 在 `src/manifest.json` 中维护并随源码同步。需要该小程序的开发权限才能进行相应的预览、上传操作。
+- 云开发环境 ID 在每台电脑的 `.env.local` 中配置，具体见 [云开发配置](CLOUD_DEVELOPMENT.md)。`cloudfunctions/` 随源码同步，编译自动生成的根目录 `project.config.json` 不提交。
 - 代码推送到 GitHub 和小程序上传到微信是两项独立操作；`git push` 不会发布小程序。
 
 ## 第一次上传
@@ -43,7 +44,7 @@ npm ci
 npm run dev:mp-weixin
 ```
 
-保持开发命令运行，在微信开发者工具中导入 `dist/dev/mp-weixin`。源码更新后，uni-app 会重新编译，开发者工具读取更新后的产物。
+保持开发命令运行，在微信开发者工具中导入项目根目录。命令自动生成的 `project.config.json` 会指向 `dist/dev/mp-weixin`，同时识别 `cloudfunctions/`。源码更新后，uni-app 会重新编译，开发者工具读取更新后的产物。
 
 如果只需要一次构建：
 
@@ -51,7 +52,7 @@ npm run dev:mp-weixin
 npm run build:mp-weixin
 ```
 
-此时导入 `dist/build/mp-weixin`。在 `src/` 中修改源码；直接改 `dist/` 会被下次构建覆盖。
+此时仍导入项目根目录，生成的配置会改为指向 `dist/build/mp-weixin`。在 `src/` 中修改小程序源码、在 `cloudfunctions/` 中修改云函数源码；直接改 `dist/` 会被下次构建覆盖。
 
 也可以运行 `npm run dev:h5`，在浏览器打开 `http://127.0.0.1:5173/` 快速预览。H5 预览不能替代微信开发者工具和真机验证。
 

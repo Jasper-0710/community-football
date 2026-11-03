@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onLaunch } from '@dcloudio/uni-app'
+import { initializeWechatCloud } from '@/services/wechat-cloud'
 onLaunch(() => {
+  initializeWechatCloud()
   // #ifdef H5
   // uni-button renders a custom element in H5. Restore native-button keyboard behavior.
   document.addEventListener('keydown', event => {

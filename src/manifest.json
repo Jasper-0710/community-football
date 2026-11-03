@@ -1,12 +1,12 @@
 {
-  "name": "邻里绿茵",
+  "name": "中国社超上海赛区赛事平台",
   "appid": "",
-  "description": "中社超上海赛区社区足球赛事原型",
+  "description": "中国社超上海赛区赛事平台",
   "versionName": "0.1.0",
   "versionCode": "100",
   "transformPx": false,
   "h5": {
-    "title": "邻里绿茵 · 中社超上海赛区",
+    "title": "中国社超上海赛区赛事平台",
     "router": {
       "mode": "hash"
     }

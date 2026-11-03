@@ -8,6 +8,8 @@ coverage/
 __MACOSX/
 ._*
 project.private.config.json
+# Generated from src/manifest.json by the WeChat build/dev commands.
+/project.config.json
 *.log
 *.local
 .env*

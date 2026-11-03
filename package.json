@@ -2,6 +2,8 @@
   "name": "community-football", "version": "0.1.0", "private": true,
   "scripts": {
     "dev": "uni --host 127.0.0.1 --port 5173", "dev:h5": "uni --host 127.0.0.1 --port 5173",
+    "predev:mp-weixin": "node scripts/prepare-wechat-project.mjs dev",
+    "prebuild:mp-weixin": "node scripts/prepare-wechat-project.mjs build",
     "dev:mp-weixin": "uni -p mp-weixin", "build:h5": "uni build", "build:mp-weixin": "uni build -p mp-weixin",
     "typecheck": "vue-tsc --noEmit", "test": "tsx --test tests/domain.test.ts", "test:e2e": "node scripts/verify-browser.mjs"
   },
