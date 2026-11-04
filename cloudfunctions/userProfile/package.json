@@ -1,0 +1,14 @@
+{
+  "name": "user-profile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "wx-server-sdk": "3.0.4",
+    "pngjs": "7.0.0",
+    "jpeg-js": "0.4.4"
+  }
+}

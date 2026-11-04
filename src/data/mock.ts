@@ -41,7 +41,7 @@ matches.push(
   { id: 'f1', stage: 'final', date: '2026-11-08', time: '15:00', venue: venues[0], status: 'scheduled', homeId: null, awayId: null, homeFrom: 's1', awayFrom: 's2', homeScore: null, awayScore: null, events: [] },
 )
 export const mockTournament: Tournament = {
-  id: 'sh-community-2026', name: '中社超上海赛区', season: '2026', demoDate: '2026-10-25', updatedAt: '2026-10-25 14:36', teams, players, matches,
+  id: 'sh-community-2026', name: '中国社超上海赛区', season: '2026', demoDate: '2026-10-25', updatedAt: '2026-10-25 14:36', teams, players, matches,
   articles: [
     { id: 'notice', category: '公告', featured: true, title: '淘汰赛观赛指南：这个周末，来为邻里球队加油', excerpt: '八强集结，主场见！赛程、场地与观赛须知，一篇看明白。', date: '2026-10-24', author: '赛事组委会', paragraphs: ['以下为前端原型演示公告，不构成真实赛事活动通知。', '小组赛的热烈告一段落，八支社区球队即将开启淘汰赛旅程。10 月 25 日，四场四分之一决赛依次展开，欢迎带上家人朋友，一起走进球场。', '演示赛程：江湾联队对阵静安远航、徐汇星火对阵闵行飞翼、松江山鹰对阵普陀追风、杨浦青年对阵浦东锋芒。具体时间和场地请查看赛事页。', '请文明观赛，尊重球员与裁判。未成年人建议在监护人陪同下参与，垃圾随身带走，让每一座社区球场都成为温暖的主场。', '遇到天气或场地变化，请以正式上线后的组委会公告为准。当前页面的比赛、人员与数据均为虚构演示。'] },
     { id: 'story', category: '故事', featured: true, title: '下班后，他们把热爱踢进了周末', excerpt: '没有职业球星，只有身边的你我。这是江湾联队的故事，也是每一支社区球队的故事。', date: '2026-10-23', author: '绿茵编辑部', image: '/static/images/stadium.jpg', paragraphs: ['本文为演示内容，球队人物与故事均为虚构。', '周五傍晚，群聊里的消息开始密集起来。「明天几点集合？」「老地方，记得带球衣。」一周的疲惫，在这几句简单的问候里慢慢散去。', '他们是工程师、老师、店主，也是球场上的前锋、中场和后卫。职业不同，年龄不同，但站在同一条边线旁时，大家有了共同的名字：队友。', '有人为进球欢呼，有人为一次漂亮的抢断鼓掌。场边的孩子跟着奔跑，邻居分享着带来的饮料。比赛之外，这才是社区足球最动人的部分。', '输赢值得认真，热爱更值得长久。下一次开球，我们还会在这里。'] },

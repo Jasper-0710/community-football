@@ -14,6 +14,16 @@ const check = name => { checks.push(name); console.log(`PASS ${name}`) }
 const nav = async name => { await page.locator('.desktop-nav .nav-item').filter({ hasText: name }).click() }
 const shot = async name => { await page.screenshot({ path: `${out}/${name}.png`, fullPage: true }) }
 const noOverflow = async p => { const dimensions = await p.evaluate(() => ({ viewport: window.innerWidth, page: document.documentElement.scrollWidth })); assert.ok(dimensions.page <= dimensions.viewport + 1, JSON.stringify(dimensions)) }
+const verifyGuestProfile = async p => {
+  await p.locator('.profile-page').waitFor()
+  assert.match(await p.locator('.profile-header').innerText(), /游客体验/)
+  assert.match(await p.locator('.account-panel').innerText(), /网页预览暂不支持微信云登录/)
+  assert.equal(await p.locator('.account-panel uni-button').count(), 0, 'H5 must not expose a fake WeChat login or editable profile')
+  assert.equal(await p.locator('.nickname-input').count(), 0)
+  assert.match(await p.locator('.favorites-panel .section-subtitle').innerText(), /仅保存在本机/)
+  assert.match(await p.locator('.prototype-note').innerText(), /比赛与新闻仍为演示内容/)
+  await noOverflow(p)
+}
 try {
   await page.goto(base, { waitUntil: 'networkidle' })
   await page.locator('.hero-title').waitFor()
@@ -80,6 +90,9 @@ try {
   await page.locator('.page-tabs > uni-button').filter({ hasText: '参赛球队' }).click()
   await page.locator('.team-card').first().locator('.follow-button').click()
   await nav('我的')
+  await verifyGuestProfile(page)
+  await shot('profile-1440')
+  check('1440px H5 profile is a guest view with an explicit unsupported-platform message and no false login')
   assert.equal(await page.locator('.favorite-row').count(), 1)
   await page.reload({ waitUntil: 'networkidle' })
   await nav('我的')
@@ -114,6 +127,10 @@ try {
     await noOverflow(p)
     await p.screenshot({ path: `${out}/home-${width}.png`, fullPage: true }); if (width === 390) await p.screenshot({ path: `${out}/mobile-home.png`, fullPage: false })
     const navSelector = width < 760 ? '.mobile-nav-item' : '.desktop-nav .nav-item'
+    await p.locator(navSelector).filter({ hasText: /^我的$/ }).click()
+    await verifyGuestProfile(p)
+    await p.screenshot({ path: `${out}/profile-${width}.png`, fullPage: true })
+    check(`${width}px H5 guest profile has honest login support and no page overflow`)
     await p.locator(navSelector).filter({ hasText: /^赛事$/ }).click()
     await p.locator('.schedule-grid').waitFor(); await noOverflow(p)
     await p.screenshot({ path: `${out}/schedule-${width}.png`, fullPage: true })
