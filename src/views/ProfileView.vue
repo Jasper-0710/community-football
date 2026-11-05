@@ -39,6 +39,8 @@ watch(profile, value => {
 watch(avatarSource, () => { avatarImageFailed.value = false })
 watch(() => profile.value?.avatarUrl, () => { headerAvatarFailed.value = false })
 
+function openMyTeam() { uni.navigateTo({ url: '/pages/team/manage' }) }
+function openRegistrations() { uni.navigateTo({ url: '/pages/registration/mine' }) }
 function open(id: string) { uni.navigateTo({ url: `/pages/team/detail?id=${id}` }) }
 async function startLogin() { notice.value = ''; await login() }
 function signOut() {
@@ -105,6 +107,11 @@ onBeforeUnmount(() => { ++avatarGeneration })
       </view>
     </view>
 
+    <view class="panel my-team-entry">
+      <view><view class="my-team-entry-title"><AppIcon name="users" tone="green" :size="26"/><text class="section-title">我的球队</text></view><text class="section-subtitle">创建球队、维护资料和球员名单</text></view>
+      <button class="ui-button primary-button" @click="openMyTeam">{{ profile ? '进入我的球队' : '登录并管理球队' }}<AppIcon name="arrow" tone="white" :size="18"/></button>
+    </view>
+    <view class="panel my-team-entry"><view><view class="my-team-entry-title"><AppIcon name="calendar" tone="green" :size="26"/><text class="section-title">我的报名</text></view><text class="section-subtitle">查看报名材料、审核结果与参赛进度</text></view><button class="ui-button outline-button" @click="openRegistrations">查看我的报名<AppIcon name="arrow" tone="green" :size="18"/></button></view>
     <view class="profile-panels">
     <view v-if="!profile" class="panel account-panel login-panel">
       <view class="login-caption"><AppIcon name="check" tone="green" :size="18" /><text>微信身份登录 · 无需账号密码</text></view>
@@ -175,7 +182,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
     </view>
     <view class="prototype-note">
       <AppIcon name="info" tone="green" :size="24" />
-      <view><text class="h3">当前开放的功能</text><text>比赛与新闻仍为演示内容。微信登录与昵称已接入云端；建队、报名将逐项开放。关注记录仅保存在本机。</text></view>
+      <view><text class="h3">当前开放的功能</text><text>赛事信息、微信登录与昵称已开放；赛程、球队与新闻仍为示例内容。建队与球员管理已开放，赛事报名将后续开放。关注记录仅保存在本机。</text></view>
     </view>
   </view>
 </template>
@@ -185,7 +192,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .profile-header { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding: 26px 30px 30px; margin-bottom: 22px; background: #164d37; border: 1px solid #164d37; border-radius: 18px; overflow: hidden; color: #fff; }
 .profile-header-top { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .profile-platform { font-size: 14px; color: #d2e4d7; letter-spacing: .5px; }
-.profile-status { padding: 4px 11px; border: 1px solid #6b957c; border-radius: 20px; font-size: 12px; color: #ecf5e5; white-space: nowrap; }
+.profile-status { padding: 4px 11px; border: 1px solid #6b957c; border-radius: 20px; font-size: 14px; color: #ecf5e5; white-space: nowrap; }
 .profile-identity { position: relative; display: flex; align-items: center; gap: 18px; }
 .profile-heading-copy { flex: 1; min-width: 0; }
 .profile-header .profile-heading-copy .page-title { color: #fff; font-size: 28px; line-height: 1.4; letter-spacing: 0; margin: 0 0 8px; overflow-wrap: anywhere; }
@@ -200,11 +207,11 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .account-panel .section-heading { align-items: flex-start; gap: 12px; margin-bottom: 20px; }
 .account-panel .section-heading > view { flex: 1; min-width: 0; }
 .account-panel .section-title { font-size: 22px; letter-spacing: 0; }
-.login-caption { display: flex; align-items: center; gap: 7px; color: #386548; font-size: 13px; margin-bottom: 17px; }
+.login-caption { display: flex; align-items: center; gap: 7px; color: #386548; font-size: 14px; margin-bottom: 17px; }
 .login-panel .section-title { font-size: 25px; }
-.account-description { display: block; margin-top: 10px; color: #627164; font-size: 15px; line-height: 1.85; }
+.account-description { display: block; margin-top: 10px; color: #627164; font-size: 16px; line-height: 1.85; }
 .account-hint, .account-error, .account-success { display: block; margin-top: 14px; font-size: 14px; line-height: 1.75; overflow-wrap: anywhere; }
-.account-hint { color: var(--muted); }
+.account-hint { color: var(--muted); padding: 14px 16px; background: #f3f7f1; border: 1px solid #d8e3d4; border-radius: 10px; }
 .platform-hint { padding: 14px 16px; background: #f1f5ee; border: 1px solid #dfe8da; border-radius: 10px; color: #52684e; }
 .account-error { color: #983927; background: #fff3ee; border-radius: 8px; padding: 10px 12px; }
 .account-success { color: #20653e; background: #eff6eb; border-radius: 8px; padding: 10px 12px; }
@@ -214,13 +221,13 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .login-button > text { flex: 1; text-align: center; }
 .account-panel .primary-button[disabled] { opacity: 1; color: #61725d; background: #e7ede3; border-color: #e7ede3; cursor: default; }
 .account-panel .login-button[disabled] { color: #fff; background: #396e50; border-color: #396e50; }
-.account-panel .sign-out-button { min-height: 36px; padding: 0 10px; border: 1px solid #e1e8dc; border-radius: 8px; font-size: 13px; color: #64725f; }
+.account-panel .sign-out-button { min-height: 36px; padding: 0 10px; border: 1px solid #e1e8dc; border-radius: 8px; font-size: 14px; color: #64725f; }
 .profile-avatar-field { display: flex; align-items: center; gap: 15px; padding: 5px 0 22px; }
 .avatar-select { width: 64px; height: 64px; flex: none; border-radius: 18px; overflow: hidden; background: #edf2e7; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
-.account-field-hint { display: block; color: var(--muted); font-size: 13px; line-height: 1.8; margin-top: 5px; }
+.account-field-hint { display: block; color: var(--muted); font-size: 14px; line-height: 1.8; margin-top: 5px; }
 .nickname-field { margin-top: 22px; }
 .nickname-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
-.nickname-label .h3 { font-size: 15px; }
+.nickname-label .h3 { font-size: 16px; }
 .nickname-input { width: 100%; height: 50px; border: 1px solid #c7d5c2; border-radius: 10px; padding: 0 14px; color: var(--ink); background: #fafcf8; font-size: 16px; }
 .nickname-input:focus-within { border-color: #1e6b48; background: #fff; }
 .account-footnote { margin-top: 17px; }
@@ -230,11 +237,11 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .favorites-panel .empty-state .muted { font-size: 14px; }
 .favorites-panel .primary-button { border-radius: 9px; font-size: 14px; }
 .favorite-row { gap: 12px; flex-wrap: wrap; }
-.prototype-note { background: #f0f3ec; border-radius: 12px; }
+.prototype-note { background: #f0f3ec; border: 1px solid #d3dfce; border-radius: 12px; }
 .prototype-note > view > text + text { color: #62715c; font-size: 14px; }
 @media (max-width: 760px) {
   .profile-header { padding: 20px; gap: 22px; margin-bottom: 18px; border-radius: 16px; }
-  .profile-platform { font-size: 13px; letter-spacing: 0; }
+  .profile-platform { font-size: 14px; letter-spacing: 0; }
   .profile-identity { gap: 14px; align-items: flex-start; }
   .profile-avatar { width: 56px; height: 56px; border-radius: 17px; }
   .profile-header .profile-heading-copy .page-title { font-size: 22px; margin-bottom: 6px; }
@@ -243,7 +250,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
   .account-panel, .favorites-panel { padding: 23px 20px; }
   .account-panel .section-title, .favorites-panel .section-title { font-size: 21px; }
   .login-panel .section-title { font-size: 24px; }
-  .favorites-panel .section-subtitle { font-size: 13px; }
+  .favorites-panel .section-subtitle { font-size: 14px; }
   .prototype-note { margin-top: 18px; padding: 20px; }
 }
 </style>

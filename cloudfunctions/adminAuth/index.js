@@ -1,8 +1,11 @@
 'use strict'
 
 const cloud = require('wx-server-sdk')
+const { createAdminTeamService } = require('./teams')
+const { createAdminRegistrationService } = require('./registrations')
 const { createAdminService } = require('./service')
 const { createHttpHandler } = require('./http')
+const { createCompetitionService, createApplicationRouter, PUBLIC_ACTIONS } = require('./competitions')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const database = cloud.database({ throwOnNotFound: false })
 const store = {
@@ -19,6 +22,47 @@ const store = {
   },
 }
 const service = createAdminService({ store })
-const origins = ['http://127.0.0.1:5174', 'http://localhost:5174', ...(process.env.ADMIN_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)]
-const http = createHttpHandler(service, origins)
-exports.main = async event => event && typeof event.httpMethod === 'string' ? http(event) : service(event)
+const competitionStore = {
+  async list({ publicOnly, cursor, limit }) {
+    const where = { ...(publicOnly ? { displayEnabled: true } : {}), ...(cursor ? { _id: database.command.gt(cursor) } : {}) }
+    return (await database.collection('competitions').where(where).orderBy('_id', 'asc').limit(limit).get()).data
+  },
+  async read(id) { return (await database.collection('competitions').doc(id).get()).data },
+  async transaction(id, callback) {
+    return database.runTransaction(async tx => {
+      const ref = tx.collection('competitions').doc(id)
+      const { data } = await ref.get()
+      return callback(data, async record => {
+        const { _id, _openid, ...fields } = record
+        await ref.set({ data: fields })
+      })
+    })
+  },
+}
+const competitions = createCompetitionService({ store: competitionStore, authorize: token => service({ action: 'session', token }) })
+const baseRouter = createApplicationRouter(service, competitions)
+const teams = createAdminTeamService({
+  authorize: token => service({ action: 'session', token }),
+  store: {
+    async list(cursor, limit) { return (await database.collection('teams').where(cursor ? { _id: database.command.gt(cursor) } : {}).orderBy('_id', 'asc').limit(limit).get()).data },
+    async read(id) { return (await database.collection('teams').doc(id).get()).data },
+    async user(id) { return (await database.collection('users').doc(id).get()).data },
+  },
+})
+const registrations = createAdminRegistrationService({
+ authorize: token => service({ action: 'session', token }), uploadsEnabled: process.env.REGISTRATION_UPLOADS_ENABLED === 'true',
+ storage: { async link(fileID) { const r=await cloud.getTempFileURL({fileList:[{fileID,maxAge:300}]});const f=r.fileList?.[0];if(!f?.tempFileURL||f.status!==0)throw new Error('Download unavailable');return f.tempFileURL } },
+ store: {
+  async list({competitionId,cursor,status,limit}) { return (await database.collection('registrations').where({competitionId,...(status?{status}:{}),...(cursor?{_id:database.command.gt(cursor)}:{})}).orderBy('_id','asc').limit(limit).get()).data },
+  async read(id) { return (await database.collection('registrations').doc(id).get()).data },
+  competition: competitionStore.read,
+  transaction: fn => database.runTransaction(tx => fn({
+   async get(collection,id){return (await tx.collection(collection).doc(id).get()).data},
+   async set(collection,id,value){const {_id,_openid,...data}=value;await tx.collection(collection).doc(id).set({data})},
+  })),
+ },
+})
+const router = event => typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : baseRouter(event)
+const origins = ['http://127.0.0.1:5174', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://localhost:5173', ...(process.env.ADMIN_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)]
+const http = createHttpHandler(router, origins, PUBLIC_ACTIONS)
+exports.main = async event => event && typeof event.httpMethod === 'string' ? http(event) : router(event)

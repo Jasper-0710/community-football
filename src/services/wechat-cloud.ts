@@ -46,10 +46,10 @@ export function initializeWechatCloud(): void {
   // #endif
 }
 
-export async function callWechatCloudFunction<T>(name: string, data: Record<string, unknown>): Promise<T> {
+export async function callWechatCloudFunction<T>(name: string, data: Record<string, unknown>, timeoutMs = 20_000): Promise<T> {
   const cloud = requireWechatCloud()
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new WechatCloudError('TIMEOUT', '请求超时。若正在保存，请重新登录读取资料，确认保存结果后再重试。')), 20_000)
+    const timer = setTimeout(() => reject(new WechatCloudError('TIMEOUT', '请求超时。若正在保存，请重新登录读取资料，确认保存结果后再重试。')), timeoutMs)
     Promise.resolve()
       .then(() => cloud.callFunction({ name, data }))
       .then(response => {

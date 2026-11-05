@@ -78,3 +78,22 @@ test('disposal prevents late login responses from restoring the UI or persistent
   const pending = auth.login('admin', 'password'); auth.dispose(); done({ ...session, token }); await pending
   assert.equal(auth.account.value, null); assert.equal(s.getItem(STORAGE_KEY), null)
 })
+test('business operations clear an expired session and reject replies after logout', async () => {
+  const s = storage(), auth = createAdminAuth(api(), s)
+  await auth.initialize(); await auth.login('admin', 'password')
+  await assert.rejects(auth.authorized(async () => { throw new AdminApiError('UNAUTHORIZED', 'expired') }))
+  assert.equal(auth.status.value, 'guest'); assert.equal(s.getItem(STORAGE_KEY), null)
+  await auth.login('admin', 'password')
+  let finish!: (value: string) => void
+  const pending = auth.authorized(async () => new Promise<string>(resolve => { finish = resolve }))
+  await auth.logout(); finish('late data')
+  await assert.rejects(pending, (e: any) => e.code === 'UNAUTHORIZED')
+})
+test('routine session checks do not invalidate a concurrent authorized business request', async () => {
+  const auth = createAdminAuth(api(), storage())
+  await auth.initialize(); await auth.login('admin', 'password')
+  let finish!: (value: string) => void
+  const pending = auth.authorized(async () => new Promise<string>(resolve => { finish = resolve }))
+  await auth.check(); finish('saved')
+  assert.equal(await pending, 'saved'); assert.equal(auth.status.value, 'authenticated')
+})

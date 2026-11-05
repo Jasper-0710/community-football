@@ -4,6 +4,7 @@ defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } }
 import { computed, ref } from 'vue'
 import type { Tournament, Match, Tab } from '@/domain/types'
 import { dateLabel } from '@/domain/tournament'
+import CompetitionList from '@/components/CompetitionList.vue'
 import MatchCard from '@/components/MatchCard.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import StandingsTable from '@/components/StandingsTable.vue'
@@ -18,6 +19,8 @@ function article(id: string) { uni.navigateTo({ url: `/pages/article/detail?id=$
 </script>
 <template>
   <view class="home-view">
+    <CompetitionList />
+    <view class="demo-section-label">以下为赛程、球队与资讯的示例预览</view>
     <view class="welcome-line"><text>周末，把时间留给足球。</text><view class="season-label"><view class="tiny-dot" />2026 赛季 · 淘汰赛阶段</view></view>
     <view class="hero">
       <image class="hero-image" src="/static/images/stadium.jpg" mode="aspectFill" />
@@ -28,7 +31,7 @@ function article(id: string) { uni.navigateTo({ url: `/pages/article/detail?id=$
     </view>
     <button hover-class="none" role="button" tabindex="0" class="ui-button announcement" @click="article('notice')"><view class="announcement-label"><AppIcon name="bell" :size="17" tone="green" /><text>赛事公告</text></view><text class="announcement-text">淘汰赛观赛指南：这个周末，来为邻里球队加油</text><text class="announcement-date">10.24</text><AppIcon name="chevron" :size="17" tone="green" /></button>
     <view class="home-section">
-      <view class="section-heading"><view class="heading-with-sub"><view class="heading-title-row"><text class="section-title">比赛日</text><text class="date-badge">10.25 / 周日</text><view v-if="liveCount" class="live-caption"><view class="live-dot"/>{{ liveCount }} 场模拟进行中</view></view><text class="section-subtitle">球场上的每一刻，都值得被看见</text></view><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'tournament')">全部赛程<AppIcon name="arrow" :size="17" /></button></view>
+      <view class="section-heading"><view class="heading-with-sub"><view class="heading-title-row"><text class="section-title">比赛日</text><text class="date-badge">10.25 / 周日</text><view v-if="liveCount" class="live-caption"><view class="live-dot"/>{{ liveCount }} 场模拟进行中</view></view><text class="section-subtitle">球场上的每一刻，都值得被看见</text></view><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'tournament', 'schedule')">全部赛程<AppIcon name="arrow" :size="17" /></button></view>
       <scroll-view scroll-x class="matches-strip"><view class="home-matches"><MatchCard v-for="match in matchday" :key="match.id" :match="match" :data="data" compact /></view></scroll-view>
     </view>
     <view class="home-lower-grid">

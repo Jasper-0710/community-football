@@ -1,9 +1,64 @@
 {
   "pages": [
-    { "path": "pages/index/index", "style": { "navigationStyle": "custom", "navigationBarTitleText": "中国社超上海赛区赛事平台" } },
-    { "path": "pages/match/detail", "style": { "navigationStyle": "custom", "navigationBarTitleText": "比赛详情" } },
-    { "path": "pages/article/detail", "style": { "navigationStyle": "custom", "navigationBarTitleText": "赛事动态" } },
-    { "path": "pages/team/detail", "style": { "navigationStyle": "custom", "navigationBarTitleText": "球队主页" } }
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "中国社超上海赛区赛事平台"
+      }
+    },
+    {
+      "path": "pages/match/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "比赛详情"
+      }
+    },
+    {
+      "path": "pages/article/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "赛事动态"
+      }
+    },
+    {
+      "path": "pages/team/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "球队主页"
+      }
+    },
+    {
+      "path": "pages/competition/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "赛事详情"
+      }
+    },
+    {
+      "path": "pages/team/manage",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的球队"
+      }
+    },
+    {
+      "path": "pages/registration/manage",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "球队报名"
+      }
+    },
+    {
+      "path": "pages/registration/mine",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的报名"
+      }
+    }
   ],
-  "globalStyle": { "backgroundColor": "#f6f7f4", "navigationBarTextStyle": "black" }
+  "globalStyle": {
+    "backgroundColor": "#f6f7f4",
+    "navigationBarTextStyle": "black"
+  }
 }

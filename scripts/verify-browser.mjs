@@ -21,7 +21,7 @@ const verifyGuestProfile = async p => {
   assert.equal(await p.locator('.account-panel uni-button').count(), 0, 'H5 must not expose a fake WeChat login or editable profile')
   assert.equal(await p.locator('.nickname-input').count(), 0)
   assert.match(await p.locator('.favorites-panel .section-subtitle').innerText(), /仅保存在本机/)
-  assert.match(await p.locator('.prototype-note').innerText(), /比赛与新闻仍为演示内容/)
+  assert.match(await p.locator('.prototype-note').innerText(), /赛程、球队与新闻仍为示例内容/)
   await noOverflow(p)
 }
 try {
@@ -38,6 +38,7 @@ try {
   check('home → match detail reconciles score and three goal events')
   await page.locator('.breadcrumb').click()
   await nav('赛事')
+  await page.locator('.page-tabs > uni-button').filter({ hasText: '示例赛程' }).click()
   await page.locator('.schedule-grid').waitFor()
   assert.equal(await page.locator('.schedule-grid .match-card').count(), 4)
   await page.locator('.filter-chip').filter({ hasText: /^进行中$/ }).click()
@@ -87,7 +88,7 @@ try {
   await shot('desktop-stats')
   check('standings and scorer tabs render calculated data')
   await nav('赛事')
-  await page.locator('.page-tabs > uni-button').filter({ hasText: '参赛球队' }).click()
+  await page.locator('.page-tabs > uni-button').filter({ hasText: '示例球队' }).click()
   await page.locator('.team-card').first().locator('.follow-button').click()
   await nav('我的')
   await verifyGuestProfile(page)
@@ -132,6 +133,7 @@ try {
     await p.screenshot({ path: `${out}/profile-${width}.png`, fullPage: true })
     check(`${width}px H5 guest profile has honest login support and no page overflow`)
     await p.locator(navSelector).filter({ hasText: /^赛事$/ }).click()
+    await p.locator('.page-tabs > uni-button').filter({ hasText: '示例赛程' }).click()
     await p.locator('.schedule-grid').waitFor(); await noOverflow(p)
     await p.screenshot({ path: `${out}/schedule-${width}.png`, fullPage: true })
     await p.locator('.page-tabs > uni-button').filter({ hasText: '对阵图' }).click()

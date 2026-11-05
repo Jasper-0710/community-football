@@ -17,7 +17,7 @@ function checkSession(value: any): AdminSession {
 }
 
 export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, timeoutMs = 15_000) {
-  async function request(action: string, fields: Record<string, string> = {}, token?: string): Promise<any> {
+  async function request(action: string, fields: Record<string, unknown> = {}, token?: string): Promise<any> {
     let url: URL
     try {
       url = new URL(baseUrl)
@@ -46,6 +46,16 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     } finally { clearTimeout(timer) }
   }
   return {
+    async registrations(token:string,competitionId:string,status?:string,cursor?:string) { const r=await request('registrations.listAdmin',{competitionId,...(status?{status}:{}),...(cursor?{cursor}:{})},token);return {...parseRegistrationPage(r),stats:parseRegistrationStats(r.stats)} },
+    async registration(token:string,id:string) { return parseRegistration((await request('registrations.getAdmin',{id},token)).registration) },
+    async reviewRegistration(token:string,id:string,expectedVersion:number,requestId:string,decision:'approved'|'rejected',reason:string,playerCount:number|null) { return parseRegistration((await request('registrations.review',{id,expectedVersion,requestId,decision,reason,playerCount},token)).registration) },
+    async registrationFile(token:string,id:string,fileId:string) { return parseFileLink(await request('registrations.fileLink',{id,fileId},token)) },
+    async teams(token: string, cursor?: string) { return parseTeamPage(await request('teams.listAdmin', cursor ? { cursor } : {}, token)) },
+    async team(token: string, id: string) { return parseManagedTeam((await request('teams.getAdmin', { id }, token)).team) },
+    async competitions(token: string, cursor?: string) { return parseCompetitionPage(await request('competitions.listAdmin', cursor ? { cursor } : {}, token), true) },
+    async createCompetition(token: string, requestId: string, form: CompetitionForm) { return parseCompetition((await request('competitions.create', { requestId, form }, token)).competition, true) },
+    async updateCompetition(token: string, id: string, expectedVersion: number, form: CompetitionForm) { return parseCompetition((await request('competitions.update', { id, expectedVersion, form }, token)).competition, true) },
+    async competitionSwitch(token: string, id: string, expectedVersion: number, kind: 'visibility' | 'registration', enabled: boolean) { return parseCompetition((await request(`competitions.${kind}`, { id, expectedVersion, enabled }, token)).competition, true) },
     async login(username: string, password: string): Promise<AdminSession & { token: string }> {
       const value = await request('login', { username, password })
       const session = checkSession(value)
@@ -65,3 +75,8 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
 }
 
 export type AdminApi = ReturnType<typeof createAdminApi>
+import { parseCompetition, parseCompetitionPage, type CompetitionForm } from '../../src/domain/competition'
+
+import { parseTeamPage, parseManagedTeam } from '../../src/domain/team'
+import {parseRegistration,parseRegistrationPage,parseFileLink} from '../../src/domain/registration'
+import {parseRegistrationStats} from '../../src/domain/competition'

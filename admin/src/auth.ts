@@ -57,6 +57,18 @@ export function createAdminAuth(api: AdminApi, storage?: Pick<Storage, 'getItem'
       } finally { if (operation === epoch) busy.value = false }
     },
     check,
+    async authorized<T>(operation: (api: AdminApi, sessionToken: string) => Promise<T>): Promise<T> {
+      if (!token || status.value !== 'authenticated') throw new AdminApiError('UNAUTHORIZED', '请先登录管理后台。')
+      const sessionToken = token
+      try {
+        const result = await operation(api, token)
+        if (sessionToken !== token || status.value !== 'authenticated') throw new AdminApiError('UNAUTHORIZED', '登录状态已变化，请重新进入。')
+        return result
+      } catch (e) {
+        if (e instanceof AdminApiError && e.code === 'UNAUTHORIZED' && sessionToken === token) { clear(); message.value = explain(e) }
+        throw e
+      }
+    },
     async logout() {
       if (busy.value) return
       const operation = ++epoch
