@@ -764,6 +764,9 @@ input { font: inherit; min-width: 0; }
 .team-message { display:block; padding:16px 18px; border:1px solid; border-radius:12px; font-size:16px; line-height:1.8; margin-bottom:20px; overflow-wrap:anywhere; }
 .team-message.error { color:#963a29; background:#fff3ed; border-color:#e4c9bf; }
 .team-message.success { color:#245c37; background:#edf6e9; border-color:#c6dcbc; }
+.team-field-error { display:block; margin-top:8px; color:#963a29; font-size:14px; line-height:1.7; overflow-wrap:anywhere; }
+.team-input.has-error, .team-picker-input.has-error { border-color:#b75135; background:#fff8f4; }
+.team-inline-message { margin-top:16px; margin-bottom:0; }
 .team-roster-panel .section-heading { padding-bottom:18px; border-bottom:1px solid #dce5d6; }
 .roster-count { display:inline-block; min-width:28px; padding:2px 8px; margin-left:5px; font-size:15px; background:#e8f1e3; border-radius:20px; color:#356340; }
 .player-form-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }
@@ -804,6 +807,10 @@ input { font: inherit; min-width: 0; }
 .team-dissolve-confirm { margin-top:20px; padding:20px; border:1px solid #e0bcb0; border-radius:12px; background:#fff7f2; font-size:16px; line-height:1.85; }
 .team-dissolve-confirm > text { display:block; margin-bottom:10px; }
 .team-confirm-name { font-weight:700; overflow-wrap:anywhere; }
+.team-confirm-name-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:12px; border:1px solid #e0bcb0; border-radius:10px; background:#fff; }
+.team-confirm-name-row .team-confirm-name { flex:1; min-width:0; }
+.team-confirm-hint { display:block; margin-top:12px; color:#963a29; font-size:15px; line-height:1.7; }
+.team-confirm-hint.matched { color:#245c37; }
 .team-dissolve-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:22px; }
 .team-dissolve-actions > button { flex:1; min-width:130px; min-height:48px; }
 .team-danger-button { display:flex; align-items:center; justify-content:center; padding:12px 16px; border-radius:10px; font-size:16px; font-weight:600; color:#fff; background:#963a29; border:1px solid #963a29; }
