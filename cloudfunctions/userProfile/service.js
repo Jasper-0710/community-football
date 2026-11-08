@@ -5,7 +5,7 @@ const { inflateSync } = require('node:zlib')
 const { PNG } = require('pngjs')
 const jpegDecoder = require('jpeg-js')
 
-const DEFAULT_APP_ID = 'wx52f6e75968af08d3'
+const DEFAULT_APP_ID = 'wx3230f06c755cef3a'
 const MAX_AVATAR_BYTES = 256 * 1024
 const MAX_AVATAR_EDGE = 2048
 const MAX_AVATAR_PIXELS = 4_000_000

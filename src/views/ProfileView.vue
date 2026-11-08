@@ -27,6 +27,7 @@ let avatarGeneration = 0
 const avatarSource = computed(() => draftAvatarPath.value || profile.value?.avatarUrl || '')
 const dirty = computed(() => !!profile.value && (nickname.value.trim() !== profile.value.nickname || (profile.value.avatarUploadEnabled && !!draftAvatar.value)))
 const nicknameLength = computed(() => Array.from(nickname.value).length)
+const saveDisabled = computed(() => saving.value || !!(profile.value?.avatarUploadEnabled && (avatarLoading.value || avatarError.value)) || !dirty.value)
 
 watch(profile, value => {
   ++avatarGeneration
@@ -90,7 +91,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
 <template>
   <view class="inner-page profile-page">
     <view class="profile-header">
-      <view class="profile-pitch" aria-hidden="true"><view /></view>
+      <view class="profile-pitch" aria-hidden="true"><view class="profile-pitch-circle" /></view>
       <view class="profile-header-top">
         <text class="profile-platform">中国社超 · 上海赛区</text>
         <text class="profile-status">{{ profile ? '已登录' : '游客体验' }}</text>
@@ -122,7 +123,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
       <text v-if="error" class="account-error" role="alert">{{ error }}</text>
       <text v-if="notice" class="account-hint" role="status">{{ notice }}</text>
       <view v-if="supported" class="account-actions login-actions">
-        <button class="ui-button primary-button login-button" hover-class="none" :disabled="loading" :loading="loading" @click="startLogin"><AppIcon v-if="!loading" name="user" tone="white" :size="21" /><text>{{ loading ? '正在登录…' : error ? '重新登录' : '微信登录' }}</text><AppIcon v-if="!loading" name="arrow" tone="white" :size="20" /></button>
+        <button class="ui-button primary-button login-button" :class="{ 'is-disabled': loading }" hover-class="none" :disabled="loading" :loading="loading" @click="startLogin"><AppIcon v-if="!loading" name="user" tone="white" :size="21" /><text class="login-button-label">{{ loading ? '正在登录…' : error ? '重新登录' : '微信登录' }}</text><AppIcon v-if="!loading" name="arrow" tone="white" :size="20" /></button>
         <button v-if="loading" class="ui-button text-button" hover-class="none" @click="signOut">取消登录</button>
       </view>
       <text class="account-field-hint login-footnote">登录后，昵称会随微信账号保存。</text>
@@ -130,7 +131,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
 
     <view v-else class="panel account-panel">
       <view class="section-heading">
-        <view><text class="section-title">个人资料</text><text class="section-subtitle">{{ profile.avatarUploadEnabled ? '昵称和头像修改后，点击保存生效' : '昵称修改后，点击保存生效' }}</text></view>
+        <view class="account-heading-copy"><text class="section-title">个人资料</text><text class="section-subtitle">{{ profile.avatarUploadEnabled ? '昵称和头像修改后，点击保存生效' : '昵称修改后，点击保存生效' }}</text></view>
         <button class="ui-button text-button sign-out-button" hover-class="none" @click="signOut">退出登录</button>
       </view>
       <view v-if="profile.avatarUploadEnabled" class="profile-avatar-field">
@@ -157,7 +158,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
       <text v-if="error" class="account-error" role="alert">{{ error }}</text>
       <text v-if="notice" class="account-success" role="status">{{ notice }}</text>
       <view class="account-actions">
-        <button class="ui-button primary-button" hover-class="none" :disabled="saving || (profile.avatarUploadEnabled && (avatarLoading || !!avatarError)) || !dirty" :loading="saving" @click="saveProfile">{{ saving ? '保存中' : '保存资料' }}</button>
+        <button class="ui-button primary-button" :class="{ 'is-disabled': saveDisabled }" hover-class="none" :disabled="saveDisabled" :loading="saving" @click="saveProfile">{{ saving ? '保存中' : '保存资料' }}</button>
         <button v-if="(dirty || (profile.avatarUploadEnabled && (avatarError || avatarLoading))) && !saving" class="ui-button text-button" hover-class="none" @click="discardChanges">放弃修改</button>
       </view>
       <text class="account-field-hint account-footnote">退出只清除此设备的登录状态，不会删除云端资料。</text>
@@ -182,7 +183,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
     </view>
     <view class="prototype-note">
       <AppIcon name="info" tone="green" :size="24" />
-      <view><text class="h3">当前开放的功能</text><text>赛事信息、微信登录与昵称已开放；赛程、球队与新闻仍为示例内容。建队与球员管理已开放，赛事报名将后续开放。关注记录仅保存在本机。</text></view>
+      <view><text class="h3">当前开放的功能</text><text class="prototype-note-description">赛事信息、微信登录与昵称已开放；赛程、球队与新闻仍为示例内容。建队与球员管理已开放，赛事报名将后续开放。关注记录仅保存在本机。</text></view>
     </view>
   </view>
 </template>
@@ -201,11 +202,11 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .profile-avatar-image { width: 100%; height: 100%; display: block; }
 .profile-pitch { position: absolute; width: 310px; height: 230px; right: -110px; top: 22px; border: 1px solid rgba(220,239,210,.14); border-radius: 12px; transform: rotate(-18deg); }
 .profile-pitch::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 1px solid rgba(220,239,210,.14); }
-.profile-pitch > view { position: absolute; width: 84px; height: 84px; border: 1px solid rgba(220,239,210,.14); border-radius: 50%; top: 72px; left: 111px; }
+.profile-pitch-circle { position: absolute; width: 84px; height: 84px; border: 1px solid rgba(220,239,210,.14); border-radius: 50%; top: 72px; left: 111px; }
 .profile-panels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 22px; }
 .account-panel, .favorites-panel { min-width: 0; padding: 26px; border-radius: 14px; }
 .account-panel .section-heading { align-items: flex-start; gap: 12px; margin-bottom: 20px; }
-.account-panel .section-heading > view { flex: 1; min-width: 0; }
+.account-heading-copy { flex: 1; min-width: 0; }
 .account-panel .section-title { font-size: 22px; letter-spacing: 0; }
 .login-caption { display: flex; align-items: center; gap: 7px; color: #386548; font-size: 14px; margin-bottom: 17px; }
 .login-panel .section-title { font-size: 25px; }
@@ -218,9 +219,9 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .account-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 22px; }
 .account-actions .primary-button { width: 100%; min-height: 50px; border-radius: 10px; font-size: 16px; font-weight: 600; }
 .login-actions .login-button { justify-content: flex-start; padding: 0 18px; }
-.login-button > text { flex: 1; text-align: center; }
-.account-panel .primary-button[disabled] { opacity: 1; color: #61725d; background: #e7ede3; border-color: #e7ede3; cursor: default; }
-.account-panel .login-button[disabled] { color: #fff; background: #396e50; border-color: #396e50; }
+.login-button-label { flex: 1; text-align: center; }
+.account-panel .primary-button.is-disabled { opacity: 1; color: #61725d; background: #e7ede3; border-color: #e7ede3; cursor: default; }
+.account-panel .login-button.is-disabled { color: #fff; background: #396e50; border-color: #396e50; }
 .account-panel .sign-out-button { min-height: 36px; padding: 0 10px; border: 1px solid #e1e8dc; border-radius: 8px; font-size: 14px; color: #64725f; }
 .profile-avatar-field { display: flex; align-items: center; gap: 15px; padding: 5px 0 22px; }
 .avatar-select { width: 64px; height: 64px; flex: none; border-radius: 18px; overflow: hidden; background: #edf2e7; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
@@ -238,7 +239,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .favorites-panel .primary-button { border-radius: 9px; font-size: 14px; }
 .favorite-row { gap: 12px; flex-wrap: wrap; }
 .prototype-note { background: #f0f3ec; border: 1px solid #d3dfce; border-radius: 12px; }
-.prototype-note > view > text + text { color: #62715c; font-size: 14px; }
+.prototype-note-description { color: #62715c; font-size: 14px; }
 @media (max-width: 760px) {
   .profile-header { padding: 20px; gap: 22px; margin-bottom: 18px; border-radius: 16px; }
   .profile-platform { font-size: 14px; letter-spacing: 0; }

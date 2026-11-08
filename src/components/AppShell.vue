@@ -11,7 +11,7 @@ const searchOpen = ref(false)
 const tabs: { id: Tab; name: string; icon: string }[] = [{ id: 'home', name: '首页', icon: 'home' }, { id: 'tournament', name: '赛事', icon: 'calendar' }, { id: 'news', name: '动态', icon: 'news' }, { id: 'stats', name: '数据', icon: 'trophy' }, { id: 'profile', name: '我的', icon: 'user' }]
 let safeTop = 0
 // #ifdef MP-WEIXIN
-safeTop = uni.getSystemInfoSync().statusBarHeight || 20
+safeTop = uni.getWindowInfo().statusBarHeight ?? 20
 // #endif
 function navigate(tab: Tab) { if (props.root) emit('navigate', tab); else uni.reLaunch({ url: `/pages/index/index?tab=${tab}` }) }
 function back() { uni.navigateBack({ fail: () => uni.reLaunch({ url: '/pages/index/index' }) }) }

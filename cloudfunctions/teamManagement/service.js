@@ -1,6 +1,6 @@
 'use strict'
 const { createHash } = require('node:crypto')
-const APP_ID = 'wx52f6e75968af08d3'
+const APP_ID = 'wx3230f06c755cef3a'
 const DISTRICTS = ['黄浦区','徐汇区','长宁区','静安区','普陀区','虹口区','杨浦区','浦东新区','闵行区','宝山区','嘉定区','金山区','松江区','青浦区','奉贤区','崇明区']
 const POSITIONS = ['goalkeeper','defender','midfielder','forward']
 const PLAYER_ID = /^p_[a-f0-9]{32}$/
