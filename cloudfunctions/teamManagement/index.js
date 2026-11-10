@@ -1,5 +1,7 @@
 'use strict'
 const cloud=require('wx-server-sdk')
+const tcb=require('@cloudbase/node-sdk')
+const {createStorageAdapter}=require('./registration-storage')
 const {createTeamService,APP_ID}=require('./service')
 const {createReferenceChecker}=require('./references')
 const {createRegistrationService}=require('./registrations')
@@ -13,12 +15,7 @@ const store={transaction:fn=>db.runTransaction(async transaction=>fn({
 }))}
 const context=()=>cloud.getWXContext(),expectedAppId=process.env.WECHAT_APP_ID||APP_ID
 const uploadsEnabled=process.env.REGISTRATION_UPLOADS_ENABLED==='true'
-const storage={
- async upload(cloudPath,fileContent){return (await cloud.uploadFile({cloudPath,fileContent})).fileID},
- async download(fileID){return (await cloud.downloadFile({fileID})).fileContent},
- async remove(fileList){const r=await cloud.deleteFile({fileList});if(r.fileList?.some(f=>f.status!==0))throw new Error('Cleanup incomplete')},
- async link(fileID){const r=await cloud.getTempFileURL({fileList:[{fileID,maxAge:300}]});const f=r.fileList?.[0];if(!f?.tempFileURL||f.status!==0)throw new Error('Download unavailable');return f.tempFileURL},
-}
+const storage=createStorageAdapter(cloud,process.env.TCB_ENV||cloud.getWXContext().ENV||process.env.SCF_NAMESPACE,tcb.init({env:tcb.SYMBOL_CURRENT_ENV}))
 const registrationStore={...store,
  async list({ownerUserId,cursor,limit}){return (await db.collection('registrations').where({ownerUserId,...(cursor?{_id:db.command.gt(cursor)}:{})}).orderBy('_id','asc').limit(limit).get()).data},
  async read(id){return (await db.collection('registrations').doc(id).get()).data},

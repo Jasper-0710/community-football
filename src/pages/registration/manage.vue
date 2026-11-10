@@ -1,21 +1,34 @@
 <script setup lang="ts">
-import {computed,reactive,ref,watch} from 'vue'
+import {computed,nextTick,reactive,ref,watch} from 'vue'
 import {onLoad,onShow,onUnload} from '@dcloudio/uni-app'
 import AppShell from '@/components/AppShell.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import {useUserProfile} from '@/composables/useUserProfile'
 import {teamDistricts,teamRequestId} from '@/domain/team'
 import {competitionTime} from '@/domain/competition'
-import {registrationStates,fileSize,type RegistrationDetail,type RegistrationPreparation} from '@/domain/registration'
+import {registrationStates,fileSize,type RegistrationDetail,type RegistrationPreparation,type RegistrationForm} from '@/domain/registration'
 import {prepareRegistration,getMyRegistration,submitRegistration,cancelRegistration,chooseRegistrationFiles,uploadRegistrationFile,discardRegistrationFile,openRegistrationFile,type UploadDraft} from '@/services/registrations'
 const {profile,loading:profileLoading,error:profileError,supported,login}=useUserProfile()
+const confirming=ref(false),submitting=ref(false)
 const ready=ref(false),loading=ref(false),busy=ref(false),editing=ref(false),uncertain=ref(false),error=ref(''),notice=ref(''),locked=ref(false)
 const preparation=ref<RegistrationPreparation|null>(null),record=ref<RegistrationDetail|null>(null),deadline=ref<string|null>(null),drafts=ref<UploadDraft[]>([])
 const form=reactive({teamName:'',district:'',project:'',leaderName:'',contactPhone:''})
 let competitionId='',id='',generation=0,visible=true
 const title=computed(()=>record.value?.competitionName||preparation.value?.competition.name||'球队报名')
 const config=computed(()=>preparation.value?.competition.registrationConfig)
-const canSubmit=computed(()=>!!preparation.value?.team&&!!config.value&&preparation.value.uploadsEnabled&&!locked.value&&!busy.value&&!uncertain.value)
+const projectOptions=computed(()=>['请选择本次参赛项目',...(config.value?.projects||[])])
+const projectIndex=computed(()=>Math.max(0,(config.value?.projects.indexOf(form.project)??-1)+1))
+function selectProject(event:{detail:{value:string|number}}){form.project=config.value?.projects[Number(event.detail.value)-1]||''}
+function inputField(field:keyof RegistrationForm,event:unknown){
+ const input=event as {detail?:{value?:unknown};target?:{value?:unknown}}
+ const value=input.detail?.value??input.target?.value
+ if(typeof value==='string')form[field]=value
+}
+function submissionError(message:string){
+ error.value=message;uni.showToast({title:message,icon:'none',duration:3000})
+ void nextTick(()=>{if(visible&&editing.value)uni.pageScrollTo({selector:'.registration-submit',duration:200})})
+}
+const canSubmit=computed(()=>!!preparation.value?.team&&!!config.value&&preparation.value.uploadsEnabled&&!locked.value&&!busy.value&&!confirming.value&&!uncertain.value)
 const submitBlockers=computed(()=>{
  const reasons:string[]=[]
  if(!config.value)reasons.push('赛事报名项目和人数要求尚未设置，请联系赛事工作人员。')
@@ -33,7 +46,7 @@ function back(){uni.navigateBack({fail:()=>uni.reLaunch({url:'/pages/index/index
 function teamPage(){uni.navigateTo({url:'/pages/team/manage'})}
 function fillForm(){
  const r=record.value,t=preparation.value?.team
- Object.assign(form,r?r.form:{teamName:t?.name||'',district:t?.district||'',project:'',leaderName:'',contactPhone:t?.contactPhone||''})
+ Object.assign(form,r?r.form:{teamName:t?.name||'',district:t?.district||'',project:config.value?.projects.length===1?config.value.projects[0]:'',leaderName:'',contactPhone:t?.contactPhone||''})
  drafts.value=r?r.attachments.map(f=>({requestId:teamRequestId(),id:f.id,path:'',name:f.name,size:f.size,file:f,progress:100,error:'',existing:true})):[]
 }
 async function load(){
@@ -65,11 +78,22 @@ async function retry(d:UploadDraft){if(busy.value)return;busy.value=true;d.error
 async function remove(d:UploadDraft){if(busy.value)return;busy.value=true;error.value='';try{if(d.id&&!d.existing)await discardRegistrationFile(d.id);drafts.value=drafts.value.filter(x=>x!==d)}catch(e){error.value=explain(e)}finally{busy.value=false}}
 async function submit(){
  if(!canSubmit.value)return
- if(Object.values(form).some(v=>!v.trim())||!drafts.value.length||drafts.value.some(d=>!d.file||d.error)){error.value='请填写全部报名信息，并完成至少一份材料上传。';return}
- const confirm=await new Promise<boolean>(resolve=>uni.showModal({title:record.value?'确认重新提交':'确认提交报名',content:`${form.teamName} · ${form.project}\n共${drafts.value.length}份材料。提交后等待后台审核${record.value?'，原审核结果将重置':''}。`,confirmText:'确认提交',success:r=>resolve(r.confirm),fail:()=>resolve(false)}))
- if(!confirm||busy.value||!visible)return
- busy.value=true;error.value='';notice.value=''
- try{const r=await submitRegistration(competitionId,record.value?.version||0,preparation.value!.competition.rulesVersion,teamRequestId(),{...form},drafts.value.map(d=>d.file!.id));if(!visible)return;record.value=r;id=r.id;editing.value=false;notice.value='报名已提交，请等待审核。截止前可修改资料或撤销。'}catch(e){failure(e)}finally{busy.value=false}
+ error.value='';notice.value=''
+ const missing=([['teamName','球队名'],['district','所属地区'],['project','报名项目'],['leaderName','领队姓名'],['contactPhone','联系方式']] as const).filter(([field])=>!form[field].trim()).map(([,label])=>label)
+ if(missing.length){submissionError(`请填写${missing.join('、')}。`);return}
+ const phone=form.contactPhone.trim()
+ if(!/^\+?[0-9][0-9 ()-]{5,29}$/.test(phone)||phone.replace(/\D/g,'').length<7){submissionError('请填写有效的联系方式，手机号或含区号的联系电话。');return}
+ if(!drafts.value.length){submissionError('请上传至少一份报名材料，再提交审核。');return}
+ if(drafts.value.some(d=>d.error)){submissionError('有材料上传失败，请重试上传或移除后重新选择。');return}
+ if(drafts.value.some(d=>!d.file)){submissionError('材料尚未上传完成，请等待上传完成后再提交。');return}
+ confirming.value=true
+ let confirmed=false
+ try{
+  confirmed=await new Promise<boolean>((resolve,reject)=>uni.showModal({title:record.value?'确认重新提交':'确认提交报名',content:`${form.teamName} · ${form.project}\n共${drafts.value.length}份材料。提交后等待后台审核${record.value?'，原审核结果将重置':''}。`,confirmText:'确认提交',success:r=>resolve(r.confirm),fail:()=>reject(new Error('无法打开提交确认，请重试。'))}))
+ }catch(e){submissionError(explain(e));return}finally{confirming.value=false}
+ if(!confirmed||busy.value||!visible)return
+ busy.value=true;submitting.value=true
+ try{const r=await submitRegistration(competitionId,record.value?.version||0,preparation.value!.competition.rulesVersion,teamRequestId(),{...form},drafts.value.map(d=>d.file!.id));if(!visible)return;record.value=r;id=r.id;editing.value=false;notice.value='报名已提交，请等待审核。截止前可修改资料或撤销。';void nextTick(()=>{if(visible)uni.pageScrollTo({scrollTop:0,duration:0})})}catch(e){if(visible){failure(e);submissionError(error.value)}}finally{busy.value=false;submitting.value=false}
 }
 async function cancel(){
  if(!record.value||locked.value||busy.value||uncertain.value)return
@@ -86,8 +110,8 @@ async function openFile(fileId:string){if(!record.value||busy.value)return;busy.
  <view class="registration-heading"><text class="eyebrow">赛事报名</text><text class="page-title">{{ title }}</text><text class="page-description">填写报名资料，提交参赛材料，审核通过后获得参赛资格。</text></view>
  <view v-if="!profile" class="panel registration-empty"><AppIcon name="users" :size="40" tone="green"/><text class="h2">登录后，为你的球队报名</text><text class="muted">使用球队领队的微信账号提交，并随时查看审核进度。</text><text v-if="profileError" class="team-message error">{{ profileError }}</text><button v-if="supported" class="ui-button primary-button" :disabled="profileLoading" @click="login">微信登录</button><text v-else class="info-note">请在微信小程序中登录并报名。</text></view>
  <template v-else>
- <text v-if="error" class="team-message error" role="alert">{{ error }}</text><text v-if="notice" class="team-message success" role="status">{{ notice }}</text>
- <view v-if="uncertain" class="info-note"><text>请先重新读取报名记录，核对提交结果后再继续操作。</text><button class="ui-button outline-button" :disabled="busy" @click="load">重新读取报名</button></view>
+ <text v-if="error&&!editing" class="team-message error" role="alert">{{ error }}</text><text v-if="notice" class="team-message success" role="status">{{ notice }}</text>
+ <view v-if="uncertain&&!editing" class="info-note"><text>请先重新读取报名记录，核对提交结果后再继续操作。</text><button class="ui-button outline-button" :disabled="busy" @click="load">重新读取报名</button></view>
  <view v-if="loading" class="panel registration-empty"><text>正在读取报名资料…</text></view>
  <view v-else-if="!ready" class="panel registration-empty"><text class="h3">暂时无法读取报名信息</text><button class="ui-button outline-button" @click="load">重新加载</button></view>
  <template v-else>
@@ -105,12 +129,12 @@ async function openFile(fileId:string){if(!record.value||busy.value)return;busy.
  <view class="panel registration-rules"><text class="h3">本赛事报名须知</text><view v-if="config" class="registration-rule-grid"><view><text class="fact-label">球队名额</text><text>{{ config.teamLimit===null?'不限额':`共${config.teamLimit}队 · 已占${preparation.competition.registrationStats.occupied}队` }}</text></view><view><text class="fact-label">每队参赛人数</text><text>{{ config.minPlayers }}–{{ config.maxPlayers }}人</text></view></view><text class="muted">截止：{{ competitionTime(deadline) }}（北京时间）</text><text class="muted">请在材料中提供完整参赛名单。人数由管理员审核材料时核对。</text><text v-if="!config" class="info-note">赛事报名安排尚未完善，请稍后再试。</text><text v-if="!preparation.uploadsEnabled" class="info-note">报名材料上传暂未开放，暂时无法提交报名。</text><text v-if="locked" class="info-note">报名已截止，当前资料已锁定。</text></view>
  <view class="panel registration-form">
   <view class="info-section-heading"><text class="info-section-number">01</text><view><text class="h2">球队与报名项目</text><text class="section-subtitle">以下为本次报名资料，带 * 的内容为必填</text></view></view>
-  <label class="team-field-label" for="registration-team">球队名 *</label><input id="registration-team" class="team-input" v-model="form.teamName" :disabled="busy||uncertain||locked" maxlength="40" placeholder="填写球队全称" aria-label="报名球队名"/>
+  <label class="team-field-label" for="registration-team">球队名 *</label><input id="registration-team" class="team-input" :value="form.teamName" @input="inputField('teamName',$event)" @blur="inputField('teamName',$event)" @confirm="inputField('teamName',$event)" :disabled="busy||uncertain||locked" maxlength="40" placeholder="填写球队全称" aria-label="报名球队名"/>
   <text class="team-field-label">所属地区 *</text><picker :range="teamDistricts" :value="Math.max(0,teamDistricts.indexOf(form.district))" :disabled="busy||uncertain||locked" @change="form.district=teamDistricts[Number($event.detail.value)]"><view class="team-picker-input" role="button" aria-label="选择报名地区"><text>{{ form.district||'请选择上海所属区' }}</text><AppIcon name="down" :size="18"/></view></picker>
-  <text class="team-field-label">报名项目 *</text><picker :range="config?.projects||[]" :value="Math.max(0,config?.projects.indexOf(form.project)||0)" :disabled="busy||uncertain||locked||!config" @change="form.project=config?.projects[Number($event.detail.value)]||''"><view class="team-picker-input" role="button" aria-label="选择报名项目"><text>{{ form.project||'请选择本次参赛项目' }}</text><AppIcon name="down" :size="18"/></view></picker>
+  <text class="team-field-label">报名项目 *</text><picker :range="projectOptions" :value="projectIndex" :disabled="busy||uncertain||locked||!config" @change="selectProject"><view class="team-picker-input" role="button" aria-label="选择报名项目"><text>{{ form.project||'请选择本次参赛项目' }}</text><AppIcon name="down" :size="18"/></view></picker>
   <view class="registration-form-divider"><view class="info-section-heading"><text class="info-section-number">02</text><view><text class="h2">领队联系方式</text><text class="section-subtitle">供赛事工作人员联系，仅本人及管理员可查看</text></view></view>
-   <label class="team-field-label" for="registration-leader">领队姓名 *</label><input id="registration-leader" class="team-input" v-model="form.leaderName" :disabled="busy||uncertain||locked" maxlength="30" placeholder="请填写领队真实姓名" aria-label="报名领队姓名"/>
-   <label class="team-field-label" for="registration-phone">联系方式 *</label><input id="registration-phone" class="team-input" v-model="form.contactPhone" :disabled="busy||uncertain||locked" maxlength="30" placeholder="手机号或含区号的联系电话" aria-label="报名联系方式"/>
+   <label class="team-field-label" for="registration-leader">领队姓名 *</label><input id="registration-leader" class="team-input" :value="form.leaderName" @input="inputField('leaderName',$event)" @blur="inputField('leaderName',$event)" @confirm="inputField('leaderName',$event)" :disabled="busy||uncertain||locked" maxlength="30" placeholder="请填写领队真实姓名" aria-label="报名领队姓名"/>
+   <label class="team-field-label" for="registration-phone">联系方式 *</label><input id="registration-phone" class="team-input" :value="form.contactPhone" @input="inputField('contactPhone',$event)" @blur="inputField('contactPhone',$event)" @confirm="inputField('contactPhone',$event)" :disabled="busy||uncertain||locked" maxlength="30" placeholder="手机号或含区号的联系电话" aria-label="报名联系方式"/>
   </view>
  </view>
  <view class="panel registration-materials"><view class="info-section-heading"><text class="info-section-number">03</text><view><text class="h2">报名材料 *</text><text class="section-subtitle">上传参赛名单及赛事要求的证明材料</text></view></view><text class="muted">PDF、JPG、PNG、Word（DOCX）、Excel（XLSX）；最多5份，每份不超过10MB。</text>
@@ -118,7 +142,7 @@ async function openFile(fileId:string){if(!record.value||busy.value)return;busy.
   <text v-if="!preparation.uploadsEnabled" class="info-note" role="status">材料上传暂未开放，选择材料按钮暂不可用。请等待赛事工作人员开放后重新读取。</text>
   <button class="ui-button outline-button upload-material-button" :disabled="busy||uncertain||locked||!preparation.uploadsEnabled||drafts.length>=5" @click="choose">{{ busy?'正在处理材料…':`＋ 选择报名材料（${drafts.length}/5）` }}</button>
  </view>
- <view class="panel registration-submit"><text class="h3">核对后提交，等待审核</text><text class="muted">截止前可修改或撤销，截止后锁定。修改后重新审核。待审核及已通过占用球队名额。</text><view v-if="submitBlockers.length" class="info-note" role="status"><text class="h3">暂时无法提交</text><text v-for="reason in submitBlockers" :key="reason" class="page-description">{{ reason }}</text></view><button class="ui-button primary-button" :disabled="!canSubmit" :loading="busy" @click="submit">{{ record?'保存修改并重新审核':'提交报名，等待审核' }}</button><button v-if="record" class="ui-button text-button" :disabled="busy" @click="editing=false">返回报名详情</button></view>
+ <view class="panel registration-submit"><text class="h3">核对后提交，等待审核</text><text class="muted">截止前可修改或撤销，截止后锁定。修改后重新审核。待审核及已通过占用球队名额。</text><view v-if="submitBlockers.length" class="info-note" role="status"><text class="h3">暂时无法提交</text><text v-for="reason in submitBlockers" :key="reason" class="page-description">{{ reason }}</text></view><view v-if="error" class="team-message error registration-submit-feedback" role="alert"><text>{{ error }}</text><button v-if="uncertain" class="ui-button outline-button" :disabled="busy||confirming" @click="load">重新读取报名</button></view><text v-if="submitting" class="info-note" role="status">正在提交报名，请稍候。请勿关闭页面或重复提交。</text><button class="ui-button primary-button" :disabled="!canSubmit" :loading="busy" @click="submit">{{ submitting?'正在提交报名…':confirming?'请确认提交':record?'保存修改并重新审核':'提交报名，等待审核' }}</button><button v-if="record" class="ui-button text-button" :disabled="busy" @click="editing=false">返回报名详情</button></view>
  </template>
  <view v-if="record?.history.length&&!editing" class="panel registration-history"><text class="h3">报名动态</text><view v-for="(h,i) in [...record.history].reverse()" :key="i"><text class="history-dot"/><view><text>{{ registrationStates[h.status] }} · {{ h.actor==='leader'?'领队操作':'后台审核' }}</text><text class="muted">{{ competitionTime(h.at) }}</text><text v-if="h.reason">{{ h.reason }}</text></view></view></view>
  </template></template>

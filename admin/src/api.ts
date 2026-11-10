@@ -1,3 +1,4 @@
+import {parseCleanupResult} from './registration-maintenance'
 export interface AdminSession {
   admin: { username: string; displayName: string; role: 'admin' }
   expiresAt: string
@@ -46,6 +47,7 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     } finally { clearTimeout(timer) }
   }
   return {
+    async cleanupRegistrationFiles(token:string,dryRun=true,cursor?:string) { const r=await request('registrations.cleanup',{dryRun,...(cursor?{cursor}:{})},token);if(r.dryRun!==dryRun)throw new AdminApiError('INVALID_RESPONSE','材料维护返回异常，请重新检查。');return parseCleanupResult(r) },
     async registrations(token:string,competitionId:string,status?:string,cursor?:string) { const r=await request('registrations.listAdmin',{competitionId,...(status?{status}:{}),...(cursor?{cursor}:{})},token);return {...parseRegistrationPage(r),stats:parseRegistrationStats(r.stats)} },
     async registration(token:string,id:string) { return parseRegistration((await request('registrations.getAdmin',{id},token)).registration) },
     async reviewRegistration(token:string,id:string,expectedVersion:number,requestId:string,decision:'approved'|'rejected',reason:string,playerCount:number|null) { return parseRegistration((await request('registrations.review',{id,expectedVersion,requestId,decision,reason,playerCount},token)).registration) },

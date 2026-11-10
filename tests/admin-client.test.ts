@@ -97,3 +97,16 @@ test('routine session checks do not invalidate a concurrent authorized business 
   await auth.check(); finish('saved')
   assert.equal(await pending, 'saved'); assert.equal(auth.status.value, 'authenticated')
 })
+
+
+test('registration cleanup API defaults to preview, preserves authentication and rejects malformed results', async () => {
+ const result={ok:true,dryRun:true,scannedSessions:5,eligibleSessions:1,retainedSessions:2,deferredSessions:0,blockedObjects:0,candidateObjects:2,removedObjects:0,failedObjects:0,cleanedSessions:0,retryPage:false,nextCursor:null}
+ const calls:any[]=[]
+ const client=createAdminApi('https://example.test/api',async(_url,init)=>{calls.push(init);return new Response(JSON.stringify(result))})
+ assert.equal((await client.cleanupRegistrationFiles(token)).dryRun,true)
+ assert.deepEqual(JSON.parse(calls[0].body),{action:'registrations.cleanup',dryRun:true});assert.equal(calls[0].headers.Authorization,`Bearer ${token}`)
+ for(const extra of [{removedObjects:-1},{candidateObjects:'2'},{nextCursor:'private-file'},{dryRun:false}]){
+  const broken=createAdminApi('https://example.test/api',async()=>new Response(JSON.stringify({...result,...extra})))
+  await assert.rejects(broken.cleanupRegistrationFiles(token),(e:any)=>e.code==='INVALID_RESPONSE')
+ }
+})

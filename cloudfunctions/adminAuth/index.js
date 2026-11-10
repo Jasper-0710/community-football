@@ -3,6 +3,8 @@
 const cloud = require('wx-server-sdk')
 const { createAdminTeamService } = require('./teams')
 const { createAdminRegistrationService } = require('./registrations')
+const { createRegistrationCleanupService } = require('./registration-cleanup')
+const { createStorageAdapter } = require('./registration-storage')
 const { createAdminService } = require('./service')
 const { createHttpHandler } = require('./http')
 const { createCompetitionService, createApplicationRouter, PUBLIC_ACTIONS } = require('./competitions')
@@ -49,10 +51,10 @@ const teams = createAdminTeamService({
     async user(id) { return (await database.collection('users').doc(id).get()).data },
   },
 })
-const registrations = createAdminRegistrationService({
- authorize: token => service({ action: 'session', token }), uploadsEnabled: process.env.REGISTRATION_UPLOADS_ENABLED === 'true',
- storage: { async link(fileID) { const r=await cloud.getTempFileURL({fileList:[{fileID,maxAge:300}]});const f=r.fileList?.[0];if(!f?.tempFileURL||f.status!==0)throw new Error('Download unavailable');return f.tempFileURL } },
- store: {
+const registrationStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.getWXContext().ENV || process.env.SCF_NAMESPACE)
+const registrationStore = {
+
+  async listFiles({cursor,limit}) { return (await database.collection('registrationFiles').where(cursor?{_id:database.command.gt(cursor)}:{}).orderBy('_id','asc').limit(limit).get()).data },
   async list({competitionId,cursor,status,limit}) { return (await database.collection('registrations').where({competitionId,...(status?{status}:{}),...(cursor?{_id:database.command.gt(cursor)}:{})}).orderBy('_id','asc').limit(limit).get()).data },
   async read(id) { return (await database.collection('registrations').doc(id).get()).data },
   competition: competitionStore.read,
@@ -60,9 +62,10 @@ const registrations = createAdminRegistrationService({
    async get(collection,id){return (await tx.collection(collection).doc(id).get()).data},
    async set(collection,id,value){const {_id,_openid,...data}=value;await tx.collection(collection).doc(id).set({data})},
   })),
- },
-})
-const router = event => typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : baseRouter(event)
+}
+const registrations = createAdminRegistrationService({store:registrationStore,storage:registrationStorage,authorize:token=>service({action:'session',token}),uploadsEnabled:process.env.REGISTRATION_UPLOADS_ENABLED==='true'})
+const cleanup = createRegistrationCleanupService({store:registrationStore,storage:registrationStorage,authorize:token=>service({action:'session',token})})
+const router = event => event?.action === 'registrations.cleanup' ? cleanup(event) : typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : baseRouter(event)
 const origins = ['http://127.0.0.1:5174', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://localhost:5173', ...(process.env.ADMIN_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)]
 const http = createHttpHandler(router, origins, PUBLIC_ACTIONS)
 exports.main = async event => event && typeof event.httpMethod === 'string' ? http(event) : router(event)

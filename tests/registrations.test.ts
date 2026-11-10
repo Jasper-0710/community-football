@@ -16,7 +16,7 @@ const config={projects:['男子组','女子组'],teamLimit:1,minPlayers:5,maxPla
 const event={action:'registrations.submit',competitionId:cid,expectedVersion:0,rulesVersion:1,requestId:req,form,attachmentIds:[fid]}
 function fixture(){
  const m=createRegistrationMemory(),clock={value:Date.parse('2026-11-05T00:00:00Z')},files=new Map<string,Buffer>(),now=()=>clock.value
- const storage={async upload(path:string,b:Buffer){files.set(path,Buffer.from(b));return path},async download(path:string){if(!files.has(path))throw Error('missing');return Buffer.from(files.get(path)!)},async remove(paths:string[]){paths.forEach(p=>files.delete(p))},async link(path:string){return 'https://example.test/file?authorized=temporary'}}
+ const storage={path:(id:string)=>id,async prepare(path:string){return path},async upload(path:string,b:Buffer){files.set(path,Buffer.from(b));return path},async download(path:string){if(!files.has(path))throw Error('missing');return Buffer.from(files.get(path)!)},async remove(paths:string[]){paths.forEach(p=>files.delete(p));return paths},async link(path:string){return 'https://example.test/file?authorized=temporary'}}
  for(const owner of ['owner-a','owner-b']){const uid=userId(APP_ID,owner);m.seed('users',uid,{appId:APP_ID,openId:owner,nickname:'测试领队',role:'leader'});m.seed('leaderTeamBindings',uid,{teamId:'t_'+uid});m.seed('teams','t_'+uid,{name:'原球队名',district:'黄浦区',contactPhone:'021-55556666',leaderUserId:uid,status:'active',schemaVersion:1,version:1,roster:[]});m.seed('registrationFiles',owner==='owner-a'?fid:fid2,{ownerUserId:uid,competitionId:cid,status:'ready',name:'报名.pdf',size:100,extension:'pdf',fileID:'private-original',expiresAt:now()+86400000})}
  m.seed('competitions',cid,{name:'社区足球赛',description:'赛事说明',format:'round_robin',formatDescription:'循环赛',venue:'社区球场',startDate:'2026-11-20',endDate:'2026-11-25',registrationRequirements:'提交材料，等待审核',displayEnabled:true,registrationEnabled:true,registrationStartAt:'2026-11-01T00:00:00.000Z',registrationEndAt:'2026-11-10T00:00:00.000Z',registrationConfig:config,registrationRulesVersion:1,version:1,createdAt:now(),updatedAt:now()})
  const handler=(owner='owner-a',enabled=true,appid=APP_ID)=>createRegistrationService({store:m.registrationStore,context:()=>({OPENID:owner,APPID:appid}),uploadsEnabled:enabled,storage,now,logger:{error(){}}})
@@ -75,6 +75,49 @@ test('review requires reason or in-range verified count; stale approval races ca
  assert.equal([edit,review].filter(r=>r.ok).length,1);assert.equal([edit,review].find(r=>!r.ok).error.code,'CONFLICT');assert.equal(s.read('competitions',cid).registrationStats.occupied,1)
  const fresh=fixture(),original=(await fresh.submit()).registration;await fresh.submit({expectedVersion:1,requestId:'d'.repeat(32),form:{...form,leaderName:'更新姓名'}});assert.equal((await fresh.review(original)).error.code,'CONFLICT')
 })
+test('existing pending registration uses current 2–18 rules after submission under 5–18; review keeps both historical ranges',async()=>{
+ const s=fixture()
+ s.seed('competitions',cid,{...s.read('competitions',cid),registrationConfig:{...config,maxPlayers:18}})
+ const submitted=parseRegistration((await s.submit()).registration)
+ s.seed('competitions',cid,{...s.read('competitions',cid),registrationConfig:{...config,minPlayers:2,maxPlayers:18},registrationRulesVersion:2})
+ const result=await s.review(submitted,'approved',{playerCount:2})
+ assert.equal(result.ok,true,JSON.stringify(result))
+ const approved=parseRegistration(result.registration)
+ assert.equal(approved.review?.playerCount,2)
+ assert.deepEqual(approved.review?.rules,{minPlayers:2,maxPlayers:18,rulesVersion:2})
+ assert.equal(approved.minPlayers,5);assert.equal(approved.maxPlayers,18)
+ assert.equal(s.read('registrations',submitted.id).competitionSnapshot.minPlayers,5)
+ assert.deepEqual(parseRegistration((await s.admin({action:'registrations.getAdmin',id:submitted.id,token:'test-token'})).registration).reviewRules,{minPlayers:2,maxPlayers:18,rulesVersion:2})
+ // Later changes must not invalidate an already approved count, either for the admin or the leader.
+ s.seed('competitions',cid,{...s.read('competitions',cid),registrationConfig:{...config,minPlayers:8,maxPlayers:12},registrationRulesVersion:3})
+ const reread=parseRegistration((await s.admin({action:'registrations.getAdmin',id:submitted.id,token:'test-token'})).registration)
+ assert.equal(reread.review?.playerCount,2);assert.equal(reread.review?.rules?.minPlayers,2)
+ assert.equal(parseRegistration((await s.service({action:'registrations.getMine',id:submitted.id})).registration).review?.playerCount,2)
+ assert.equal(parseRegistration((await s.review(submitted,'approved',{playerCount:2})).registration).review?.playerCount,2)
+ assert.deepEqual(s.read('competitions',cid).registrationStats,{pending:0,approved:1,occupied:1})
+})
+test('latest transaction rules reject stale approvals after tightening while rejection remains possible',async()=>{
+ const s=fixture(),submitted=(await s.submit()).registration
+ const before=await s.admin({action:'registrations.getAdmin',id:submitted.id,token:'test-token'})
+ assert.equal(before.ok,true)
+ s.seed('competitions',cid,{...s.read('competitions',cid),registrationConfig:{...config,minPlayers:10,maxPlayers:12},registrationRulesVersion:2})
+ for(const playerCount of [8,13]){
+  const result=await s.review(submitted,'approved',{playerCount})
+  assert.equal(result.error?.code,'INVALID_ARGUMENT');assert.match(result.error.message,/10–12/)
+  assert.equal(s.read('registrations',submitted.id).status,'pending')
+ }
+ s.seed('competitions',cid,{...s.read('competitions',cid),registrationConfig:null})
+ assert.equal((await s.review(submitted)).error?.code,'NOT_CONFIGURED')
+ assert.equal((await s.review(submitted,'rejected')).ok,true)
+})
+test('legacy approved records remain readable using their original player range',async()=>{
+ const s=fixture(),submitted=(await s.submit()).registration
+ const approved=(await s.review(submitted)).registration
+ const record=s.read('registrations',submitted.id);delete record.review.rules;s.seed('registrations',submitted.id,record)
+ const old=parseRegistration((await s.service({action:'registrations.getMine',id:submitted.id})).registration)
+ assert.equal(old.review?.playerCount,8);assert.equal(old.review?.rules,null)
+ assert.throws(()=>parseRegistration({...approved,review:{...approved.review,rules:{minPlayers:0,maxPlayers:18,rulesVersion:2}}}))
+})
 test('all submission writes roll back together on storage failure; uncertain retries cannot multiply seats',async()=>{
  const s=fixture();s.failures.failAfter=2;const before=structuredClone([...s.records]);assert.equal((await s.submit()).error.code,'SERVICE_UNAVAILABLE');assert.deepEqual([...s.records],before)
  s.failures.failAfter=Infinity;assert.equal((await s.submit()).ok,true)
@@ -107,7 +150,7 @@ test('file uploads are gated, owned, bounded and immutable; bytes are checked be
  assert.equal((await upload({action:'files.finish',id:first.id})).error.code,'UPLOAD_INCOMPLETE')
  const chunk={action:'files.chunk',id:first.id,index:0,data:pdf.toString('base64')};assert.equal((await upload(chunk)).ok,true);assert.equal((await upload(chunk)).ok,true)
  const wrong=Buffer.from(pdf);wrong[10]=65;assert.equal((await upload({...chunk,data:wrong.toString('base64')})).error.code,'CONFLICT')
- const result=await upload({action:'files.finish',id:first.id});assert.equal(result.file.size,pdf.length);assert.equal(s.files.size,1);assert.deepEqual(await upload({action:'files.finish',id:first.id}),result)
+ const result=await upload({action:'files.finish',id:first.id});assert.equal(result.file.size,pdf.length);assert.equal(s.files.size,2);assert.deepEqual(await upload({action:'files.finish',id:first.id}),result)
  const r=await s.submit({attachmentIds:[first.id]});assert.equal(r.ok,true);assert.equal(s.read('users',s.uid).registrationUploadSlots.length,0)
  assert.equal((await upload({action:'files.discard',id:first.id})).error.code,'CONFLICT')
 })
@@ -115,14 +158,14 @@ test('file content mismatch, excessive size, executable extension, expiry and di
  const s=fixture(),upload=s.upload()
  for(const values of [{name:'bad.exe',size:1},{name:'../a.pdf',size:1},{name:'large.pdf',size:10*1024*1024+1},{name:'zero.pdf',size:0}])assert.equal((await upload({action:'files.start',competitionId:cid,requestId:req,...values})).error.code,'INVALID_ARGUMENT')
  const r=await upload({action:'files.start',competitionId:cid,requestId:req,name:'fake.pdf',size:10});await upload({action:'files.chunk',id:r.id,index:0,data:Buffer.alloc(10).toString('base64')});assert.equal((await upload({action:'files.finish',id:r.id})).error.code,'INVALID_ATTACHMENT')
- assert.equal((await upload({action:'files.discard',id:r.id})).ok,true);assert.equal(s.files.size,0);assert.equal((await upload({action:'files.finish',id:r.id})).error.code,'INVALID_ATTACHMENT')
+ assert.equal((await upload({action:'files.discard',id:r.id})).ok,true);assert.equal(s.files.size,1);assert.equal((await upload({action:'files.finish',id:r.id})).error.code,'INVALID_ATTACHMENT')
  const next=await upload({action:'files.start',competitionId:cid,requestId:'b'.repeat(32),name:'later.pdf',size:10});s.clock.value+=86400001;assert.equal((await upload({action:'files.chunk',id:next.id,index:0,data:Buffer.alloc(10).toString('base64')})).error.code,'INVALID_ATTACHMENT')
 })
 test('multi-chunk content is checked and reassembled, out-of-order chunks and concurrent finish are safe',async()=>{
  const s=fixture(),upload=s.upload(),pdf=Buffer.concat([Buffer.from('%PDF-1.4\n'),Buffer.alloc(CHUNK*2,32),Buffer.from('\n%%EOF')])
  const first=await upload({action:'files.start',competitionId:cid,requestId:req,name:'long.pdf',size:pdf.length})
  for(const i of [2,0,1])assert.equal((await upload({action:'files.chunk',id:first.id,index:i,data:pdf.subarray(i*CHUNK,Math.min((i+1)*CHUNK,pdf.length)).toString('base64')})).ok,true)
- const results=await Promise.all([upload({action:'files.finish',id:first.id}),upload({action:'files.finish',id:first.id})]);assert.ok(results.every(r=>r.ok));assert.equal(s.files.size,1);assert.deepEqual([...s.files.values()][0],pdf)
+ const results=await Promise.all([upload({action:'files.finish',id:first.id}),upload({action:'files.finish',id:first.id})]);assert.ok(results.every(r=>r.ok));assert.equal(s.files.size,4);assert.deepEqual(s.files.get(s.read('registrationFiles',first.id).fileID),pdf)
 })
 test('both deployed functions share identical registration state rules',async()=>{
  assert.deepEqual(await readFile('cloudfunctions/teamManagement/registration-model.js'),await readFile('cloudfunctions/adminAuth/registration-model.js'))

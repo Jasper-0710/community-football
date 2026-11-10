@@ -23,13 +23,17 @@ function createAdminRegistrationService({store,authorize,storage,uploadsEnabled=
    const hash=M.fingerprint({id:event.id,version:event.expectedVersion,decision:event.decision,reason,count})
    return await store.transaction(async tx=>{
     const r=await tx.get('registrations',event.id);if(!r)M.fail('NOT_FOUND','报名记录不存在。')
-    if(r.lastReviewRequest?.id===event.requestId){if(r.lastReviewRequest.hash!==hash)M.fail('CONFLICT','该审核请求已处理，请刷新。');return {ok:true,registration:M.detail(r)}}
-    if(r.version!==event.expectedVersion||r.status!=='pending')M.fail('CONFLICT','报名内容或审核状态已变化，请重新读取后审核。')
-    if(count!==null&&(count<r.competitionSnapshot.minPlayers||count>r.competitionSnapshot.maxPlayers))M.fail('INVALID_ARGUMENT',`参赛人数须为${r.competitionSnapshot.minPlayers}–${r.competitionSnapshot.maxPlayers}人。请核对材料，或填写原因驳回。`)
     const c=await tx.get('competitions',r.competitionId);if(!c)throw new Error('Missing competition')
-    const time=new Date(now()).toISOString(),updated={...r,status:event.decision,version:r.version+1,updatedAt:time,review:{decision:event.decision,reason,playerCount:count,reviewedAt:time,reviewedBy:auth.admin?.username||'admin'},lastReviewRequest:{id:event.requestId,hash},history:M.history(r,event.decision,'admin',time,reason)}
+    if(r.lastReviewRequest?.id===event.requestId){if(r.lastReviewRequest.hash!==hash)M.fail('CONFLICT','该审核请求已处理，请刷新。');return {ok:true,registration:M.detail(r,c)}}
+    if(r.version!==event.expectedVersion||r.status!=='pending')M.fail('CONFLICT','报名内容或审核状态已变化，请重新读取后审核。')
+    const rules=M.playerRules(c)
+    if(count!==null){
+     if(!rules)M.fail('NOT_CONFIGURED','本赛事人数要求尚未配置，请先完善赛事设置。')
+     if(count<rules.minPlayers||count>rules.maxPlayers)M.fail('INVALID_ARGUMENT',`赛事当前要求${rules.minPlayers}–${rules.maxPlayers}人。请按最新要求核对人数，或填写原因驳回。`)
+    }
+    const time=new Date(now()).toISOString(),updated={...r,status:event.decision,version:r.version+1,updatedAt:time,review:{decision:event.decision,reason,playerCount:count,reviewedAt:time,reviewedBy:auth.admin?.username||'admin',rules:count!==null?rules:null},lastReviewRequest:{id:event.requestId,hash},history:M.history(r,event.decision,'admin',time,reason)}
     await tx.set('competitions',c._id,M.transition(c,r.status,updated.status));await tx.set('registrations',r._id,updated)
-    return {ok:true,registration:M.detail(updated)}
+    return {ok:true,registration:M.detail(updated,c)}
    })
   }
   const r=await store.read(event.id);if(!r)M.fail('NOT_FOUND','报名记录不存在。')
@@ -38,7 +42,8 @@ function createAdminRegistrationService({store,authorize,storage,uploadsEnabled=
    if(!uploadsEnabled)M.fail('UPLOAD_UNAVAILABLE','材料下载暂不可用，请联系平台维护人员。')
    return {ok:true,url:await storage.link(f.fileID),name:f.name,extension:f.extension}
   }
-  return {ok:true,registration:M.detail(r)}
+  const c=await store.competition(r.competitionId);if(!c)throw new Error('Missing competition')
+  return {ok:true,registration:M.detail(r,c)}
  }catch(error){return M.errorResult(error,logger)}}
 }
 module.exports={createAdminRegistrationService}

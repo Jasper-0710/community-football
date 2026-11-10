@@ -5,7 +5,8 @@ export type RegistrationState=keyof typeof registrationStates
 export interface RegistrationForm {teamName:string;district:string;project:string;leaderName:string;contactPhone:string}
 export interface RegistrationFile {id:string;name:string;size:number;extension:string}
 export interface RegistrationSummary {id:string;competitionId:string;teamId:string;competitionName:string;teamName:string;district:string;project:string;status:RegistrationState;version:number;attachmentCount:number;createdAt:string;submittedAt:string;updatedAt:string}
-export interface RegistrationDetail extends RegistrationSummary {form:RegistrationForm;attachments:RegistrationFile[];review:{decision:'approved'|'rejected';reason:string;playerCount:number|null;reviewedAt:string}|null;requirements:string;minPlayers:number;maxPlayers:number;history:{status:RegistrationState;actor:'leader'|'admin';at:string;reason:string}[]}
+export interface RegistrationPlayerRules {minPlayers:number;maxPlayers:number;rulesVersion:number}
+export interface RegistrationDetail extends RegistrationSummary {form:RegistrationForm;attachments:RegistrationFile[];review:{decision:'approved'|'rejected';reason:string;playerCount:number|null;reviewedAt:string;rules:RegistrationPlayerRules|null}|null;reviewRules:RegistrationPlayerRules|null;requirements:string;minPlayers:number;maxPlayers:number;history:{status:RegistrationState;actor:'leader'|'admin';at:string;reason:string}[]}
 export interface RegistrationPreparation {team:{id:string;name:string;district:string;contactPhone:string}|null;registration:RegistrationDetail|null;uploadsEnabled:boolean;serverTime:string;competition:{id:string;name:string;registrationEnabled:boolean;registrationStartAt:string|null;registrationEndAt:string|null;registrationConfig:RegistrationConfig|null;rulesVersion:number;registrationStats:RegistrationStats}}
 export class RegistrationClientError extends Error {constructor(public code:string,message:string){super(message);this.name='RegistrationClientError'}}
 const bad=()=>{throw new RegistrationClientError('INVALID_RESPONSE','报名服务返回异常，请重新读取。')}
@@ -20,14 +21,20 @@ export function parseRegistrationSummary(r:any):RegistrationSummary {
  if(!r||!/^r_[a-f0-9]{64}$/.test(r.id)||!/^c_[a-f0-9]{32}$/.test(r.competitionId)||!/^t_[a-f0-9]{64}$/.test(r.teamId)||!strings(r,['competitionName','teamName','district','project'])||!status(r.status)||!Number.isSafeInteger(r.version)||r.version<1||!Number.isSafeInteger(r.attachmentCount)||r.attachmentCount<1||r.attachmentCount>5||![r.createdAt,r.submittedAt,r.updatedAt].every(iso))bad()
  return {id:r.id,competitionId:r.competitionId,teamId:r.teamId,competitionName:r.competitionName,teamName:r.teamName,district:r.district,project:r.project,status:r.status,version:r.version,attachmentCount:r.attachmentCount,createdAt:r.createdAt,submittedAt:r.submittedAt,updatedAt:r.updatedAt}
 }
+function parsePlayerRules(r:any):RegistrationPlayerRules|null {
+ if(r==null)return null
+ if(![r.minPlayers,r.maxPlayers].every(n=>Number.isSafeInteger(n)&&n>0&&n<=200)||r.minPlayers>r.maxPlayers||!Number.isSafeInteger(r.rulesVersion)||r.rulesVersion<1)bad()
+ return {minPlayers:r.minPlayers,maxPlayers:r.maxPlayers,rulesVersion:r.rulesVersion}
+}
 export function parseRegistration(r:any):RegistrationDetail {
  const base=parseRegistrationSummary(r)
  if(!strings(r.form,['teamName','district','project','leaderName','contactPhone'])||!teamDistricts.includes(r.form.district)||!Array.isArray(r.attachments)||r.attachments.length!==base.attachmentCount||typeof r.requirements!=='string'||![r.minPlayers,r.maxPlayers].every(n=>Number.isSafeInteger(n)&&n>0&&n<=200)||r.minPlayers>r.maxPlayers||!Array.isArray(r.history)||r.history.length>20||r.history.some((h:any)=>!status(h.status)||!['leader','admin'].includes(h.actor)||!iso(h.at)||typeof h.reason!=='string'))bad()
  const attachments=r.attachments.map(parseRegistrationFile);if(new Set(attachments.map((a:RegistrationFile)=>a.id)).size!==attachments.length)bad()
- const review=r.review
- if(review!==null&&(!review||!['approved','rejected'].includes(review.decision)||typeof review.reason!=='string'||!iso(review.reviewedAt)||review.decision==='approved'&&(!Number.isSafeInteger(review.playerCount)||review.playerCount<r.minPlayers||review.playerCount>r.maxPlayers)||review.decision==='rejected'&&(!review.reason.trim()||review.playerCount!==null)))bad()
+ const review=r.review,reviewRules=parsePlayerRules(r.reviewRules),decidedRules=parsePlayerRules(review?.rules)
+ const approvedRange=decidedRules||{minPlayers:r.minPlayers,maxPlayers:r.maxPlayers}
+ if(review!==null&&(!review||!['approved','rejected'].includes(review.decision)||typeof review.reason!=='string'||!iso(review.reviewedAt)||review.decision==='approved'&&(!Number.isSafeInteger(review.playerCount)||review.playerCount<approvedRange.minPlayers||review.playerCount>approvedRange.maxPlayers)||review.decision==='rejected'&&(!review.reason.trim()||review.playerCount!==null)))bad()
  if((base.status==='approved'||base.status==='rejected')&&review?.decision!==base.status)bad()
- return {...base,form:{teamName:r.form.teamName,district:r.form.district,project:r.form.project,leaderName:r.form.leaderName,contactPhone:r.form.contactPhone},attachments,review:review?{decision:review.decision,reason:review.reason,playerCount:review.playerCount,reviewedAt:review.reviewedAt}:null,requirements:r.requirements,minPlayers:r.minPlayers,maxPlayers:r.maxPlayers,history:r.history.map((h:any)=>({status:h.status,actor:h.actor,at:h.at,reason:h.reason}))}
+ return {...base,form:{teamName:r.form.teamName,district:r.form.district,project:r.form.project,leaderName:r.form.leaderName,contactPhone:r.form.contactPhone},attachments,review:review?{decision:review.decision,reason:review.reason,playerCount:review.playerCount,reviewedAt:review.reviewedAt,rules:decidedRules}:null,reviewRules,requirements:r.requirements,minPlayers:r.minPlayers,maxPlayers:r.maxPlayers,history:r.history.map((h:any)=>({status:h.status,actor:h.actor,at:h.at,reason:h.reason}))}
 }
 export function parseRegistrationPage(v:any){
  if(!v||!Array.isArray(v.registrations)||v.registrations.length>20||v.nextCursor!==null&&(typeof v.nextCursor!=='string'||!/^r_[a-f0-9]{64}$/.test(v.nextCursor)))bad()

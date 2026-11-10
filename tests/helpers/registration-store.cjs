@@ -9,7 +9,7 @@ exports.createRegistrationMemory=()=>{
   return [...memory.records].filter(([key,r])=>key.startsWith('registrations/')&&(!ownerUserId||r.ownerUserId===ownerUserId)&&(!competitionId||r.competitionId===competitionId)&&(!status||r.status===status)&&(!cursor||r._id>cursor)).map(([,r])=>structuredClone(r)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)
  }
  const read=async(collection,id)=>{if(memory.failures.read)throw new Error('read unavailable');return memory.read(collection,id)}
- const registrationStore={transaction:memory.store.transaction,list,read:id=>read('registrations',id),competition:id=>read('competitions',id)}
+ const registrationStore={listFiles:async({cursor,limit})=>{if(memory.failures.read)throw new Error('read unavailable');return [...memory.records].filter(([k,r])=>k.startsWith('registrationFiles/')&&(!cursor||r._id>cursor)).map(([,r])=>structuredClone(r)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)},transaction:memory.store.transaction,list,read:id=>read('registrations',id),competition:id=>read('competitions',id)}
  const competitionStore={
   read:id=>read('competitions',id),
   list:async({publicOnly,cursor,limit})=>{if(memory.failures.read)throw new Error('read unavailable');return [...memory.records].filter(([key,r])=>key.startsWith('competitions/')&&(!publicOnly||r.displayEnabled)&&(!cursor||r._id>cursor)).map(([,r])=>structuredClone(r)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)},
