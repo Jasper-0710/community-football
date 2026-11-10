@@ -14,7 +14,7 @@ const props = defineProps<{ data: Tournament }>()
 const emit = defineEmits<{ navigate: [tab: Tab, view?: string] }>()
 const { favoriteIds, toggle } = useFavorites()
 const favorites = computed(() => props.data.teams.filter(t => favoriteIds.value.includes(t.id)))
-const { profile, loading, saving, error, supported, login, save, logout } = useUserProfile()
+const { profile, loading, saving, refreshingAvatar, refreshAvatar, error, supported, login, save, logout } = useUserProfile()
 const nickname = ref('')
 const draftAvatar = ref<AvatarUpload>()
 const draftAvatarPath = ref('')
@@ -23,14 +23,19 @@ const avatarError = ref('')
 const avatarImageFailed = ref(false)
 const headerAvatarFailed = ref(false)
 const notice = ref('')
+let autoAvatarRefreshAttempted = false
 let avatarGeneration = 0
 const avatarSource = computed(() => draftAvatarPath.value || profile.value?.avatarUrl || '')
 const dirty = computed(() => !!profile.value && (nickname.value.trim() !== profile.value.nickname || (profile.value.avatarUploadEnabled && !!draftAvatar.value)))
+const savedAvatarUnavailable = computed(() => !!profile.value?.avatarFileId && (!profile.value.avatarUrl || headerAvatarFailed.value || (!draftAvatarPath.value && avatarImageFailed.value)))
 const nicknameLength = computed(() => Array.from(nickname.value).length)
 const saveDisabled = computed(() => saving.value || !!(profile.value?.avatarUploadEnabled && (avatarLoading.value || avatarError.value)) || !dirty.value)
 
 watch(profile, value => {
   ++avatarGeneration
+  autoAvatarRefreshAttempted = false
+  headerAvatarFailed.value = false
+  avatarImageFailed.value = false
   nickname.value = value?.nickname || ''
   draftAvatar.value = undefined
   draftAvatarPath.value = ''
@@ -39,6 +44,25 @@ watch(profile, value => {
 })
 watch(avatarSource, () => { avatarImageFailed.value = false })
 watch(() => profile.value?.avatarUrl, () => { headerAvatarFailed.value = false })
+
+async function reloadAvatar() {
+  if (saving.value || refreshingAvatar.value) return
+  autoAvatarRefreshAttempted = true
+  if (await refreshAvatar()) {
+    headerAvatarFailed.value = false
+    if (!draftAvatarPath.value) avatarImageFailed.value = false
+  }
+}
+function avatarFailed(target: 'header' | 'editor') {
+  if (target === 'header') headerAvatarFailed.value = true
+  else avatarImageFailed.value = true
+  // A draft's local preview failing must not replace it with a saved avatar.
+  if (target === 'editor' && draftAvatarPath.value) {
+    avatarError.value = '选中的图片暂时无法预览，请重新选择或放弃修改。'
+    return
+  }
+  if (!autoAvatarRefreshAttempted) void reloadAvatar()
+}
 
 function openMyTeam() { uni.navigateTo({ url: '/pages/team/manage' }) }
 function openRegistrations() { uni.navigateTo({ url: '/pages/registration/mine' }) }
@@ -98,7 +122,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
       </view>
       <view class="profile-identity">
         <view class="profile-avatar">
-          <image v-if="profile?.avatarUrl && !headerAvatarFailed" :src="profile.avatarUrl" class="profile-avatar-image" mode="aspectFill" @error="headerAvatarFailed = true" />
+          <image v-if="profile?.avatarUrl && !headerAvatarFailed" :src="profile.avatarUrl" class="profile-avatar-image" mode="aspectFill" @error="avatarFailed('header')" />
           <AppIcon v-else name="user" tone="white" :size="34" />
         </view>
         <view class="profile-heading-copy">
@@ -117,7 +141,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
     <view v-if="!profile" class="panel account-panel login-panel">
       <view class="login-caption"><AppIcon name="check" tone="green" :size="18" /><text>微信身份登录 · 无需账号密码</text></view>
       <text class="section-title">登录个人中心</text>
-      <text class="account-description">设置你的专属昵称，让每次重返主场都能认出你。</text>
+      <text class="account-description">登录后可设置昵称和头像；已保存的资料会随当前微信账号自动读取。</text>
       <text v-if="!supported" class="account-hint platform-hint">请在微信小程序中登录，网页预览暂不支持微信云登录。</text>
       <text v-if="loading" class="account-hint" role="status">正在确认微信身份并读取个人资料…</text>
       <text v-if="error" class="account-error" role="alert">{{ error }}</text>
@@ -126,7 +150,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
         <button class="ui-button primary-button login-button" :class="{ 'is-disabled': loading }" hover-class="none" :disabled="loading" :loading="loading" @click="startLogin"><AppIcon v-if="!loading" name="user" tone="white" :size="21" /><text class="login-button-label">{{ loading ? '正在登录…' : error ? '重新登录' : '微信登录' }}</text><AppIcon v-if="!loading" name="arrow" tone="white" :size="20" /></button>
         <button v-if="loading" class="ui-button text-button" hover-class="none" @click="signOut">取消登录</button>
       </view>
-      <text class="account-field-hint login-footnote">登录后，昵称会随微信账号保存。</text>
+      <text class="account-field-hint login-footnote">未设置头像时显示默认图案。微信头像需由你主动选择，平台不会自动获取。</text>
     </view>
 
     <view v-else class="panel account-panel">
@@ -134,27 +158,39 @@ onBeforeUnmount(() => { ++avatarGeneration })
         <view class="account-heading-copy"><text class="section-title">个人资料</text><text class="section-subtitle">{{ profile.avatarUploadEnabled ? '昵称和头像修改后，点击保存生效' : '昵称修改后，点击保存生效' }}</text></view>
         <button class="ui-button text-button sign-out-button" hover-class="none" @click="signOut">退出登录</button>
       </view>
-      <view v-if="profile.avatarUploadEnabled" class="profile-avatar-field">
+      <view class="avatar-card">
+        <view class="avatar-card-heading"><text class="h3">个人头像</text><text class="avatar-state">{{ draftAvatar ? '待保存' : profile.avatarFileId ? '已设置' : '默认头像' }}</text></view>
         <!-- #ifdef MP-WEIXIN -->
-        <button class="ui-button avatar-select" hover-class="none" open-type="chooseAvatar" :disabled="saving || avatarLoading" @chooseavatar="selectAvatar">
-          <image v-if="avatarSource && !avatarImageFailed" :src="avatarSource" class="profile-avatar-image" mode="aspectFill" @error="avatarImageFailed = true" />
-          <AppIcon v-else name="user" tone="green" :size="32" />
+        <button v-if="profile.avatarUploadEnabled" class="ui-button profile-avatar-field" hover-class="none" open-type="chooseAvatar" :disabled="saving || avatarLoading" aria-label="选择或更换个人头像" @chooseavatar="selectAvatar">
+          <view class="avatar-select">
+            <image v-if="avatarSource && !avatarImageFailed" :src="avatarSource" class="profile-avatar-image" mode="aspectFill" @error="avatarFailed('editor')" />
+            <AppIcon v-else name="user" tone="green" :size="32" />
+          </view>
+          <view class="avatar-card-copy"><text class="h3">{{ avatarLoading ? '正在处理头像…' : draftAvatar ? '已选择新头像' : profile.avatarFileId ? '更换头像' : '选择头像' }}</text><text class="account-field-hint">{{ draftAvatar ? '点击下方“保存资料”后生效' : '选择微信头像或相册图片' }}</text></view>
+          <AppIcon name="arrow" tone="green" :size="20" />
         </button>
         <!-- #endif -->
-        <view><text class="h3">{{ avatarLoading ? '正在处理头像…' : '点击头像选择图片' }}</text><text class="account-field-hint">{{ draftAvatar ? '已选择新头像，保存后生效' : '支持 JPG、PNG 图片' }}</text></view>
+        <view v-if="!profile.avatarUploadEnabled" class="profile-avatar-field avatar-readonly">
+          <view class="avatar-select"><AppIcon name="user" tone="green" :size="32" /></view>
+          <view class="avatar-card-copy"><text class="h3">使用默认头像</text><text class="account-field-hint">头像上传待开通，昵称可正常保存。</text></view>
+        </view>
+        <text v-if="profile.avatarUploadEnabled" class="avatar-description">不选择时保留当前头像。支持 JPG、PNG，系统会自动压缩。</text>
+        <view v-if="savedAvatarUnavailable" class="avatar-retry">
+          <text class="account-field-hint">{{ refreshingAvatar ? '正在重新读取头像…' : '原头像暂时无法显示，已使用默认图案。' }}</text>
+          <button class="ui-button text-button" hover-class="none" :disabled="refreshingAvatar || saving" @click="reloadAvatar">{{ refreshingAvatar ? '读取中…' : '重新加载' }}</button>
+        </view>
       </view>
-      <text v-else class="account-hint">头像功能暂未开放，昵称可正常修改。</text>
-      <text v-if="profile.avatarUploadEnabled && avatarImageFailed && !avatarError" class="account-hint">头像暂时无法显示，可以重新选择图片或重新登录读取。</text>
       <text v-if="profile.avatarUploadEnabled && avatarError" class="account-error" role="alert">{{ avatarError }}</text>
       <view class="nickname-field">
         <view class="nickname-label"><text class="h3">昵称</text><text class="muted small-text">{{ nicknameLength }}/{{ MAX_NICKNAME_LENGTH }}</text></view>
         <!-- #ifdef MP-WEIXIN -->
-        <input v-model="nickname" class="nickname-input" type="nickname" :maxlength="MAX_NICKNAME_LENGTH" :disabled="saving" placeholder="请输入昵称" aria-label="昵称" />
+        <input v-model="nickname" class="nickname-input" type="nickname" :maxlength="MAX_NICKNAME_LENGTH" :disabled="saving" placeholder="请输入昵称（必填）" aria-label="昵称" />
         <!-- #endif -->
         <!-- #ifndef MP-WEIXIN -->
-        <input v-model="nickname" class="nickname-input" type="text" :maxlength="MAX_NICKNAME_LENGTH" :disabled="saving" placeholder="请输入昵称" aria-label="昵称" />
+        <input v-model="nickname" class="nickname-input" type="text" :maxlength="MAX_NICKNAME_LENGTH" :disabled="saving" placeholder="请输入昵称（必填）" aria-label="昵称" />
         <!-- #endif -->
       </view>
+      <text v-if="draftAvatar && !nickname.trim()" class="account-field-hint">请填写昵称，再保存头像和个人资料。</text>
       <text v-if="error" class="account-error" role="alert">{{ error }}</text>
       <text v-if="notice" class="account-success" role="status">{{ notice }}</text>
       <view class="account-actions">
@@ -198,7 +234,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .profile-heading-copy { flex: 1; min-width: 0; }
 .profile-header .profile-heading-copy .page-title { color: #fff; font-size: 28px; line-height: 1.4; letter-spacing: 0; margin: 0 0 8px; overflow-wrap: anywhere; }
 .profile-welcome { display: block; color: #d2e4d7; font-size: 15px; line-height: 1.7; }
-.profile-avatar { width: 68px; height: 68px; border-radius: 20px; background: #396b50; border: 1px solid #7a9a77; overflow: hidden; }
+.profile-avatar { display: flex; align-items: center; justify-content: center; flex: none; width: 68px; height: 68px; border-radius: 20px; background: #396b50; border: 1px solid #7a9a77; overflow: hidden; }
 .profile-avatar-image { width: 100%; height: 100%; display: block; }
 .profile-pitch { position: absolute; width: 310px; height: 230px; right: -110px; top: 22px; border: 1px solid rgba(220,239,210,.14); border-radius: 12px; transform: rotate(-18deg); }
 .profile-pitch::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 1px solid rgba(220,239,210,.14); }
@@ -223,7 +259,16 @@ onBeforeUnmount(() => { ++avatarGeneration })
 .account-panel .primary-button.is-disabled { opacity: 1; color: #61725d; background: #e7ede3; border-color: #e7ede3; cursor: default; }
 .account-panel .login-button.is-disabled { color: #fff; background: #396e50; border-color: #396e50; }
 .account-panel .sign-out-button { min-height: 36px; padding: 0 10px; border: 1px solid #e1e8dc; border-radius: 8px; font-size: 14px; color: #64725f; }
-.profile-avatar-field { display: flex; align-items: center; gap: 15px; padding: 5px 0 22px; }
+.avatar-card { padding: 16px; background: #f6f9f3; border: 1px solid #dbe5d5; border-radius: 12px; }
+.avatar-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.avatar-card-heading .h3 { font-size: 16px; }
+.avatar-state { padding: 3px 9px; border-radius: 20px; background: #e7efe1; color: #43633e; font-size: 12px; line-height: 1.6; }
+.profile-avatar-field { width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; padding: 0; }
+.avatar-card-copy { flex: 1; min-width: 0; }
+.avatar-card-copy .h3 { font-size: 16px; }
+.avatar-description { display: block; margin-top: 14px; color: #627164; font-size: 13px; line-height: 1.8; }
+.avatar-retry { margin-top: 12px; padding-top: 10px; border-top: 1px solid #dbe5d5; }
+.avatar-retry .text-button { min-height: 36px; font-size: 14px; color: #236144; }
 .avatar-select { width: 64px; height: 64px; flex: none; border-radius: 18px; overflow: hidden; background: #edf2e7; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
 .account-field-hint { display: block; color: var(--muted); font-size: 14px; line-height: 1.8; margin-top: 5px; }
 .nickname-field { margin-top: 22px; }

@@ -24,7 +24,9 @@
     "test:competitions:browser": "node scripts/verify-competitions.mjs",
     "test:teams:browser": "node scripts/verify-teams.mjs",
     "test:registrations:browser": "node scripts/verify-registrations.mjs",
-    "check:registration-contract": "node scripts/sync-registration-model.mjs --check"
+    "check:registration-contract": "node scripts/sync-registration-model.mjs --check",
+    "cloud:setup": "node scripts/setup-cloud-environment.mjs",
+    "cloud:check": "node --input-type=module -e \"import {loadCloudEnvironment} from './scripts/cloud-environment.mjs'; for (const mode of ['development','production','admin']) console.log(mode, loadCloudEnvironment(mode));\""
   },
   "dependencies": {
     "@dcloudio/uni-app": "3.0.0-5020620260917001",

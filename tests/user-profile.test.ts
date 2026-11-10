@@ -451,3 +451,41 @@ test('failed updates leave committed profile intact and service recovery allows 
   const after = await handle({ action: 'getOrCreate' })
   assert.deepEqual(after, before)
 })
+
+
+test('unavailable saved avatar falls back without blocking login or nickname updates and recovers on the next read', async () => {
+  const f = fixture({ avatarUploadEnabled: true })
+  const handle = f.handler()
+  const saved = await handle({ action: 'update', profile: { nickname: '原昵称' }, avatar: { base64: png.toString('base64'), format: 'png' } })
+  assert.equal(saved.ok, true)
+  f.failures.sign = true
+  const login = await handle({ action: 'getOrCreate' })
+  assert.equal(login.ok, true)
+  assert.equal(login.profile.avatarFileId, saved.profile.avatarFileId)
+  assert.equal(login.profile.avatarUrl, '')
+  const updated = await handle({ action: 'update', profile: { nickname: '新昵称' } })
+  assert.equal(updated.ok, true)
+  assert.equal(updated.profile.nickname, '新昵称')
+  assert.equal(updated.profile.avatarFileId, saved.profile.avatarFileId)
+  assert.equal(updated.profile.avatarUrl, '')
+  f.failures.sign = false
+  const recovered = await handle({ action: 'getOrCreate' })
+  assert.equal(recovered.profile.nickname, '新昵称')
+  assert.equal(recovered.profile.avatarFileId, saved.profile.avatarFileId)
+  assert.match(recovered.profile.avatarUrl, /^https:/)
+})
+
+test('a failed replacement upload or signing step never changes the previously saved avatar or nickname', async () => {
+  for (const failure of ['upload', 'sign'] as const) {
+    const f = fixture({ avatarUploadEnabled: true })
+    const handle = f.handler()
+    const saved = await handle({ action: 'update', profile: { nickname: '原昵称' }, avatar: { base64: png.toString('base64'), format: 'png' } })
+    f.failures[failure] = true
+    const failed = await handle({ action: 'update', profile: { nickname: '不应保存' }, avatar: { base64: jpegImage.toString('base64'), format: 'jpeg' } })
+    assert.equal(failed.ok, false)
+    f.failures[failure] = false
+    const restored = await handle({ action: 'getOrCreate' })
+    assert.equal(restored.profile.nickname, '原昵称')
+    assert.equal(restored.profile.avatarFileId, saved.profile.avatarFileId)
+  }
+})

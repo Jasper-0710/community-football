@@ -24,9 +24,9 @@ function normalizeUsername(value) {
   return value.trim().toLowerCase()
 }
 function checkPassword(password, creating = false) {
-  if (typeof password !== 'string' || Array.from(password).length < (creating ? 12 : 1)
+  if (typeof password !== 'string' || Array.from(password).length < (creating ? 8 : 1)
     || Array.from(password).length > 128 || Buffer.byteLength(password, 'utf8') > 512) {
-    fail('INVALID_ARGUMENT', creating ? '管理员密码须为12–128个字符。' : '请输入有效的账号和密码。')
+    fail('INVALID_ARGUMENT', creating ? '管理员密码须为8–128个字符。' : '请输入有效的账号和密码。')
   }
 }
 async function passwordRecord(password) {

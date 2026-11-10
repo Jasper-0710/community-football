@@ -28,6 +28,16 @@ test('admin bootstrap validates credentials and generates a salted hash only', a
   await assert.rejects(createAccount('admin', 'short'))
   await assert.rejects(createAccount('../admin', password))
 })
+test('admin password policy accepts eight characters and rejects shorter new passwords', async () => {
+  await assert.rejects(createAccount('admin', 'x'.repeat(7)), { code: 'INVALID_ARGUMENT', message: '管理员密码须为8–128个字符。' })
+  const minimumPassword = 'x'.repeat(8)
+  const account = await createAccount('admin', minimumPassword, clockStart)
+  const f = fixture(account)
+  const result = await f.handle({ action: 'login', username: 'admin', password: minimumPassword })
+  assert.equal(result.ok, true)
+  assert.equal((await f.handle({ action: 'session', token: result.token })).ok, true)
+  assert.ok(!JSON.stringify(account).includes(minimumPassword))
+})
 test('login yields an opaque token and protected overview; only its digest is stored', async () => {
   const f = fixture(), result = await f.login()
   assert.equal(result.ok, true)

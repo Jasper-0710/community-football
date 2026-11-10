@@ -231,3 +231,8 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 500; }
 .registrations-admin select,.registrations-admin textarea{display:block;width:100%;min-height:48px;padding:12px 14px;border:1px solid #cddccf;border-radius:10px;background:#fff;color:#283d30;font:inherit;font-size:16px;line-height:1.6;box-sizing:border-box}
 .registrations-admin textarea{resize:vertical;min-height:108px}.registrations-admin select:focus,.registrations-admin textarea:focus{outline:3px solid #daeae0;border-color:#347958}
 .review-controls fieldset{border:0;padding:0;margin:0;min-width:0}.review-controls fieldset:disabled{opacity:.65}
+
+.topbar-context { display:flex; align-items:center; gap:12px; }
+.environment-badge { padding:5px 10px; border:1px solid #c7d9c3; border-radius:20px; background:#edf5e8; color:#315e3d; font-size:13px; white-space:nowrap; }
+.environment-notice { display:grid; gap:6px; padding:16px; border:1px solid #ead29d; border-radius:10px; background:#fff9e9; color:#72531d; font-size:15px; line-height:1.6; }
+.environment-notice strong { font-size:16px; }

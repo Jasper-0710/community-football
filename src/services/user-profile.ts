@@ -39,9 +39,17 @@ function fileSize(path: string): Promise<number> {
   }))
 }
 
-function compressAvatar(path: string, width: number, quality: number): Promise<string> {
+function imageDimensions(path: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => uni.getImageInfo({
+    src: path,
+    success: result => resolve({ width: result.width, height: result.height }),
+    fail: () => reject(new UserProfileError('INVALID_AVATAR', '图片无法打开，请重新选择 JPG 或 PNG 头像。')),
+  }))
+}
+
+function compressAvatar(path: string, width: number, height: number, quality: number): Promise<string> {
   return new Promise((resolve, reject) => uni.compressImage({
-    src: path, compressedWidth: width, quality,
+    src: path, compressedWidth: width, compressedHeight: height, quality,
     success: result => resolve(result.tempFilePath),
     fail: () => reject(new UserProfileError('AVATAR_COMPRESS_FAILED', '头像处理失败，请换一张 JPG 或 PNG 图片重试。')),
   }))
@@ -66,12 +74,20 @@ export async function prepareAvatarUpload(path: string): Promise<{ upload: Avata
   if (!Number.isFinite(initialSize) || initialSize <= 0 || initialSize > 10 * 1024 * 1024) {
     throw new UserProfileError('INVALID_AVATAR', '请选择小于 10 MB 的 JPG 或 PNG 头像。')
   }
+  const dimensions = await imageDimensions(path)
+  const edge = Math.max(dimensions.width, dimensions.height)
+  if (![dimensions.width, dimensions.height].every(value => Number.isFinite(value) && value > 0)) {
+    throw new UserProfileError('INVALID_AVATAR', '图片尺寸无法读取，请重新选择头像。')
+  }
+  let needsResize = edge > 512
   let previewPath = path
   let size = initialSize
   for (const [width, quality] of [[512, 80], [384, 65], [256, 45]]) {
-    if (size <= MAX_AVATAR_BYTES) break
-    previewPath = await compressAvatar(path, width, quality)
+    if (size <= MAX_AVATAR_BYTES && !needsResize) break
+    const ratio = Math.min(1, width / edge)
+    previewPath = await compressAvatar(path, Math.max(1, Math.round(dimensions.width * ratio)), Math.max(1, Math.round(dimensions.height * ratio)), quality)
     size = await fileSize(previewPath)
+    needsResize = false
   }
   if (!Number.isFinite(size) || size <= 0 || size > MAX_AVATAR_BYTES) {
     throw new UserProfileError('AVATAR_TOO_LARGE', '头像压缩后仍然过大，请选择更小的图片。')

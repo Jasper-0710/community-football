@@ -245,8 +245,16 @@ function createUserProfileHandler({ cloud, expectedAppId = DEFAULT_APP_ID, avata
         return profile
       })
 
-      const signedAvatarUrl = !canUploadAvatar ? '' : uploadedFileId && saved.avatarFileId === uploadedFileId
-        ? uploadedAvatarUrl : await avatarUrl(saved.avatarFileId)
+      let signedAvatarUrl = ''
+      if (canUploadAvatar) {
+        if (uploadedFileId && saved.avatarFileId === uploadedFileId) signedAvatarUrl = uploadedAvatarUrl
+        else {
+          // A removed image or a temporary signing failure must not prevent login or nickname changes.
+          // Keep the stored reference so a later read can recover without replacing the user's avatar.
+          try { signedAvatarUrl = await avatarUrl(saved.avatarFileId) }
+          catch { if (logger && typeof logger.error === 'function') logger.error('[userProfile] saved avatar unavailable') }
+        }
+      }
       return {
         ok: true,
         profile: {

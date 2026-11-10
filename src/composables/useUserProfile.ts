@@ -12,6 +12,13 @@ export function useUserProfile() {
   const profile = ref<UserProfile | null>(null)
   const loading = ref(false)
   const saving = ref(false)
+  const refreshingAvatar = ref(false)
+  let avatarRequestGeneration = 0
+
+  function cancelAvatarRefresh(): void {
+    ++avatarRequestGeneration
+    refreshingAvatar.value = false
+  }
   const error = ref('')
   const supported = supportsWechatProfile()
   let requestGeneration = 0
@@ -23,6 +30,7 @@ export function useUserProfile() {
 
   async function login(): Promise<void> {
     if (loading.value || saving.value) return
+    cancelAvatarRefresh()
     const request = ++requestGeneration
     loading.value = true
     error.value = ''
@@ -41,6 +49,7 @@ export function useUserProfile() {
 
   async function save(nickname: string, avatar?: AvatarUpload): Promise<boolean> {
     if (!profile.value || loading.value || saving.value) return false
+    cancelAvatarRefresh()
     const request = ++requestGeneration
     saving.value = true
     error.value = ''
@@ -57,7 +66,28 @@ export function useUserProfile() {
     }
   }
 
+  /** Renew only the saved avatar; an unsaved nickname or avatar draft stays intact. */
+  async function refreshAvatar(): Promise<boolean> {
+    if (!profile.value || loading.value || saving.value || refreshingAvatar.value) return false
+    const id = profile.value.id
+    const request = ++avatarRequestGeneration
+    refreshingAvatar.value = true
+    try {
+      const result = await getOrCreateUserProfile()
+      if (request !== avatarRequestGeneration || profile.value?.id !== id || result.id !== id) return false
+      profile.value.avatarFileId = result.avatarFileId
+      profile.value.avatarUrl = result.avatarUrl
+      profile.value.avatarUploadEnabled = result.avatarUploadEnabled
+      return Boolean(result.avatarUrl)
+    } catch {
+      return false
+    } finally {
+      if (request === avatarRequestGeneration) refreshingAvatar.value = false
+    }
+  }
+
   function logout(): void {
+    cancelAvatarRefresh()
     ++requestGeneration
     profile.value = null
     loading.value = false
@@ -71,7 +101,7 @@ export function useUserProfile() {
     try { shouldRestore = sessionIntent ?? uni.getStorageSync(LOGIN_INTENT_KEY) === true } catch { /* Stay a guest. */ }
     if (supported && shouldRestore) void login()
   })
-  onBeforeUnmount(() => { ++requestGeneration })
+  onBeforeUnmount(() => { ++requestGeneration; cancelAvatarRefresh() })
 
-  return { profile, loading, saving, error, supported, busy: computed(() => loading.value || saving.value), login, save, logout }
+  return { profile, loading, saving, refreshingAvatar, refreshAvatar, error, supported, busy: computed(() => loading.value || saving.value), login, save, logout }
 }

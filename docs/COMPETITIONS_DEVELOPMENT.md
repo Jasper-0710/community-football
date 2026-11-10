@@ -8,15 +8,18 @@
 
 ## 运行与环境
 
-后台沿用 `.env.admin.local` 的 `VITE_ADMIN_API_URL`。微信端沿用 `.env.local` 的 `VITE_WECHAT_CLOUD_ENV_ID`。H5公开赛事读取可在 `.env.local` 增加：
+当前只使用客户环境 `cloud1-d6gzg20x709d7f6c1`、AppID `wx3230f06c755cef3a`。环境信息统一保存在 `config/cloud-environment.json`，小程序、后台及 H5 构建均校验目标环境。换机运行 `npm run cloud:setup`，不要复制旧网关地址。
 
-```dotenv
-VITE_COMPETITION_API_URL=https://cloud1-d2goo1h1mee3b7a38-1525008540.ap-shanghai.app.tcloudbase.com/admin-auth
+取得客户环境真实 `/admin-auth` 地址后执行：
+
+```bash
+npm run cloud:setup -- --admin-url <客户环境HTTPS地址>
+npm run cloud:check
 ```
 
-全部为公开环境标识或地址，不含凭据。修改环境变量后重启对应开发服务。后台启动 `CHOKIDAR_USEPOLLING=true npm run dev:admin`，H5启动 `CHOKIDAR_USEPOLLING=true npm run dev:h5`。在其他电脑按 `.env.example` 单独配置本地文件。
+脚本会验证公开赛事查询及跨域，再统一生成 `.env.local` 和 `.env.admin.local`。修改后重启后台/H5。后台启动 `npm run dev:admin`，H5 启动 `npm run dev:h5`。
 
-部署目标为开发环境 `cloud1-d2goo1h1mee3b7a38`，更新 `adminAuth`，复用原 `/admin-auth` HTTP路由。新增 `competitions` 集合，须在任何赛事写入前将客户端权限设为仅管理员可读写，自定义规则 `{"read":false,"write":false}`。公开内容经云函数投影返回。本环境已完成上述部署与权限验证，D03开发和技术验证通过；iPhone与客户效果核对另记。
+2026-11-09 核验：客户环境 `competitions` 已创建、客户端私有读取规则已生效，云函数公开列表返回空数组；旧环境的“测试足球赛事”没有迁入客户环境。客户后台 HTTP 网关和管理员仍待完成，接入后在新环境创建赛事再验证小程序展示。历史 D03 开发和联调记录保留，但不自动视为客户环境验收。
 
 ## 验证与核对
 

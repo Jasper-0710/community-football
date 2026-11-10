@@ -146,7 +146,7 @@ try {
   await admin.locator('#password').fill('', { timeout: 500 }).catch(() => {})
   await admin.screenshot({ path: `${out}/failure-admin.png`, fullPage: true }).catch(() => {})
   await user.screenshot({ path: `${out}/failure-public.png`, fullPage: true }).catch(() => {})
-  await writeFile(`${out}/failure.txt`, (await admin.locator('body').innerText()) + '\nPUBLIC\n' + (await user.locator('body').innerText()))
+  await writeFile(`${out}/failure.txt`, JSON.stringify({ errors, publicLog }, null, 2) + '\nADMIN\n' + (await admin.locator('body').innerText()) + '\nPUBLIC\n' + (await user.locator('body').innerText()))
   throw e
 } finally {
   await browser.close(); await vite.close()

@@ -7,13 +7,18 @@ import Teams from './Teams.vue'
 import Registrations from './Registrations.vue'
 let storage: Storage | undefined
 try { storage = window.sessionStorage } catch { /* Private browsing may disallow storage. */ }
-const auth = createAdminAuth(createAdminApi(import.meta.env.VITE_ADMIN_API_URL?.trim() || ''), storage)
+const apiUrl = import.meta.env.VITE_ADMIN_API_URL?.trim() || ''
+const apiConfigured = Boolean(apiUrl)
+const environmentName = import.meta.env.VITE_CLOUD_ENVIRONMENT_NAME || '客户环境'
+const environmentId = import.meta.env.VITE_WECHAT_CLOUD_ENV_ID || ''
+const auth = createAdminAuth(createAdminApi(apiUrl), storage)
 const { status, account, message, busy } = auth
 const username = ref(''), password = ref(''), showPassword = ref(false)
 const activeView = ref<'account' | 'competitions' | 'teams' | 'registrations'>('account')
 const dateText = (value: string) => new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Shanghai' }).format(new Date(value))
 const expiresText = computed(() => account.value ? dateText(account.value.expiresAt) : '')
 async function submit() {
+  if (!apiConfigured) return
   const submittedPassword = password.value
   password.value = ''; showPassword.value = false
   await auth.login(username.value.trim(), submittedPassword)
@@ -32,7 +37,7 @@ onUnmounted(() => { clearInterval(interval); document.removeEventListener('visib
   <div class="admin-app">
     <header class="topbar">
       <div class="brand"><img src="/brand.png" alt="" width="42" height="42" /><div><strong>中国社超</strong><span>上海赛区赛事平台</span></div></div>
-      <span class="topbar-label">赛事管理后台</span>
+      <div class="topbar-context"><span class="environment-badge" :title="environmentId">{{ environmentName }}</span><span class="topbar-label">赛事管理后台</span></div>
     </header>
     <main v-if="status === 'guest'" class="login-layout">
       <section class="intro-panel" aria-labelledby="intro-title">
@@ -45,13 +50,14 @@ onUnmounted(() => { clearInterval(interval); document.removeEventListener('visib
       <section class="login-card" aria-labelledby="login-title">
         <span class="eyebrow">欢迎回来</span><h2 id="login-title">管理员登录</h2>
         <p class="muted login-caption">使用平台管理员账号进入工作台。</p>
+        <p v-if="!apiConfigured" class="environment-notice" role="status"><strong>客户环境接入中</strong><span>后台访问地址尚未配置，完成配置后即可登录。</span></p>
         <form @submit.prevent="submit">
           <label for="username">管理员账号</label>
           <input id="username" v-model="username" name="username" autocomplete="username" autocapitalize="none" :spellcheck="false" maxlength="32" required placeholder="请输入管理员账号" :disabled="busy" />
           <label for="password">登录密码</label>
           <div class="password-field"><input id="password" v-model="password" name="password" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" maxlength="128" required placeholder="请输入密码" :disabled="busy" /><button type="button" class="show-password" :aria-label="showPassword ? '隐藏密码' : '显示密码'" :aria-pressed="showPassword" @click="showPassword = !showPassword">{{ showPassword ? '隐藏' : '显示' }}</button></div>
           <p v-if="message" class="notice" :class="{ success: message === '已退出登录。' }" role="status">{{ message }}</p>
-          <button type="submit" class="primary-button" :disabled="busy">{{ busy ? '正在登录…' : '登录管理后台' }}<span aria-hidden="true">→</span></button>
+          <button type="submit" class="primary-button" :disabled="busy || !apiConfigured">{{ busy ? '正在登录…' : '登录管理后台' }}<span aria-hidden="true">→</span></button>
         </form>
         <p class="login-footnote">仅限赛事运营人员使用。账号问题请联系平台负责人。</p>
       </section>

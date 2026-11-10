@@ -68,7 +68,7 @@ export function parseUserProfileResponse(value: unknown): UserProfile {
     if (profile.nickname !== '' && validateNickname(profile.nickname) !== profile.nickname) throw new Error('Untrimmed nickname')
     if (profile.avatarFileId && !/^cloud:\/\/[^\s]+$/.test(profile.avatarFileId)) throw new Error('Invalid avatar file')
     if (profile.avatarUrl && !/^https:\/\/[^\s]+$/.test(profile.avatarUrl)) throw new Error('Invalid avatar URL')
-    if (Boolean(profile.avatarFileId) !== Boolean(profile.avatarUrl)) throw new Error('Incomplete avatar')
+    if (profile.avatarUrl && !profile.avatarFileId) throw new Error('Incomplete avatar')
   } catch {
     throw new UserProfileError('INVALID_RESPONSE', '个人资料返回异常，请重试。')
   }

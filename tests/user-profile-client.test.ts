@@ -122,7 +122,6 @@ test('malformed IDs, unsafe avatar addresses and impossible nickname data are re
     { avatarFileId: 'cloud://env/file', avatarUrl: 'javascript:alert(1)' },
     { avatarFileId: 'https://example.test/file', avatarUrl: 'https://example.test/avatar.png' },
     { avatarFileId: '', avatarUrl: 'https://example.test/avatar.png' },
-    { avatarFileId: 'cloud://env/file', avatarUrl: '' },
   ]) {
     assert.throws(() => parseUserProfileResponse({ ok: true, profile: { ...profile, ...changes } }), error => code(error, 'INVALID_RESPONSE'), JSON.stringify(changes))
   }
@@ -144,22 +143,26 @@ type AvatarFixture = {
   failRead?: boolean
   failCompression?: boolean
   compressedSize?: number
+  width?: number
+  height?: number
+  failImageInfo?: boolean
 }
 
 function installAvatarApi(t: TestContext, options: AvatarFixture = {}) {
   const prior = (globalThis as any).uni
-  const compressed: { src: string; compressedWidth: number; quality: number }[] = []
+  const compressed: { src: string; compressedWidth: number; compressedHeight: number; quality: number }[] = []
   const readPaths: string[] = []
   const sizes = options.sizes || { '/selected.png': png.length }
   let reads = 0
   ;(globalThis as any).uni = {
+    getImageInfo: ({ success, fail }: any) => options.failImageInfo ? fail({}) : success({ width: options.width ?? 32, height: options.height ?? 32 }),
     getFileInfo: ({ filePath, success, fail }: any) => {
       const size = sizes[filePath] ?? (filePath.startsWith('/compressed-') ? options.compressedSize ?? png.length : undefined)
       if (typeof size === 'number') success({ size })
       else fail({ errMsg: 'not found' })
     },
-    compressImage: ({ src, compressedWidth, quality, success, fail }: any) => {
-      compressed.push({ src, compressedWidth, quality })
+    compressImage: ({ src, compressedWidth, compressedHeight, quality, success, fail }: any) => {
+      compressed.push({ src, compressedWidth, compressedHeight, quality })
       if (options.failCompression) fail({ errMsg: 'compression failed' })
       else success({ tempFilePath: `/compressed-${compressedWidth}.png` })
     },
@@ -230,4 +233,96 @@ test('failed compression does not create a fake upload or preview result', async
 test('failed local read reports a recoverable error rather than empty avatar bytes', async t => {
   installAvatarApi(t, { failRead: true })
   await assert.rejects(prepareAvatarUpload('/selected.png'), error => code(error, 'AVATAR_READ_FAILED'))
+})
+
+
+test('stored avatar without a usable signed URL still establishes login and preserves the reference for retry', () => {
+  const value = { ...profile, avatarUploadEnabled: true, avatarFileId: 'cloud://env/users/me/avatars/saved.png', avatarUrl: '' }
+  assert.deepEqual(parseUserProfileResponse({ ok: true, profile: value }), value)
+})
+
+test('a small compressed file with large image dimensions is resized before upload', async t => {
+  const api = installAvatarApi(t, { width: 3000, height: 3000 })
+  const result = await prepareAvatarUpload('/selected.png')
+  assert.equal(result.previewPath, '/compressed-512.png')
+  assert.equal(api.compressed.length, 1)
+})
+
+test('unreadable image metadata produces a useful selection error before reading or uploading', async t => {
+  const api = installAvatarApi(t, { failImageInfo: true })
+  await assert.rejects(prepareAvatarUpload('/selected.png'), error => code(error, 'INVALID_AVATAR'))
+  assert.equal(api.reads(), 0)
+  assert.equal(api.compressed.length, 0)
+})
+
+function profileState(read: () => Promise<any>, update = async (nickname: string) => ({ ...profile, nickname })) {
+  const source = fs.readFileSync(new URL('../src/composables/useUserProfile.ts', import.meta.url), 'utf8')
+  const module = { exports: {} as any }
+  vm.runInNewContext(transformSync(source, { loader: 'ts', format: 'cjs', target: 'es2020' }).code, {
+    module, exports: module.exports,
+    uni: { setStorageSync: () => {} },
+    require: (name: string) => {
+      if (name === 'vue') return { computed, ref, onMounted: () => {}, onBeforeUnmount: () => {} }
+      if (name === '@/services/user-profile') return {
+        supportsWechatProfile: () => true, getOrCreateUserProfile: read,
+        updateUserProfile: update, profileErrorMessage: (e: Error) => e.message,
+      }
+      throw new Error(`Unexpected import ${name}`)
+    },
+  })
+  return module.exports.useUserProfile()
+}
+
+test('refreshing a signed avatar URL preserves the edited nickname, login and other profile fields', async () => {
+  let count = 0
+  const state = profileState(async () => ({ ...profile, nickname: ++count === 1 ? '原昵称' : '别处更改', avatarUploadEnabled: true,
+    avatarFileId: 'cloud://env/avatar.png', avatarUrl: `https://storage.example.test/avatar?version=${count}` }))
+  await state.login()
+  const original = state.profile.value
+  assert.equal(await state.refreshAvatar(), true)
+  assert.equal(state.profile.value, original, 'do not replace the profile and trigger draft-reset watchers')
+  assert.equal(state.profile.value.nickname, '原昵称')
+  assert.equal(state.profile.value.avatarUrl, 'https://storage.example.test/avatar?version=2')
+  assert.equal(state.refreshingAvatar.value, false)
+})
+
+test('a slow avatar refresh cannot restore login after logout or overwrite a newly saved avatar', async () => {
+  for (const action of ['logout', 'save']) {
+    let finish!: (value: any) => void
+    let reads = 0
+    const state = profileState(async () => ++reads === 1 ? { ...profile } : new Promise(resolve => { finish = resolve }))
+    await state.login()
+    const pending = state.refreshAvatar()
+    assert.equal(state.refreshingAvatar.value, true)
+    if (action === 'logout') state.logout()
+    else assert.equal(await state.save('已保存昵称'), true)
+    finish({ ...profile, avatarFileId: 'cloud://env/stale.png', avatarUrl: 'https://storage.example.test/stale.png' })
+    assert.equal(await pending, false)
+    assert.equal(state.refreshingAvatar.value, false)
+    if (action === 'logout') assert.equal(state.profile.value, null)
+    else {
+      assert.equal(state.profile.value.nickname, '已保存昵称')
+      assert.equal(state.profile.value.avatarFileId, '')
+    }
+  }
+})
+
+test('a failed avatar refresh keeps login usable and permits an explicit retry', async () => {
+  let reads = 0
+  const state = profileState(async () => { if (++reads === 2) throw new Error('network'); return { ...profile } })
+  await state.login()
+  assert.equal(await state.refreshAvatar(), false)
+  assert.ok(state.profile.value)
+  assert.equal(state.error.value, '')
+  assert.equal(state.refreshingAvatar.value, false)
+  await state.refreshAvatar()
+  assert.equal(reads, 3)
+})
+
+
+test('portrait avatar compression keeps both dimensions within bounds and preserves the aspect ratio', async t => {
+  const api = installAvatarApi(t, { width: 400, height: 4000 })
+  await prepareAvatarUpload('/selected.png')
+  assert.equal(api.compressed[0].compressedWidth, 51)
+  assert.equal(api.compressed[0].compressedHeight, 512)
 })
