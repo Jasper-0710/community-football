@@ -7,11 +7,10 @@ import { dateLabel } from '@/domain/tournament'
 import CompetitionList from '@/components/CompetitionList.vue'
 import MatchCard from '@/components/MatchCard.vue'
 import AppIcon from '@/components/AppIcon.vue'
-import StandingsTable from '@/components/StandingsTable.vue'
+import PublicStandings from '@/components/PublicStandings.vue'
 import TeamBadge from '@/components/TeamBadge.vue'
 const props = defineProps<{ data: Tournament; matches: Match[] }>()
 const emit = defineEmits<{ navigate: [tab: Tab, view?: string] }>()
-const group = ref<'A' | 'B'>('A')
 const matchday = computed(() => props.matches.filter(m => m.date === props.data.demoDate))
 const liveCount = computed(() => matchday.value.filter(m => m.status === 'live').length)
 const stories = computed(() => props.data.articles.filter(a => a.image).slice(0, 2))
@@ -36,9 +35,9 @@ function article(id: string) { uni.navigateTo({ url: `/pages/article/detail?id=$
     </view>
     <view class="home-lower-grid">
       <view class="stories-section"><view class="section-heading"><view><text class="section-title">绿茵场内外</text><text class="section-subtitle">比赛有终场，故事不散场</text></view><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'news')">更多动态<AppIcon name="arrow" :size="17" /></button></view><view class="story-grid"><button hover-class="none" role="button" tabindex="0" v-for="story in stories" :key="story.id" class="ui-button story-card" @click="article(story.id)"><view class="story-image-wrap"><image :src="story.image" mode="aspectFill" class="story-image" /><text class="story-category">{{ story.category }}</text><view class="story-image-arrow"><AppIcon name="external" tone="white" :size="20" /></view></view><view class="story-content"><text class="story-title">{{ story.title }}</text><text class="story-excerpt">{{ story.excerpt }}</text><view class="story-meta"><text>{{ story.author }}</text><text>{{ dateLabel(story.date) }}</text></view></view></button></view></view>
-      <view class="home-standings"><view class="section-heading"><text class="section-title">积分榜</text><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'stats')">完整榜单<AppIcon name="arrow" :size="17" /></button></view><view class="standings-panel"><view class="standings-group-tabs"><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: group === 'A' }" @click="group = 'A'">A 组</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: group === 'B' }" @click="group = 'B'">B 组</button><text>小组赛 · 最终积分</text></view><StandingsTable :data="data" :group="group" compact /><view class="standings-note"><view class="rank-marker"/>按积分、净胜球、进球数排序</view></view></view>
+      <view class="home-standings"><PublicStandings compact /><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'stats')">查看完整榜单<AppIcon name="arrow" :size="17" /></button></view>
     </view>
     <view class="community-banner"><view class="community-copy"><text class="community-eyebrow">MEET YOUR NEIGHBOURS</text><text class="community-title">一座城，八支队，无数份热爱。</text><text class="muted">认识身边的球队，找到属于你的主场。</text></view><view class="community-badges"><TeamBadge v-for="team in data.teams.slice(0, 5)" :key="team.id" :team="team" :size="42" /></view><button hover-class="none" role="button" tabindex="0" class="ui-button outline-button" @click="emit('navigate', 'tournament', 'teams')">认识球队<AppIcon name="arrow" :size="17" /></button></view>
-    <view class="demo-footnote"><AppIcon name="info" :size="14" tone="muted" /><text>当前为交互原型，固定演示日期为 2026 年 10 月 25 日。球队、赛果与新闻均为模拟数据。</text></view>
+    <view class="demo-footnote"><AppIcon name="info" :size="14" tone="muted" /><text>示例赛程、球队与新闻使用固定演示日期和模拟数据；赛事列表与积分榜读取公开赛事。</text></view>
   </view>
 </template>

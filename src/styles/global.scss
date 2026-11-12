@@ -865,3 +865,65 @@ input { font: inherit; min-width: 0; }
 .registration-team-label { color:#334c3e; line-height:1.65; }
 .danger-text { color:#963a29; }
 @media(max-width:480px){ .registration-page .panel { padding:20px 16px; }.registration-heading .page-title { font-size:27px; }.registration-facts,.registration-rule-grid { grid-template-columns:1fr; gap:16px; }.registration-summary>.section-heading { align-items:flex-start; flex-wrap:wrap; }.registration-file { gap:8px; }.file-symbol { width:42px; height:44px; }.registration-page .info-section-heading { gap:10px; }.registration-page .section-heading>.text-button { padding-inline:2px; }.registration-footer>view { flex-direction:column; }}
+
+.schedule-live-toolbar { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(240px,.65fr); align-items:end; gap:18px; padding:20px; margin-bottom:18px; border:1px solid #d8e4d4; border-radius:14px; background:linear-gradient(135deg,#f5f9f3 0%,#eef5eb 100%); }
+.schedule-filter-field { min-width:0; display:flex; flex-direction:column; gap:8px; }
+.schedule-filter-heading { display:flex; align-items:baseline; gap:9px; min-width:0; }
+.schedule-filter-label { color:#365b40; font-size:14px; font-weight:650; line-height:1.4; white-space:nowrap; }
+.schedule-filter-hint { min-width:0; overflow:hidden; color:#7a8b78; font-size:12px; line-height:1.4; white-space:nowrap; text-overflow:ellipsis; }
+.schedule-picker-control { display:block; width:100%; min-width:0; }
+.schedule-picker { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:50px; padding:0 12px 0 16px; box-sizing:border-box; border:1px solid #c7d8c2; border-radius:11px; background:#fff; color:#233a2e; font-size:16px; line-height:1.35; cursor:pointer; box-shadow:0 2px 6px rgba(47,83,54,.05); transition:border-color .2s, box-shadow .2s, background .2s; }
+.schedule-filter-field-primary .schedule-picker { border-color:#9dbda0; }
+.schedule-picker:hover { border-color:#7fa58a; box-shadow:0 3px 9px rgba(47,83,54,.1); }
+.schedule-picker-value { min-width:0; flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.schedule-picker-icon { display:flex; align-items:center; justify-content:center; width:28px; height:28px; flex:none; border-radius:8px; background:#edf4e9; }
+.schedule-picker-icon .app-icon { opacity:.78; }
+.public-schedule-list { display:grid; gap:14px; }
+.public-schedule .date-strip { width:max-content; min-width:100%; box-sizing:border-box; }
+.public-schedule .date-cell { flex:0 0 108px; white-space:nowrap; }
+.public-schedule .date-cell .date-number { font-size:18px; white-space:nowrap; }
+.public-schedule-card { display:flex; flex-direction:column; gap:16px; padding:20px; }
+.public-schedule-card-top { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.public-schedule-teams { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:18px; text-align:center; }
+.public-schedule-teams>view { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.public-schedule-teams>view:first-child { text-align:right; }
+.public-schedule-teams>view:last-child { text-align:left; }
+.public-schedule-teams>view>text:first-child { font-size:18px; font-weight:650; overflow-wrap:anywhere; }
+.public-schedule-teams>strong { color:#6c776e; font-size:14px; }
+.public-schedule-meta { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px; padding-top:13px; border-top:1px solid #e5ebe3; color:#526257; font-size:14px; }
+@media(max-width:600px){ .schedule-live-toolbar { grid-template-columns:1fr; gap:13px; padding:15px; }.schedule-filter-heading { gap:7px; }.schedule-filter-label { font-size:14px; }.schedule-picker { min-height:48px; padding-left:14px; font-size:15px; }.public-schedule-card { padding:16px; }.public-schedule-teams { gap:8px; }.public-schedule-teams>view>text:first-child { font-size:16px; }.public-schedule-meta { justify-content:flex-start; gap:6px 12px; } }
+
+.public-standings { min-width:0; }
+.ranking-competition { padding:18px; margin-bottom:20px; }
+.ranking-competition-picker { display:block; margin-top:8px; }
+.ranking-competition .schedule-picker { min-width:0; gap:12px; }
+.ranking-competition .schedule-picker > text { min-width:0; overflow-wrap:anywhere; flex:1; }
+.live-standing-group { padding:22px; margin-bottom:20px; min-width:0; overflow:hidden; }
+.live-table-scroll { width:100%; }
+.live-standing-table { min-width:660px; }
+.live-standing-row { display:grid; grid-template-columns:46px minmax(150px,1fr) repeat(4,44px) 64px 52px 52px; align-items:center; gap:8px; min-height:60px; padding:10px 12px; border-bottom:1px solid #e3e9e2; text-align:center; font-size:15px; }
+.live-table-head { color:#53685b; font-size:14px; background:#f3f6f1; }
+.live-standing-name { text-align:left; font-weight:600; overflow-wrap:anywhere; }
+.standing-scroll-hint { display:block; margin-bottom:10px; }
+.live-player-ranking { padding:10px 20px; }
+.live-player-row { display:grid; grid-template-columns:46px minmax(0,1fr) 50px; align-items:center; gap:16px; min-height:80px; padding:14px 8px; border-bottom:1px solid #e3e9e2; }
+.live-player-row .small-text { display:block; margin-top:5px; }
+.live-player-row .ranking-value { text-align:center; }
+.live-champion { display:flex; align-items:center; gap:20px; padding:24px; margin-bottom:24px; background:#f5f3e4; }
+.live-champion text { display:block; }
+.live-bracket { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:22px; }
+.live-bracket-stage { min-width:0; }
+.live-bracket-match { padding:20px; margin-bottom:16px; }
+.live-bracket-side { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #e3e9e2; margin-bottom:10px; }
+.live-bracket-side > view { min-width:0; }
+.live-bracket-side text { display:block; overflow-wrap:anywhere; }
+.standings-compact .section-heading-box { padding:18px; }
+.standings-compact .live-standing-group { padding:16px; }
+@media(max-width:600px) {
+  .live-standing-group { padding:16px 12px; }
+  .live-standing-group .section-heading { flex-wrap:wrap; gap:10px; }
+  .live-player-ranking { padding:8px 12px; }
+  .live-player-row { gap:10px; grid-template-columns:34px minmax(0,1fr) 40px; }
+  .public-standings .section-heading-box { flex-wrap:wrap; gap:12px; }
+  .live-bracket { grid-template-columns:minmax(0,1fr); }
+}

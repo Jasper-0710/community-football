@@ -21,6 +21,10 @@ const {createCompetitionService,PUBLIC_ACTIONS}=require('../cloudfunctions/admin
 const {createMemoryStore}=require('../tests/helpers/admin-store.cjs')
 const {createRegistrationMemory}=require('../tests/helpers/registration-store.cjs')
 const out='artifacts/registrations/browser';await mkdir(out,{recursive:true})
+// The generated Vite transport lives under the ignored tooling directory. A
+// fresh checkout does not contain that directory, so create it before writing
+// the temporary config instead of relying on a prior local run.
+await mkdir('.tools',{recursive:true})
 const certDir=await mkdtemp(join(tmpdir(),'football-d05-'))
 execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',join(certDir,'key.pem'),'-out',join(certDir,'cert.pem'),'-days','1','-subj','/CN=127.0.0.1','-addext','subjectAltName=IP:127.0.0.1'],{stdio:'ignore'})
 const password=randomBytes(24).toString('base64url'),authMemory=createMemoryStore(await createAccount('admin',password,Date.now()))

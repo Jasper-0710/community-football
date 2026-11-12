@@ -7,6 +7,7 @@ const records = ref<AdminCompetition[]>([]), cursor = ref<string | null>(null), 
 const formOpen = ref(false), editing = ref<AdminCompetition | null>(null), requestId = ref('')
 const empty = () => ({ name: '', description: '', format: 'group_knockout' as CompetitionForm['format'], formatDescription: '', startDate: '', endDate: '', venue: '', registrationRequirements: '', registrationStartAt: '', registrationEndAt: '', configureRegistration: false, projectsText: '', teamLimitText: '', minPlayersText: '', maxPlayersText: '' })
 const form = reactive(empty())
+const isDevelopment = import.meta.env.DEV === true
 const explain = (e: unknown) => e instanceof Error ? e.message : '操作失败，请重试。'
 function inputTime(iso: string | null) { return iso ? new Date(Date.parse(iso) + 8 * 3600000).toISOString().slice(0, 16) : '' }
 function isoTime(v: string) { return v ? new Date(v + ':00+08:00').toISOString() : null }
@@ -37,6 +38,20 @@ async function save() {
     busy.value = false; await fetchRecords()
   } catch (e) { error.value = explain(e) } finally { busy.value = false }
 }
+async function generateDemo() {
+  if (!import.meta.env.DEV || busy.value) return
+  busy.value = true; error.value = ''; notice.value = ''
+  let generationError = ''
+  try {
+    const { createDemoCompetitions } = await import('./demo-competitions')
+    const generated = await props.auth.authorized((api, token) => createDemoCompetitions(api, token))
+    formOpen.value = false
+    notice.value = `${generated.length} 个模拟赛事已生成并公开展示，首次创建时关闭报名。重复生成会使用同一组赛事。`
+  } catch (e) { generationError = `模拟赛事生成未完成：${explain(e)} 已成功保存的赛事会保留，可重试。` }
+  finally { busy.value = false }
+  await fetchRecords()
+  if (generationError) error.value = generationError
+}
 async function toggle(record: AdminCompetition, kind: 'visibility' | 'registration') {
   if (busy.value) return
   busy.value = true; error.value = ''; notice.value = ''
@@ -53,7 +68,7 @@ onMounted(() => { void fetchRecords() })
   <section class="competitions-admin">
     <div class="workspace-heading">
       <div><span class="eyebrow">赛事运营</span><h1>赛事管理</h1><p class="muted">维护赛事资料，设置小程序展示与报名安排。</p></div>
-      <div class="competition-actions"><button class="secondary-button" :disabled="busy" @click="fetchRecords()">刷新列表</button><button class="primary-button" :disabled="busy" @click="newForm">新建赛事</button></div>
+      <div class="competition-actions"><button v-if="isDevelopment" class="secondary-button" :disabled="busy" @click="generateDemo">生成模拟赛事</button><button class="secondary-button" :disabled="busy" @click="fetchRecords()">刷新列表</button><button class="primary-button" :disabled="busy" @click="newForm">新建赛事</button></div>
     </div>
     <div class="section-guide"><strong>赛事发布流程</strong><p>填写赛事资料 → 开启小程序展示 → 按报名时间开启报名。展示与报名可分别控制。</p></div>
     <p v-if="error" class="notice" role="alert">{{ error }}</p><p v-if="notice" class="notice success" role="status">{{ notice }}</p>

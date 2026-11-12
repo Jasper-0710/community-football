@@ -245,3 +245,41 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 500; }
 .review-reload { margin-top:14px; }
 .review-reload button { width:100%; margin-top:12px; }
 @media(max-width:600px) { .review-approval { padding:16px; } }
+
+.match-admin-list { padding-bottom: 8px; }
+.match-admin-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:20px 0; border-bottom:1px solid #e5ebe3; }
+.match-admin-row:last-child { border-bottom:0; }
+.match-admin-main { min-width:0; }
+.match-admin-main h3 { margin:9px 0 5px; overflow-wrap:anywhere; }
+.match-admin-main p { margin:0; overflow-wrap:anywhere; }
+.match-admin-meta { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+@media(max-width:600px) { .match-admin-row { align-items:flex-start; flex-direction:column; gap:12px; } .match-admin-meta { width:100%; justify-content:space-between; } }
+
+.standings-admin-tabs { display:flex; flex-wrap:wrap; gap:10px; margin:22px 0; }
+.standings-admin-tabs .selected { background:#1e6b48; color:#fff; border-color:#1e6b48; }
+.standings-team-checks { display:flex; flex-wrap:wrap; gap:10px 20px; margin:16px 0; }
+.standings-team-checks label { display:flex; align-items:center; gap:10px; min-height:44px; margin:0; font-size:15px; font-weight:500; }
+.competition-form .standings-team-checks input { width:20px; height:20px; margin:0; padding:0; flex:none; }
+.standings-match-row { display:flex; justify-content:space-between; gap:24px; margin-bottom:18px; align-items:center; }
+.standings-match-row > div { min-width:0; }
+.standings-match-row h3 { margin:12px 0 6px; overflow-wrap:anywhere; }
+.standings-match-actions { display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
+.result-score { font-size:24px; color:#1e6b48; }
+.result-event-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:18px; align-items:center; margin:28px 0 16px; }
+.result-editor { border-color:#95b89f; }
+.result-history-row { padding:20px 0; border-bottom:1px solid var(--line); }
+.result-history-row > p { margin-top:8px; overflow-wrap:anywhere; }
+.standings-preview { margin-bottom:22px; min-width:0; }
+.standings-table-wrap { overflow-x:auto; margin-top:20px; }
+.standings-table-wrap table { border-collapse:collapse; width:100%; min-width:650px; font-size:15px; }
+.standings-table-wrap th { color:var(--muted); background:var(--soft); }
+.standings-table-wrap td, .standings-table-wrap th { text-align:center; padding:14px 10px; border-bottom:1px solid var(--line); }
+.standings-player-previews { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.admin-player-rank { display:grid; grid-template-columns:24px minmax(0,1fr) 36px; gap:16px; align-items:center; border-bottom:1px solid var(--line); padding:18px 0; }
+@media(max-width:800px) {
+  .standings-match-row { flex-direction:column; align-items:stretch; gap:18px; }
+  .standings-match-actions { align-items:flex-start; }
+  .standings-player-previews { grid-template-columns:minmax(0,1fr); }
+  .standings-admin .card-heading { flex-wrap:wrap; }
+  .standings-admin .account-card { padding:20px; }
+}

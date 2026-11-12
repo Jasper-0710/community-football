@@ -1,4 +1,7 @@
 import {parseCleanupResult} from './registration-maintenance'
+import { parseMatch, parseMatchPage, type MatchScheduleForm } from '../../src/domain/match'
+import { parseStandings, parseResultHistory, type StandingsRules, type ResultInput } from '../../src/domain/standings'
+import type { GroupQualification } from '../../src/domain/match'
 export interface AdminSession {
   admin: { username: string; displayName: string; role: 'admin' }
   expiresAt: string
@@ -47,6 +50,12 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     } finally { clearTimeout(timer) }
   }
   return {
+    async standings(token: string, competitionId: string) { return parseStandings(await request('standings.getAdmin', { competitionId }, token), true) },
+    async updateStandingsRules(token: string, competitionId: string, expectedRevision: number, rules: StandingsRules) { await request('standings.updateRules', { competitionId, expectedRevision, rules }, token) },
+    async bindQualification(token: string, competitionId: string, id: string, expectedVersion: number, expectedRevision: number, homeQualification: GroupQualification | null, awayQualification: GroupQualification | null) { await request('standings.bindMatch', { competitionId, id, expectedVersion, expectedRevision, homeQualification, awayQualification }, token) },
+    async saveResult(token: string, competitionId: string, id: string, expectedVersion: number, expectedRevision: number, requestId: string, reason: string, result: ResultInput) { await request('standings.saveResult', { competitionId, id, expectedVersion, expectedRevision, requestId, reason, result }, token) },
+    async revokeResult(token: string, competitionId: string, id: string, expectedVersion: number, expectedRevision: number, requestId: string, reason: string) { await request('standings.revokeResult', { competitionId, id, expectedVersion, expectedRevision, requestId, reason }, token) },
+    async resultHistory(token: string, competitionId: string, id: string, beforeVersion?: number) { return parseResultHistory(await request('standings.history', { competitionId, id, ...(beforeVersion ? { beforeVersion } : {}) }, token)) },
     async cleanupRegistrationFiles(token:string,dryRun=true,cursor?:string) { const r=await request('registrations.cleanup',{dryRun,...(cursor?{cursor}:{})},token);if(r.dryRun!==dryRun)throw new AdminApiError('INVALID_RESPONSE','材料维护返回异常，请重新检查。');return parseCleanupResult(r) },
     async registrations(token:string,competitionId:string,status?:string,cursor?:string) { const r=await request('registrations.listAdmin',{competitionId,...(status?{status}:{}),...(cursor?{cursor}:{})},token);return {...parseRegistrationPage(r),stats:parseRegistrationStats(r.stats)} },
     async registration(token:string,id:string) { return parseRegistration((await request('registrations.getAdmin',{id},token)).registration) },
@@ -58,6 +67,16 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async createCompetition(token: string, requestId: string, form: CompetitionForm) { return parseCompetition((await request('competitions.create', { requestId, form }, token)).competition, true) },
     async updateCompetition(token: string, id: string, expectedVersion: number, form: CompetitionForm) { return parseCompetition((await request('competitions.update', { id, expectedVersion, form }, token)).competition, true) },
     async competitionSwitch(token: string, id: string, expectedVersion: number, kind: 'visibility' | 'registration', enabled: boolean) { return parseCompetition((await request(`competitions.${kind}`, { id, expectedVersion, enabled }, token)).competition, true) },
+    async matches(token: string, competitionId: string, cursor?: string, teamId?: string) {
+      const fields = { competitionId, ...(cursor ? { cursor } : {}), ...(teamId ? { teamId } : {}) }
+      return parseMatchPage(await request('matches.listAdmin', fields, token), true)
+    },
+    async createMatch(token: string, requestId: string, form: MatchScheduleForm) {
+      return parseMatch((await request('matches.create', { requestId, form }, token)).match, true)
+    },
+    async updateMatch(token: string, id: string, expectedVersion: number, form: MatchScheduleForm) {
+      return parseMatch((await request('matches.update', { id, expectedVersion, form }, token)).match, true)
+    },
     async login(username: string, password: string): Promise<AdminSession & { token: string }> {
       const value = await request('login', { username, password })
       const session = checkSession(value)

@@ -5,6 +5,8 @@ import { createAdminAuth } from './auth'
 import Competitions from './Competitions.vue'
 import Teams from './Teams.vue'
 import Registrations from './Registrations.vue'
+import Matches from './Matches.vue'
+import Standings from './Standings.vue'
 let storage: Storage | undefined
 try { storage = window.sessionStorage } catch { /* Private browsing may disallow storage. */ }
 const apiUrl = import.meta.env.VITE_ADMIN_API_URL?.trim() || ''
@@ -14,7 +16,7 @@ const environmentId = import.meta.env.VITE_WECHAT_CLOUD_ENV_ID || ''
 const auth = createAdminAuth(createAdminApi(apiUrl), storage)
 const { status, account, message, busy } = auth
 const username = ref(''), password = ref(''), showPassword = ref(false)
-const activeView = ref<'account' | 'competitions' | 'teams' | 'registrations'>('account')
+const activeView = ref<'account' | 'competitions' | 'teams' | 'registrations' | 'matches' | 'standings'>('account')
 const dateText = (value: string) => new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Shanghai' }).format(new Date(value))
 const expiresText = computed(() => account.value ? dateText(account.value.expiresAt) : '')
 async function submit() {
@@ -69,11 +71,13 @@ onUnmounted(() => { clearInterval(interval); document.removeEventListener('visib
       <div v-if="status === 'unavailable'" class="verification-actions"><button class="primary-button" :disabled="busy" @click="auth.check">重新连接</button><button class="secondary-button" :disabled="busy" @click="auth.logout">退出登录</button></div>
     </main>
     <main v-else class="workspace">
-      <aside class="sidebar"><span class="eyebrow">管理工作台</span><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'account' }" :aria-current="activeView === 'account' ? 'page' : undefined" @click="activeView = 'account'">账号与访问</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'competitions' }" :aria-current="activeView === 'competitions' ? 'page' : undefined" @click="activeView = 'competitions'">赛事管理</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'teams' }" :aria-current="activeView === 'teams' ? 'page' : undefined" @click="activeView = 'teams'">球队档案</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'registrations' }" :aria-current="activeView === 'registrations' ? 'page' : undefined" @click="activeView = 'registrations'">报名审核</button><div v-for="item in ['赛程与赛果', '新闻与公告']" :key="item" class="sidebar-pending"><span>{{ item }}</span><small>待开放</small></div></aside>
+      <aside class="sidebar"><span class="eyebrow">管理工作台</span><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'account' }" :aria-current="activeView === 'account' ? 'page' : undefined" @click="activeView = 'account'">账号与访问</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'competitions' }" :aria-current="activeView === 'competitions' ? 'page' : undefined" @click="activeView = 'competitions'">赛事管理</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'teams' }" :aria-current="activeView === 'teams' ? 'page' : undefined" @click="activeView = 'teams'">球队档案</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'registrations' }" :aria-current="activeView === 'registrations' ? 'page' : undefined" @click="activeView = 'registrations'">报名审核</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'matches' }" :aria-current="activeView === 'matches' ? 'page' : undefined" @click="activeView = 'matches'">赛程与对阵</button><button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'standings' }" :aria-current="activeView === 'standings' ? 'page' : undefined" @click="activeView = 'standings'">榜单与晋级</button><div class="sidebar-pending"><span>新闻与公告</span><small>待开放</small></div></aside>
       <section class="workspace-main">
         <Competitions v-if="activeView === 'competitions'" :auth="auth" />
         <Teams v-else-if="activeView === 'teams'" :auth="auth" />
         <Registrations v-else-if="activeView === 'registrations'" :auth="auth" />
+        <Matches v-else-if="activeView === 'matches'" :auth="auth" />
+        <Standings v-else-if="activeView === 'standings'" :auth="auth" />
         <template v-else>
         <div class="workspace-heading"><div><span class="eyebrow">赛事运营</span><h1>欢迎，{{ account?.admin.displayName }}</h1><p class="muted">管理员账号已通过验证。</p></div><button class="secondary-button logout-button" :disabled="busy" @click="auth.logout">{{ busy ? '处理中…' : '退出登录' }}</button></div>
         <p v-if="message" class="notice" role="status">{{ message }}</p>

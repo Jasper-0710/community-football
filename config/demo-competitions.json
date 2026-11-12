@@ -1,0 +1,54 @@
+{
+  "dataset": "community-football-demo-20261111",
+  "createdAt": "2026-11-11T03:30:00.000Z",
+  "competitions": [
+    {
+      "key": "autumn",
+      "form": {
+        "name": "【模拟】2026上海社区秋季邀请赛",
+        "description": "以球会友，让邻里成为队友。8支虚构社区球队将在连续周末展开小组赛与淘汰赛，展示赛事介绍、分组、日期筛选和延期赛程。\n本赛事及球队、场地、赛程均为模拟资料，仅用于平台功能演示。",
+        "format": "group_knockout",
+        "formatDescription": "8支球队分为A、B两组，各组进行单循环赛；小组赛结束后按排名交叉进入八强淘汰赛，依次进行四分之一决赛、半决赛和决赛。小组赛胜3分、平1分、负0分；同分依次比较净胜球、进球数。",
+        "startDate": "2026-11-21",
+        "endDate": "2026-12-06",
+        "venue": "上海社区示范球场A场、B场（模拟场地）",
+        "registrationRequirements": "面向社区业余球队；每队8–18名球员，报名项目为社区公开组。演示报名材料包括球员名单与参赛承诺书。\n模拟赛事仅供浏览，报名开关保持关闭。",
+        "registrationStartAt": "2026-11-10T16:00:00.000Z",
+        "registrationEndAt": "2026-11-18T15:59:00.000Z",
+        "registrationConfig": { "projects": ["社区公开组"], "teamLimit": 8, "minPlayers": 8, "maxPlayers": 18 }
+      }
+    },
+    {
+      "key": "weekend",
+      "form": {
+        "name": "【模拟】周末五人制友谊联赛",
+        "description": "小场地，大热爱。4支虚构球队参与五人制单循环赛，适合展示短周期赛事、轮次安排和同日多场比赛。\n本赛事及球队、场地、赛程均为模拟资料，仅用于平台功能演示。",
+        "format": "round_robin",
+        "formatDescription": "4支球队进行单循环赛，共3轮6场比赛。每队与其他球队各交手一次；胜3分、平1分、负0分。单场上下半场各20分钟，中场休息5分钟。",
+        "startDate": "2026-12-12",
+        "endDate": "2026-12-19",
+        "venue": "上海邻里运动中心五人制1号场（模拟场地）",
+        "registrationRequirements": "五人制社区公开组，每队5–10名球员。演示报名材料包括球员名单、领队信息与参赛承诺书。\n模拟赛事仅供浏览，报名开关保持关闭。",
+        "registrationStartAt": "2026-11-19T16:00:00.000Z",
+        "registrationEndAt": "2026-12-05T15:59:00.000Z",
+        "registrationConfig": { "projects": ["五人制公开组"], "teamLimit": 4, "minPlayers": 5, "maxPlayers": 10 }
+      }
+    },
+    {
+      "key": "winter",
+      "form": {
+        "name": "【模拟】冬日社区冠军杯",
+        "description": "用一个足球周末，为2026年留下共同回忆。4支虚构球队通过半决赛和决赛争夺模拟冠军，展示淘汰赛和待定对阵。\n本赛事及球队、场地、赛程均为模拟资料，仅用于平台功能演示。",
+        "format": "knockout",
+        "formatDescription": "4支球队参加单场淘汰赛，先进行两场半决赛，胜者进入决赛，共3场比赛。常规时间战平直接进入点球决胜；决赛对阵在半决赛结束后确定。",
+        "startDate": "2026-12-26",
+        "endDate": "2026-12-27",
+        "venue": "上海社区示范球场C场（模拟场地）",
+        "registrationRequirements": "社区邀请组，每队8–18名球员，4支虚构球队参加。演示报名材料包括球员名单与参赛承诺书。\n模拟赛事仅供浏览，报名开关保持关闭。",
+        "registrationStartAt": "2026-11-30T16:00:00.000Z",
+        "registrationEndAt": "2026-12-20T15:59:00.000Z",
+        "registrationConfig": { "projects": ["社区邀请组"], "teamLimit": 4, "minPlayers": 8, "maxPlayers": 18 }
+      }
+    }
+  ]
+}

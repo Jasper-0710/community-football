@@ -53,8 +53,8 @@ teams、leaderTeamBindings、players及competitions已实现；四个集合客�
 | competitions | _id、name、description、format、displayEnabled、registrationEnabled、registrationStartAt、registrationEndAt | 展示与报名开关独立；赛制、队伍名额及报名限制按后续确认配置 |
 | registrations | _id、competitionId、teamId、ownerUserId、form、attachments、competitionSnapshot、status、review、version、history | D05保存五项报名字段与材料快照；待审/通过/驳回/撤销，人数依据材料审核；已部署，实际报名与材料待验 |
 | registrationFiles | _id、ownerUserId、competitionId、name、size、extension、status、chunks、fileID、expiresAt、registrationId | D05私有分段上传会话与最终文件注册；服务端校验所有权，授权后签发短期链接；默认停用至权限验证 |
-| matches | _id、competitionId、stage、round、groupId、homeTeamId、awayTeamId、scheduledAt、venue、status、scores、stats、revision | 分组与轮次属于赛事，不作为球队固定属性；前后轮签位随赛制实现 |
-| matchEvents / resultRevisions | matchId、teamId、playerId、kind、minute、revision及变更记录 | 记录进球助攻红黄牌换人；改分恢复与统计使用相同有效版本；细节随赛果功能实施 |
+| matches | _id、competitionId、stage、round、groupId、slot、homeTeamId、awayTeamId、homeFrom/awayFrom、homeQualification/awayQualification、scheduledAt、venue、status、result、version、updatedAt | D06/D08 已实现；比分与有效进球事件保存在 result，淘汰赛点球保存在 result.penalties；已完赛比赛不能直接改赛程 |
+| resultRevisions | _id、competitionId、matchId、version、result、previousResult、revoked、reason、operator、fingerprint、createdAt | D08 已实现；更正/撤销在同一赛事版本事务中写入，榜单按当前有效结果重算；红黄牌、换人和技术统计待后续扩展 |
 | articles | _id、category、title、coverFileId、body、published、pinned、publishedAt | 五类内容及发布状态服务首页、列表与搜索 |
 | favorites | userId、teamId、createdAt | 用户与球队关联唯一，用于后续跨设备收藏 |
 
