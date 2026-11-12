@@ -149,23 +149,28 @@ function protectResults(before, after) {
   for (const match of after) if (match.homeTeamId && match.homeTeamId === match.awayTeamId) fail('晋级后主客队相同，请调整后续对阵来源。', 'CONFLICT')
 }
 function validateResult(input, match, teams, previousResult) {
-  fields(input, ['homeScore', 'awayScore', 'penalties', 'goals'])
+  fields(input, ['state', 'minute', 'homeScore', 'awayScore', 'penalties', 'goals', 'cards', 'substitutions', 'stats'])
   if (!match.homeTeamId || !match.awayTeamId || match.homeTeamId === match.awayTeamId) fail('请等待双方参赛球队确定后再录入赛果。')
+  const state = input.state == null ? 'finished' : input.state
+  if (!['live', 'finished'].includes(state)) fail('比赛状态无效。')
+  const currentMinute = input.minute == null ? null : integer(input.minute, 0, 150, '比赛分钟')
   const homeScore = integer(input.homeScore, 0, 99, '主队比分'), awayScore = integer(input.awayScore, 0, 99, '客队比分')
   let penalties = null
   if (input.penalties != null) {
-    if (match.stage === 'group' || homeScore !== awayScore || !Array.isArray(input.penalties) || input.penalties.length !== 2) fail('仅淘汰赛比分相同时可填写点球比分。')
+    if (state === 'live' || match.stage === 'group' || homeScore !== awayScore || !Array.isArray(input.penalties) || input.penalties.length !== 2) fail('仅完赛淘汰赛比分相同时可填写点球比分。')
     penalties = input.penalties.map(value => integer(value, 0, 99, '点球比分'))
     if (penalties[0] === penalties[1]) fail('点球比分须确定胜者。')
   }
-  if (match.stage !== 'group' && homeScore === awayScore && !penalties) fail('淘汰赛平局须填写点球比分以确定胜者。')
+  if (state === 'finished' && match.stage !== 'group' && homeScore === awayScore && !penalties) fail('淘汰赛平局须填写点球比分以确定胜者。')
   if (!Array.isArray(input.goals) || input.goals.length !== homeScore + awayScore) fail('每粒进球须有一条事件，进球数须与比分一致。')
   const priorPlayers = new Map()
   for (const goal of previousResult?.goals || []) for (const player of [goal.scorer, goal.assist]) if (player) priorPlayers.set(`${goal.teamId}:${player.id}`, player)
-  const player = (playerId, teamId) => {
-    if (typeof playerId !== 'string' || !PLAYER_ID.test(playerId)) fail('请选择有效的进球或助攻球员。')
+  for (const card of previousResult?.cards || []) if (card.player) priorPlayers.set(`${card.teamId}:${card.player.id}`, card.player)
+  for (const substitution of previousResult?.substitutions || []) for (const player of [substitution.playerIn, substitution.playerOut]) if (player) priorPlayers.set(`${substitution.teamId}:${player.id}`, player)
+  const player = (playerId, teamId, label = '事件球员') => {
+    if (typeof playerId !== 'string' || !PLAYER_ID.test(playerId)) fail(`请选择有效的${label}。`)
     const p = teams.get(teamId)?.roster?.find(item => item.id === playerId) || priorPlayers.get(`${teamId}:${playerId}`)
-    if (!p) fail('进球及助攻球员须属于参赛球队名单；已保存的历史球员可保留。')
+    if (!p) fail(`赛事${label}须属于参赛球队名单；已保存的历史球员可保留。`)
     return { id: p.id, name: p.name, number: p.number }
   }
   const counts = { [match.homeTeamId]: 0, [match.awayTeamId]: 0 }
@@ -182,6 +187,29 @@ function validateResult(input, match, teams, previousResult) {
     return { teamId: goal.teamId, minute, ownGoal: false, scorer: player(goal.scorerId, goal.teamId), assist: goal.assistId == null ? null : player(goal.assistId, goal.teamId) }
   })
   if (counts[match.homeTeamId] !== homeScore || counts[match.awayTeamId] !== awayScore) fail('双方进球事件数量须分别与主客队比分一致。')
-  return { homeScore, awayScore, penalties, goals, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId }
+  const cardsInput = input.cards == null ? [] : input.cards
+  if (!Array.isArray(cardsInput)) fail('红黄牌事件格式不正确。')
+  const cards = cardsInput.map(card => {
+    fields(card, ['teamId', 'minute', 'kind', 'playerId'])
+    if (![match.homeTeamId, match.awayTeamId].includes(card.teamId) || !['yellow', 'red'].includes(card.kind)) fail('红黄牌事件的球队或类型无效。')
+    return { teamId: card.teamId, minute: integer(card.minute, 0, 150, '牌面分钟'), kind: card.kind, player: player(card.playerId, card.teamId, '红黄牌球员') }
+  })
+  const substitutionsInput = input.substitutions == null ? [] : input.substitutions
+  if (!Array.isArray(substitutionsInput)) fail('换人事件格式不正确。')
+  const substitutions = substitutionsInput.map(change => {
+    fields(change, ['teamId', 'minute', 'playerInId', 'playerOutId'])
+    if (![match.homeTeamId, match.awayTeamId].includes(change.teamId) || change.playerInId === change.playerOutId) fail('换人事件的球队或球员无效。')
+    return { teamId: change.teamId, minute: integer(change.minute, 0, 150, '换人分钟'), playerIn: player(change.playerInId, change.teamId, '换入球员'), playerOut: player(change.playerOutId, change.teamId, '换出球员') }
+  })
+  let stats = null
+  if (input.stats != null) {
+    fields(input.stats, ['possession', 'shots', 'shotsOnTarget', 'corners', 'fouls', 'offsides'])
+    const pair = (value, label, max) => {
+      if (!Array.isArray(value) || value.length !== 2) fail(`${label}须填写主客队两项数据。`)
+      return value.map(item => integer(item, 0, max, label))
+    }
+    stats = { possession: pair(input.stats.possession, '控球率', 100), shots: pair(input.stats.shots, '射门', 99), shotsOnTarget: pair(input.stats.shotsOnTarget, '射正', 99), corners: pair(input.stats.corners, '角球', 99), fouls: pair(input.stats.fouls, '犯规', 99), offsides: pair(input.stats.offsides, '越位', 99) }
+  }
+  return { state, minute: currentMinute, homeScore, awayScore, penalties, goals, cards, substitutions, stats, homeTeamId: match.homeTeamId, awayTeamId: match.awayTeamId }
 }
 module.exports = { StandingsError, fail, fields, integer, cleanText, validateRules, qualification, calculateStandings, assertSchedule, protectResults, validateResult, defaults, stages }

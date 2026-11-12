@@ -10,7 +10,7 @@ const COMPETITION_ID = /^c_[a-f0-9]{32}$/
 const TEAM_ID = /^t_[a-f0-9]{64}$/
 const STAGES = ['group', 'quarter', 'semi', 'final']
 const STATUSES = ['scheduled', 'postponed']
-const PUBLIC_STATUSES = [...STATUSES, 'finished']
+const PUBLIC_STATUSES = [...STATUSES, 'live', 'finished']
 
 class MatchError extends Error { constructor(code, message) { super(message); this.code = code } }
 function fail(code, message) { throw new MatchError(code, message) }
@@ -61,18 +61,28 @@ function validateForm(input) {
     scheduledAt: instant(input.scheduledAt, '比赛时间'), venue: text(input.venue, '比赛场地', 120), status: input.status,
   }
 }
-function recordView(record, admin = false) {
+function publicResult(result) {
+  if (!result) return null
+  return {
+    state: result.state || 'finished', minute: result.minute ?? null, homeScore: result.homeScore, awayScore: result.awayScore,
+    penalties: result.penalties || null, goals: (result.goals || []).map(goal => ({ teamId: goal.teamId, minute: goal.minute, ownGoal: goal.ownGoal, scorer: goal.scorer ? { ...goal.scorer } : null, assist: goal.assist ? { ...goal.assist } : null })),
+    cards: (result.cards || []).map(card => ({ teamId: card.teamId, minute: card.minute, kind: card.kind, player: { ...card.player } })),
+    substitutions: (result.substitutions || []).map(change => ({ teamId: change.teamId, minute: change.minute, playerIn: { ...change.playerIn }, playerOut: { ...change.playerOut } })),
+    stats: result.stats ? { possession: [...result.stats.possession], shots: [...result.stats.shots], shotsOnTarget: [...result.stats.shotsOnTarget], corners: [...result.stats.corners], fouls: [...result.stats.fouls], offsides: [...result.stats.offsides] } : null,
+  }
+}
+function recordView(record, admin = false, includeResult = false) {
   const result = { id: record._id, competitionId: record.competitionId, stage: record.stage, round: record.round, groupId: record.groupId || null,
     slot: record.slot ?? null, homeTeamId: record.homeTeamId || null, awayTeamId: record.awayTeamId || null,
     homeFrom: record.homeFrom || null, awayFrom: record.awayFrom || null, scheduledAt: new Date(record.scheduledAt).toISOString(), venue: record.venue,
     status: record.status, homeScore: record.result?.homeScore ?? null, awayScore: record.result?.awayScore ?? null,
     penalties: record.result?.penalties || null, homeQualification: record.homeQualification || null, awayQualification: record.awayQualification || null,
-    updatedAt: new Date(record.updatedAt).toISOString() }
+    updatedAt: new Date(record.updatedAt).toISOString(), ...(includeResult ? { result: publicResult(record.result) } : {}) }
   if (admin) Object.assign(result, { version: record.version, createdAt: new Date(record.createdAt).toISOString() })
   return result
 }
-async function namedView(store, record, admin = false, resolved = record) {
-  const result = recordView(record, admin)
+async function namedView(store, record, admin = false, resolved = record, includeResult = false) {
+  const result = recordView(record, admin, includeResult)
   if (typeof store.team !== 'function') return result
   const [home, away] = await Promise.all([
     resolved.homeTeamId ? store.team(resolved.homeTeamId) : null,
@@ -147,7 +157,7 @@ function createMatchService({ store, authorize, now = Date.now, logger = console
         const match = snapshot ? calculateStandings(snapshot.competition, snapshot.matches, snapshot.teams).matches.find(match => match._id === event.id) : record
         const competition = snapshot?.competition || record && await store.competition(record.competitionId)
         if (!match || !competition || !competition.displayEnabled || !PUBLIC_STATUSES.includes(match.status)) fail('NOT_FOUND', '比赛不存在或暂未公开。')
-        return { ok: true, match: await namedView(snapshot ? { team: async id => snapshot.teams.get(id) } : store, match) }
+        return { ok: true, match: await namedView(snapshot ? { team: async id => snapshot.teams.get(id) } : store, match, false, match, true) }
       }
       if (event.action === 'matches.create') {
         fields(event, [...base, 'requestId', 'form'])

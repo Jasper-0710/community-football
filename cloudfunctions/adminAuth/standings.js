@@ -6,7 +6,11 @@ const PUBLIC_ACTIONS = ['standings.getPublic']
 const ACTIONS = [...PUBLIC_ACTIONS, 'standings.getAdmin', 'standings.updateRules', 'standings.bindMatch', 'standings.saveResult', 'standings.revokeResult', 'standings.history']
 const CID = /^c_[a-f0-9]{32}$/, MID = /^m_[a-f0-9]{32}$/
 const revisionOf = competition => competition.scheduleMutationVersion || 0
-const resultView = result => result ? { homeScore: result.homeScore, awayScore: result.awayScore, penalties: result.penalties, goals: result.goals.map(goal => ({ ...goal })) } : null
+const resultView = result => result ? {
+  state: result.state || 'finished', minute: result.minute ?? null, homeScore: result.homeScore, awayScore: result.awayScore,
+  penalties: result.penalties || null, goals: (result.goals || []).map(goal => ({ ...goal })),
+  cards: (result.cards || []).map(card => ({ ...card })), substitutions: (result.substitutions || []).map(change => ({ ...change })), stats: result.stats || null,
+} : null
 function view(snapshot, admin = false) {
   const calculated = calculateStandings(snapshot.competition, snapshot.matches, snapshot.teams)
   return {
@@ -102,9 +106,9 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
             if (operation === 'standings.saveResult') {
               for (const id of [resolved.homeTeamId, resolved.awayTeamId].filter(Boolean)) { const team = await approvedTeam(tx, event.competitionId, id); teams.set(id, team); touched.push(team) }
               updated.result = validateResult(event.result, resolved, teams, record.result)
-              updated.status = 'finished'
+              updated.status = updated.result.state
             } else {
-              if (record.status !== 'finished' || !record.result) fail('该场比赛没有可撤销的赛果。')
+              if (!['live', 'finished'].includes(record.status) || !record.result) fail('该场比赛没有可撤销的赛果。')
               for (const id of [record.result.homeTeamId, record.result.awayTeamId]) { const team = await tx.team(id); if (!team || team.status === 'dissolved') fail('历史参赛球队不可用。'); touched.push(team) }
               updated.result = null; updated.status = 'scheduled'
             }

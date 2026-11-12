@@ -113,6 +113,38 @@ test('invalid event ownership, self-assists, mismatched scores, invalid penaltie
   assert.deepEqual({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions] }, before); assert.equal(f.revisions.size, 0)
 })
 
+test('D07 preserves live result details, cards, substitutions and stats, then counts the same result after finalization', async () => {
+  const f = fixture(), id = await f.create(1, 2); await f.rules()
+  const live = { state: 'live', minute: 37, homeScore: 1, awayScore: 1, penalties: null,
+    goals: [f.goal(1), f.goal(2)],
+    cards: [{ teamId: tid(1), minute: 21, kind: 'yellow', playerId: pid(2) }, { teamId: tid(2), minute: 33, kind: 'red', playerId: pid(4) }],
+    substitutions: [{ teamId: tid(1), minute: 35, playerInId: pid(3), playerOutId: pid(2) }],
+    stats: { possession: [58, 42], shots: [7, 5], shotsOnTarget: [3, 2], corners: [4, 1], fouls: [6, 8], offsides: [1, 2] } }
+  assert.equal((await f.save(id, live)).ok, true)
+  let data = await f.snapshot()
+  assert.equal(data.matches.find(m => m.id === id)!.status, 'live')
+  assert.equal(data.groups[0].rows[0].played, 0)
+  const publicMatch = await f.matches({ action: 'matches.getPublic', id })
+  assert.equal(publicMatch.match.status, 'live'); assert.equal(publicMatch.match.result.cards.length, 2); assert.equal(publicMatch.match.result.substitutions.length, 1)
+  const finished = { ...live, state: 'finished', minute: null }
+  assert.equal((await f.save(id, finished)).ok, true)
+  data = await f.snapshot(); assert.equal(data.matches.find(m => m.id === id)!.status, 'finished'); assert.equal(data.groups[0].rows[0].played, 1)
+})
+
+test('D07 rejects invalid card, substitution and technical-stat events atomically', async () => {
+  const f = fixture(), id = await f.create(1, 2); await f.rules()
+  const base = { ...f.result(0, 0), cards: [], substitutions: [], stats: null }
+  const invalid = [
+    { ...base, cards: [{ teamId: tid(1), minute: 10, kind: 'yellow', playerId: pid(6) }] },
+    { ...base, substitutions: [{ teamId: tid(1), minute: 10, playerInId: pid(2), playerOutId: pid(2) }] },
+    { ...base, substitutions: [{ teamId: tid(1), minute: 10, playerInId: pid(2), playerOutId: pid(4) }] },
+    { ...base, stats: { possession: [101, 0], shots: [1, 1], shotsOnTarget: [1, 1], corners: [1, 1], fouls: [1, 1], offsides: [1, 1] } },
+    { ...base, stats: { possession: [50, 50], shots: [-1, 1], shotsOnTarget: [1, 1], corners: [1, 1], fouls: [1, 1], offsides: [1, 1] } },
+  ]
+  for (const result of invalid) assert.equal((await f.save(id, result)).error.code, 'INVALID_ARGUMENT')
+  assert.equal(f.records.size, 1); assert.equal(f.revisions.size, 0)
+})
+
 test('group correction and revocation re-resolve multiple knockout rounds and protect already recorded downstream participants', async () => {
   const f = fixture(), a = await f.create(1, 2), b = await f.create(3, 4, { groupId: 'B' }); await f.rules()
   await f.save(a, f.result(1, 0)); await f.save(b, f.result(1, 0, 3, 4))

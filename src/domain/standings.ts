@@ -1,12 +1,9 @@
-import { MatchClientError, parseMatch, type MatchSchedule } from './match'
+import { MatchClientError, parseMatch, parseSavedResult, type MatchSchedule, type ResultGoal, type ResultPlayer, type SavedResult, type ResultInput } from './match'
+export type { ResultGoal, ResultPlayer, SavedResult, ResultInput } from './match'
 export interface StandingsRules { winPoints: number; drawPoints: number; lossPoints: number; legs: number; groups: { id: string; teamIds: string[] }[] }
 export interface StandingRow { teamId: string; teamName: string; rank: number; played: number; won: number; drawn: number; lost: number; goalsFor: number; goalsAgainst: number; difference: number; points: number }
 export interface StandingGroup { id: string; complete: boolean; expectedMatches: number; scheduledMatches: number; finishedMatches: number; rows: StandingRow[] }
 export interface PlayerRank { playerId: string; playerName: string; number: number; teamId: string; teamName: string; goals: number; assists: number; value: number; rank: number }
-export interface ResultPlayer { id: string; name: string; number: number }
-export interface ResultGoal { teamId: string; minute: number; ownGoal: boolean; scorer: ResultPlayer | null; assist: ResultPlayer | null }
-export interface SavedResult { homeScore: number; awayScore: number; penalties: [number, number] | null; goals: ResultGoal[] }
-export interface ResultInput { homeScore: number; awayScore: number; penalties: [number, number] | null; goals: { teamId: string; minute: number; ownGoal: boolean; scorerId: string | null; assistId: string | null }[] }
 export interface RankedMatch extends MatchSchedule { result?: SavedResult | null }
 export interface StandingsSnapshot { competitionId: string; revision: number; configured: boolean; rules: StandingsRules; groups: StandingGroup[]; goals: PlayerRank[]; assists: PlayerRank[]; matches: RankedMatch[]; championTeamId: string | null }
 export interface ResultHistory { revisions: { version: number; reason: string; revoked: boolean; createdAt: string; result: SavedResult | null }[]; nextVersion: number | null }
@@ -27,19 +24,6 @@ function parseRules(v: any): StandingsRules {
     return { id: group.id as string, teamIds }
   })
   return { winPoints: v.winPoints, drawPoints: v.drawPoints, lossPoints: v.lossPoints, legs: v.legs, groups }
-}
-function parseSavedResult(v: any): SavedResult | null {
-  if (v === null) return null
-  if (!object(v) || ![v.homeScore, v.awayScore].every(x => nonnegative(x) && x <= 99) || !Array.isArray(v.goals) || v.goals.length !== v.homeScore + v.awayScore) return invalid()
-  if (v.penalties !== null && (!Array.isArray(v.penalties) || v.penalties.length !== 2 || !v.penalties.every((x: unknown) => nonnegative(x) && Number(x) <= 99) || v.penalties[0] === v.penalties[1] || v.homeScore !== v.awayScore)) return invalid()
-  const player = (p: any): ResultPlayer | null => p === null ? null : object(p) && playerId(p.id) && name(p.name) && positive(p.number) && p.number <= 99 ? { id: p.id, name: p.name, number: p.number } : invalid()
-  const goals = v.goals.map((goal: any): ResultGoal => {
-    if (!object(goal) || !teamId(goal.teamId) || !nonnegative(goal.minute) || goal.minute > 150 || typeof goal.ownGoal !== 'boolean') return invalid()
-    const scorer = player(goal.scorer), assist = player(goal.assist)
-    if (goal.ownGoal ? scorer || assist : !scorer || scorer.id === assist?.id) return invalid()
-    return { teamId: goal.teamId, minute: goal.minute, ownGoal: goal.ownGoal, scorer, assist }
-  })
-  return { homeScore: v.homeScore, awayScore: v.awayScore, penalties: v.penalties ? [v.penalties[0], v.penalties[1]] : null, goals }
 }
 export function parseStandings(v: any, admin = false): StandingsSnapshot {
   if (!object(v) || v.ok !== true || typeof v.competitionId !== 'string' || !/^c_[a-f0-9]{32}$/.test(v.competitionId) || !nonnegative(v.revision) || typeof v.configured !== 'boolean' || !Array.isArray(v.groups) || !Array.isArray(v.matches) || v.matches.length > 2048 || !Array.isArray(v.goals) || !Array.isArray(v.assists) || v.championTeamId !== null && !teamId(v.championTeamId)) return invalid()
