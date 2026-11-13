@@ -41,7 +41,7 @@ watch(profile, value => {
   draftAvatarPath.value = ''
   avatarLoading.value = false
   avatarError.value = ''
-})
+}, { immediate: true })
 watch(avatarSource, () => { avatarImageFailed.value = false })
 watch(() => profile.value?.avatarUrl, () => { headerAvatarFailed.value = false })
 

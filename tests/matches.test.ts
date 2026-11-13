@@ -56,6 +56,24 @@ test('schedule edits enforce optimistic versions and cannot move a match to anot
   assert.equal((await f.service({ action: 'matches.update', id: created.match.id, expectedVersion: 2, form: { ...next, competitionId: 'c_' + 'e'.repeat(32) }, token: 'admin-token' })).error.code, 'INVALID_ARGUMENT')
 })
 
+test('schedule editing rejects live, finished and residual results without any partial writes', async () => {
+  for (const [status, result] of [
+    ['live', null], ['finished', null],
+    ['scheduled', { state: 'live', homeTeamId: home, awayTeamId: away, homeScore: 0, awayScore: 0, goals: [] }],
+    ['postponed', { state: 'finished', homeTeamId: home, awayTeamId: away, homeScore: 0, awayScore: 0, goals: [] }],
+  ] as const) {
+    const f = fixture()
+    const created = await f.service({ action: 'matches.create', requestId: '5'.repeat(32), form: f.form, token: 'admin-token' })
+    const record = f.records.get(created.match.id)
+    f.records.set(record._id, { ...record, status, result })
+    const before = structuredClone({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions] })
+    const response = await f.service({ action: 'matches.update', id: record._id, expectedVersion: record.version,
+      form: { ...f.form, scheduledAt: '2026-11-20T10:00:00.000Z', status: 'scheduled' }, token: 'admin-token' })
+    assert.equal(response.error.code, 'CONFLICT', `${status} must require result revocation`)
+    assert.deepEqual({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions] }, before)
+  }
+})
+
 test('schedule writes require approval and atomically touch referenced teams without modifying their rosters', async () => {
   const f = fixture(), before = structuredClone([...f.teams])
   f.registrations.set(registrationId(cid, away), { competitionId: cid, teamId: away, status: 'pending' })

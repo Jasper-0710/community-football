@@ -131,6 +131,35 @@ test('D07 preserves live result details, cards, substitutions and stats, then co
   data = await f.snapshot(); assert.equal(data.matches.find(m => m.id === id)!.status, 'finished'); assert.equal(data.groups[0].rows[0].played, 1)
 })
 
+test('live results cannot be reset or reassigned through schedule edits, and revocation unlocks editing', async () => {
+  const f = fixture(), id = await f.create(1, 2); await f.rules()
+  const live = { ...f.result(1, 0), state: 'live', minute: 30,
+    cards: [{ teamId: tid(2), minute: 28, kind: 'yellow', playerId: pid(4) }],
+    substitutions: [{ teamId: tid(1), minute: 29, playerInId: pid(3), playerOutId: pid(2) }],
+    stats: { possession: [60, 40], shots: [3, 2], shotsOnTarget: [1, 1], corners: [2, 1], fouls: [2, 3], offsides: [0, 1] } }
+  assert.equal((await f.save(id, live)).ok, true)
+  const before = structuredClone({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions], revisions: [...f.revisions] })
+  const record = f.records.get(id)
+  const form = { competitionId: cid, stage: record.stage, round: record.round, groupId: record.groupId, slot: record.slot,
+    homeTeamId: record.homeTeamId, awayTeamId: record.awayTeamId, homeFrom: record.homeFrom, awayFrom: record.awayFrom,
+    scheduledAt: record.scheduledAt, venue: record.venue, status: 'scheduled' }
+  for (const changes of [{}, { status: 'postponed' }, { scheduledAt: '2026-11-20T10:00:00.000Z' }, { homeTeamId: tid(2), awayTeamId: tid(1) }]) {
+    const response = await f.matches({ action: 'matches.update', token: 'admin', id, expectedVersion: record.version, form: { ...form, ...changes } })
+    assert.equal(response.error.code, 'CONFLICT')
+    assert.deepEqual({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions], revisions: [...f.revisions] }, before)
+  }
+  assert.equal((await f.revoke(id)).ok, true)
+  const revoked = f.records.get(id)
+  assert.equal(revoked.status, 'scheduled'); assert.equal(revoked.result, null)
+  const updated = await f.matches({ action: 'matches.update', token: 'admin', id, expectedVersion: revoked.version,
+    form: { ...form, scheduledAt: '2026-11-20T10:00:00.000Z' } })
+  assert.equal(updated.ok, true); assert.equal(updated.match.scheduledAt, '2026-11-20T10:00:00.000Z')
+  assert.equal(f.records.get(id).result, null)
+  const published = await f.matches({ action: 'matches.getPublic', id })
+  assert.equal(published.match.status, 'scheduled'); assert.equal(published.match.result, null)
+  assert.equal(f.revisions.size, 2)
+})
+
 test('D07 rejects invalid card, substitution and technical-stat events atomically', async () => {
   const f = fixture(), id = await f.create(1, 2); await f.rules()
   const base = { ...f.result(0, 0), cards: [], substitutions: [], stats: null }
@@ -161,6 +190,45 @@ test('group correction and revocation re-resolve multiple knockout rounds and pr
   await f.revoke(final); await f.revoke(semi1); await f.revoke(semi2)
   assert.equal((await f.save(a, f.result(1, 0))).ok, true)
   const after = await f.snapshot(); assert.equal(after.matches.find(m => m.id === semi1)!.homeTeamId, tid(1)); assert.equal(after.matches.find(m => m.id === final)!.homeTeamId, null); assert.equal(after.championTeamId, null)
+})
+
+test('live group qualifiers protect their participants against upstream correction, revocation, rules and source changes', async () => {
+  const f = fixture(), a = await f.create(1, 2), b = await f.create(3, 4, { groupId: 'B' }); await f.rules()
+  await f.save(a, f.result(1, 0)); await f.save(b, f.result(1, 0, 3, 4))
+  const semi = await f.create(null, null, { stage: 'semi', groupId: null, scheduledAt: '2026-11-21T08:00:00.000Z' })
+  await f.bind(semi, { groupId: 'A', rank: 1 }, { groupId: 'B', rank: 2 })
+  assert.equal((await f.save(semi, { ...f.result(1, 0, 1, 4), state: 'live', minute: 30 })).ok, true)
+  const before = structuredClone({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions], revisions: [...f.revisions] })
+  for (const operation of [
+    () => f.save(a, f.result(0, 1)),
+    () => f.revoke(a),
+    () => f.rules(undefined, { legs: 2 }),
+    () => f.bind(semi, { groupId: 'A', rank: 2 }, { groupId: 'B', rank: 2 }),
+  ]) {
+    assert.equal((await operation()).error.code, 'CONFLICT')
+    assert.deepEqual({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions], revisions: [...f.revisions] }, before)
+  }
+  assert.equal((await f.revoke(semi)).ok, true)
+  assert.equal((await f.save(a, f.result(0, 1))).ok, true)
+  const after = (await f.snapshot()).matches.find(match => match.id === semi)!
+  assert.equal(after.homeTeamId, tid(2)); assert.equal(after.status, 'scheduled'); assert.equal(after.result, null)
+})
+
+test('a live final protects its previous-round winner until the final result is revoked', async () => {
+  const f = fixture()
+  const semi = await f.create(1, 2, { stage: 'semi', groupId: null })
+  assert.equal((await f.save(semi, f.result(1, 0))).ok, true)
+  const final = await f.create(null, 3, { stage: 'final', groupId: null, homeFrom: semi, scheduledAt: '2026-11-21T08:00:00.000Z' })
+  assert.equal((await f.save(final, { ...f.result(0, 0, 1, 3), state: 'live', minute: 10 })).ok, true)
+  const before = structuredClone({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions], revisions: [...f.revisions] })
+  for (const operation of [() => f.save(semi, f.result(0, 1)), () => f.revoke(semi)]) {
+    assert.equal((await operation()).error.code, 'CONFLICT')
+    assert.deepEqual({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions], revisions: [...f.revisions] }, before)
+  }
+  assert.equal((await f.revoke(final)).ok, true)
+  assert.equal((await f.save(semi, f.result(0, 1))).ok, true)
+  const after = (await f.snapshot()).matches.find(match => match.id === final)!
+  assert.equal(after.homeTeamId, tid(2)); assert.equal(after.status, 'scheduled'); assert.equal(after.result, null)
 })
 
 test('concurrent result submissions serialize on one competition revision and preserve a single authoritative result', async () => {

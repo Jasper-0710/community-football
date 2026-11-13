@@ -52,7 +52,7 @@ const matchStore = {
   async competition(id) { return (await database.collection('competitions').doc(id).get()).data },
   async team(id) { return (await database.collection('teams').doc(id).get()).data },
   async list({ publicOnly, competitionId, cursor, teamId, limit }) {
-    const where = { competitionId, ...(publicOnly ? { status: database.command.in(['scheduled', 'postponed', 'finished']) } : {}), ...(cursor ? { _id: database.command.gt(cursor) } : {}) }
+    const where = { competitionId, ...(publicOnly ? { status: database.command.in(['scheduled', 'postponed', 'live', 'finished']) } : {}), ...(cursor ? { _id: database.command.gt(cursor) } : {}) }
     // CloudBase does not accept a Mongo-style $or together with the ordinary
     // where object on every runtime; use two indexed reads for team filtering.
     if (teamId) {
@@ -60,7 +60,7 @@ const matchStore = {
         database.collection('matches').where({ ...where, homeTeamId: teamId }).orderBy('_id', 'asc').limit(limit).get(),
         database.collection('matches').where({ ...where, awayTeamId: teamId }).orderBy('_id', 'asc').limit(limit).get(),
       ])
-      const rows = [...home.data, ...away.data].filter(row => !publicOnly || ['scheduled', 'postponed', 'finished'].includes(row.status)).sort((a, b) => a._id.localeCompare(b._id))
+      const rows = [...home.data, ...away.data].filter(row => !publicOnly || ['scheduled', 'postponed', 'live', 'finished'].includes(row.status)).sort((a, b) => a._id.localeCompare(b._id))
       return rows.filter((row, index, all) => index === all.findIndex(item => item._id === row._id)).slice(0, limit)
     }
     return (await database.collection('matches').where(where).orderBy('_id', 'asc').limit(limit).get()).data

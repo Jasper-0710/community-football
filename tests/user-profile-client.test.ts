@@ -255,14 +255,22 @@ test('unreadable image metadata produces a useful selection error before reading
   assert.equal(api.compressed.length, 0)
 })
 
-function profileState(read: () => Promise<any>, update = async (nickname: string) => ({ ...profile, nickname })) {
+function profileRuntime(read: () => Promise<any>, update = async (nickname: string) => ({ ...profile, nickname }), storedIntent: unknown = false) {
   const source = fs.readFileSync(new URL('../src/composables/useUserProfile.ts', import.meta.url), 'utf8')
   const module = { exports: {} as any }
+  const mounted: (() => void)[] = [], unmounted: (() => void)[] = []
+  const storageWrites: unknown[][] = []
   vm.runInNewContext(transformSync(source, { loader: 'ts', format: 'cjs', target: 'es2020' }).code, {
     module, exports: module.exports,
-    uni: { setStorageSync: () => {} },
+    uni: {
+      getStorageSync: () => storedIntent,
+      setStorageSync: (...args: unknown[]) => { storageWrites.push(args) },
+    },
     require: (name: string) => {
-      if (name === 'vue') return { computed, ref, onMounted: () => {}, onBeforeUnmount: () => {} }
+      if (name === 'vue') return {
+        computed, ref, onMounted: (fn: () => void) => { mounted.push(fn) },
+        onBeforeUnmount: (fn: () => void) => { unmounted.push(fn) },
+      }
       if (name === '@/services/user-profile') return {
         supportsWechatProfile: () => true, getOrCreateUserProfile: read,
         updateUserProfile: update, profileErrorMessage: (e: Error) => e.message,
@@ -270,8 +278,127 @@ function profileState(read: () => Promise<any>, update = async (nickname: string
       throw new Error(`Unexpected import ${name}`)
     },
   })
-  return module.exports.useUserProfile()
+  return {
+    storageWrites,
+    page() {
+      const mountedStart = mounted.length, unmountedStart = unmounted.length
+      const state = module.exports.useUserProfile()
+      const mountHooks = mounted.slice(mountedStart), unmountHooks = unmounted.slice(unmountedStart)
+      return { state, mount: () => mountHooks.forEach(fn => fn()), unmount: () => unmountHooks.forEach(fn => fn()) }
+    },
+  }
 }
+
+function profileState(read: () => Promise<any>, update = async (nickname: string) => ({ ...profile, nickname })) {
+  return profileRuntime(read, update).page().state
+}
+
+test('page visits share one restored cloud identity and join the same in-flight login', async () => {
+  let reads = 0, finish!: (value: any) => void
+  const runtime = profileRuntime(() => { ++reads; return new Promise(resolve => { finish = resolve }) }, undefined, true)
+  const personal = runtime.page(), team = runtime.page()
+  personal.mount()
+  team.mount()
+  assert.equal(reads, 1)
+  assert.equal(personal.state.loading, team.state.loading)
+  assert.equal(team.state.loading.value, true)
+  const first = personal.state.login(), second = team.state.login()
+  assert.equal(first, second)
+  personal.unmount()
+  finish({ ...profile })
+  await second
+  assert.equal(team.state.profile.value.nickname, profile.nickname)
+  const savedProfile = team.state.profile.value
+  const registrations = runtime.page()
+  registrations.mount()
+  await registrations.state.login()
+  assert.equal(reads, 1, 'entering another page must not fetch the profile again')
+  assert.equal(registrations.state.profile.value, savedProfile)
+  assert.equal(registrations.state.loading.value, false)
+})
+
+test('cold runtimes restore only intent, never a locally cached or previous runtime identity', async () => {
+  const storedProfile = { ...profile, nickname: '本机伪造昵称' }
+  let forgedReads = 0
+  const forged = profileRuntime(async () => { ++forgedReads; return { ...profile } }, undefined, storedProfile).page()
+  forged.mount()
+  assert.equal(forgedReads, 0, 'only boolean login intent is accepted from storage')
+  assert.equal(forged.state.profile.value, null)
+  const current = { ...profile, id: 'b'.repeat(64), nickname: '当前微信账号' }
+  const runtime = profileRuntime(async () => current, undefined, true)
+  const page = runtime.page()
+  assert.equal(page.state.profile.value, null)
+  page.mount()
+  await page.state.login()
+  assert.equal(page.state.profile.value.id, current.id)
+  assert.equal(page.state.profile.value.nickname, current.nickname)
+  assert.equal(runtime.storageWrites.length, 1)
+  assert.equal(runtime.storageWrites[0][0], 'community-football:wechat-login-intent')
+  assert.equal(runtime.storageWrites[0][1], true)
+})
+
+test('failed automatic restoration does not repeat on each page and permits a manual retry', async () => {
+  let reads = 0
+  const runtime = profileRuntime(async () => { if (++reads === 1) throw new Error('暂时断网'); return { ...profile } }, undefined, true)
+  const first = runtime.page()
+  first.mount()
+  await first.state.login()
+  const second = runtime.page()
+  second.mount()
+  assert.equal(reads, 1)
+  assert.equal(second.state.error.value, '暂时断网')
+  await second.state.login()
+  assert.equal(reads, 2)
+  assert.equal(first.state.profile.value.nickname, profile.nickname)
+  assert.equal(first.state.error.value, '')
+})
+
+test('logout clears every page and an older login cannot overwrite a fresh identity', async () => {
+  let reads = 0, finish!: (value: any) => void
+  const current = { ...profile, id: 'b'.repeat(64), nickname: '新登录用户' }
+  const runtime = profileRuntime(async () => ++reads === 1 ? new Promise(resolve => { finish = resolve }) : current)
+  const first = runtime.page(), second = runtime.page()
+  const olderLogin = first.state.login()
+  second.state.logout()
+  assert.equal(first.state.profile.value, null)
+  assert.equal(first.state.loading.value, false)
+  await second.state.login()
+  finish({ ...profile })
+  await olderLogin
+  assert.equal(first.state.profile.value.id, current.id)
+  assert.equal(first.state.loading.value, false)
+  first.state.logout()
+  assert.equal(second.state.profile.value, null)
+  const third = runtime.page()
+  third.mount()
+  assert.equal(reads, 2, 'explicit logout must not trigger automatic login on a later page')
+})
+
+test('saving the shared profile updates other pages without a separate login request', async () => {
+  let reads = 0
+  const runtime = profileRuntime(async () => { ++reads; return { ...profile } })
+  const first = runtime.page().state, second = runtime.page().state
+  await first.login()
+  assert.equal(await second.save('统一昵称'), true)
+  assert.equal(first.profile.value.nickname, '统一昵称')
+  assert.equal(reads, 1)
+})
+
+test('concurrent avatar renewals share one request and clear cached identity on account mismatch', async () => {
+  let reads = 0, finish!: (value: any) => void
+  const runtime = profileRuntime(async () => ++reads === 1 ? { ...profile } : new Promise(resolve => { finish = resolve }))
+  const first = runtime.page().state, second = runtime.page().state
+  await first.login()
+  const one = first.refreshAvatar(), two = second.refreshAvatar()
+  assert.equal(one, two)
+  assert.equal(reads, 2)
+  finish({ ...profile, id: 'b'.repeat(64) })
+  assert.equal(await one, false)
+  assert.equal(first.profile.value, null)
+  assert.equal(second.profile.value, null)
+  assert.equal(second.refreshingAvatar.value, false)
+  assert.match(second.error.value, /微信身份已变化/)
+})
 
 test('refreshing a signed avatar URL preserves the edited nickname, login and other profile fields', async () => {
   let count = 0

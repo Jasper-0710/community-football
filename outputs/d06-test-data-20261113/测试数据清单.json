@@ -1,0 +1,81 @@
+{
+  "batchId": "d06-winter-20261113",
+  "updatedAt": "2026-11-13",
+  "appId": "wx3230f06c755cef3a",
+  "envId": "cloud1-d6gzg20x709d7f6c1",
+  "competition": {
+    "id": "c_9f5427d27b4acc8ecac2aad615d663a9",
+    "name": "【模拟】冬日社区冠军杯",
+    "statsLastRead": {
+      "approved": 1,
+      "occupied": 1,
+      "pending": 0
+    },
+    "statsExpected": {
+      "approved": 4,
+      "occupied": 4,
+      "pending": 0
+    },
+    "counterUpdate": "awaiting-native-confirmation"
+  },
+  "scope": "synthetic fixtures inserted directly; not proof of real registration submission or approval",
+  "existingTeam": {
+    "name": "云端验证队伍",
+    "currentPlayerCount": 5,
+    "historicalRegistrationPlayerCount": 8,
+    "modified": false
+  },
+  "verification": {
+    "databaseRecords": "written-and-read-back",
+    "adminCandidateAndAttachmentApi": "pending",
+    "matchesCreated": 0,
+    "resultRevisionsCreated": 0
+  },
+  "entries": [
+    {
+      "teamId": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd",
+      "teamName": "【测试】冬日浦东联队",
+      "district": "浦东新区",
+      "playerCount": 8,
+      "registrationId": "r_0f9ea4b17af489e10afde0c4130a9a34a49ef0cb9c4f408fd54bee7c8b3c6f1f",
+      "status": "approved",
+      "fileRegistryId": "f_523b025138b6a1cd0c1987a8de4c517b",
+      "attachment": {
+        "name": "报名材料-冬日浦东联队-8人.xlsx",
+        "size": 4952,
+        "sha256": "8440ee67ed23df99e3436923c046d5176f41ffefa6a1414b7813c2c11f02fe65",
+        "fileID": "cloud://cloud1-d6gzg20x709d7f6c1.636c-cloud1-d6gzg20x709d7f6c1-1526726605/registration-materials/26a973b2656019c1d665b59e1e7008e06b8ba11f23a85e94.xlsx"
+      }
+    },
+    {
+      "teamId": "t_140c838a6ab8df080eee9df93761944211494e4969e92bcd7a9919ae885c7933",
+      "teamName": "【测试】冬日徐汇联队",
+      "district": "徐汇区",
+      "playerCount": 8,
+      "registrationId": "r_2d6140f66e2d1057e3a770f6a2de6918ecc6de4ecce73fc8b8902184d4a1ff80",
+      "status": "approved",
+      "fileRegistryId": "f_17bdbf79b846d29a56f35021cdb9827d",
+      "attachment": {
+        "name": "报名材料-冬日徐汇联队-8人.xlsx",
+        "size": 4947,
+        "sha256": "f7159214584a83500a6bd2efd4950b7c04061a8c2a535087c4044c3edd19391f",
+        "fileID": "cloud://cloud1-d6gzg20x709d7f6c1.636c-cloud1-d6gzg20x709d7f6c1-1526726605/registration-materials/09aa9fc55bab89616f3d381acc76766e995d306f722cbae3.xlsx"
+      }
+    },
+    {
+      "teamId": "t_9ffc35a6150d1ac5eabd37e48ea6110c0cf2f199bbbb6a61b1b0cfc4fd38b776",
+      "teamName": "【测试】冬日杨浦联队",
+      "district": "杨浦区",
+      "playerCount": 8,
+      "registrationId": "r_f56659a05f9fe07f10d3ff8e127e0fe61b6056f2b0dc4a2f1ccd07df8e6f524a",
+      "status": "approved",
+      "fileRegistryId": "f_942684667cd5aa8fe2b69292260e1447",
+      "attachment": {
+        "name": "报名材料-冬日杨浦联队-8人.xlsx",
+        "size": 4947,
+        "sha256": "ea1870a77053a02ef99463d1624e46b11854d1601bde19dbe54ac2b8087f2bca",
+        "fileID": "cloud://cloud1-d6gzg20x709d7f6c1.636c-cloud1-d6gzg20x709d7f6c1-1526726605/registration-materials/a6b1c44e0636ffbcd324fa97bd0765d2b4b3feb0f1418e62.xlsx"
+      }
+    }
+  ]
+}

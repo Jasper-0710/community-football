@@ -141,10 +141,10 @@ function assertSchedule(records, rules) {
 }
 function protectResults(before, after) {
   for (const record of before) {
-    if (record.status !== 'finished' || !record.result) continue
+    if (!['live', 'finished'].includes(record.status) || !record.result) continue
     const next = after.find(match => match._id === record._id)
-    if (!next || next.status !== 'finished') continue
-    if (next.homeTeamId !== record.result.homeTeamId || next.awayTeamId !== record.result.awayTeamId) fail('更改会影响已有赛果的参赛球队，请先撤销后续比赛赛果，再按轮次更正。', 'CONFLICT')
+    if (!next?.result) continue
+    if (next.homeTeamId !== record.result.homeTeamId || next.awayTeamId !== record.result.awayTeamId) fail('更改会影响进行中或已有赛果的参赛球队，请先撤销后续比赛赛果，再按轮次更正。', 'CONFLICT')
   }
   for (const match of after) if (match.homeTeamId && match.homeTeamId === match.awayTeamId) fail('晋级后主客队相同，请调整后续对阵来源。', 'CONFLICT')
 }

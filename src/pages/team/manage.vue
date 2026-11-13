@@ -39,15 +39,21 @@ function inputConfirmation(event:unknown){
 function copyTeamName(){if(team.value)uni.setClipboardData({data:team.value.name,fail:()=>feedback('复制失败，请手动输入队名')})}
 const message=(e:unknown)=>e instanceof Error?e.message:'操作失败，请重试。'
 async function load(){
- if(!profile.value||saving.value)return
+ if(!profile.value||saving.value||loading.value)return
  const current=++generation;loading.value=true;error.value='';notice.value='';ready.value=false;team.value=null;editingTeam.value=false;editingPlayer.value=false
  dissolving.value=false;confirmName.value=''
  try{const value=await getMyTeam();if(current!==generation||!visible)return;team.value=value;ready.value=true;writeUncertain.value=false}
- catch(e){if(current===generation)error.value=message(e)}finally{if(current===generation)loading.value=false}
+ catch(e){if(current===generation&&visible)error.value=message(e)}finally{if(current===generation)loading.value=false}
 }
-watch(profile,p=>{if(p)void load();else{generation++;team.value=null;ready.value=false}})
-onShow(()=>{visible=true;if(profile.value)void load()})
-onUnload(()=>{visible=false;generation++})
+function clearPrivateState(){
+ generation++;loading.value=false;saving.value=false;team.value=null;ready.value=false;error.value='';notice.value=''
+ editingTeam.value=false;editingPlayer.value=false;playerId.value='';createRequest.value='';writeUncertain.value=false
+ dissolving.value=false;confirmName.value='';playerValidationAttempted.value=false
+ Object.assign(form,{name:'',district:'',description:'',contactPhone:''});Object.assign(player,{name:'',number:'',position:''})
+}
+watch(()=>profile.value?.id,id=>{clearPrivateState();if(id&&visible)void load()},{flush:'sync'})
+onShow(()=>{visible=true;if(profile.value&&!editingTeam.value&&!editingPlayer.value&&!dissolving.value&&!saving.value)void load()})
+onUnload(()=>{visible=false;clearPrivateState()})
 function back(){uni.navigateBack({fail:()=>uni.reLaunch({url:'/pages/index/index?tab=profile'})})}
 function profilePage(){uni.reLaunch({url:'/pages/index/index?tab=profile'})}
 function startTeam(){
@@ -66,35 +72,37 @@ function failure(e:unknown){error.value=message(e);writeUncertain.value=['SERVIC
 async function saveTeam(){
  if(saving.value||writeUncertain.value)return
  if(!form.name.trim()||!form.district||!form.contactPhone.trim()){error.value='请填写队名、所属区和领队联系电话。';feedback('请填写球队必填资料');return}
- saving.value=true;error.value='';notice.value=''
- try{const created=!team.value;const value=team.value?await updateMyTeam(team.value.version,{...form}):await createMyTeam(createRequest.value,{...form});if(!visible)return;team.value=value;editingTeam.value=false;success(created?'球队创建成功，你已成为领队。接下来添加球员名单。':'球队资料已保存。',created?'球队创建成功':'球队资料已保存')}catch(e){if(visible)failure(e)}finally{saving.value=false}
+ const current=generation;saving.value=true;error.value='';notice.value=''
+ try{const created=!team.value;const value=team.value?await updateMyTeam(team.value.version,{...form}):await createMyTeam(createRequest.value,{...form});if(current!==generation||!visible)return;team.value=value;editingTeam.value=false;success(created?'球队创建成功，你已成为领队。接下来添加球员名单。':'球队资料已保存。',created?'球队创建成功':'球队资料已保存')}catch(e){if(current===generation&&visible)failure(e)}finally{if(current===generation)saving.value=false}
 }
 async function savePlayer(){
  if(!team.value||saving.value||writeUncertain.value)return
  playerValidationAttempted.value=true;error.value=''
  if(Object.values(playerErrors.value).some(Boolean)||!player.position){feedback('请检查球员姓名、号码和位置');return}
- saving.value=true;error.value='';notice.value=''
- try{const value=await saveTeamPlayer(team.value.version,playerId.value,{name:player.name,number:Number(player.number),position:player.position});if(!visible)return;team.value=value;editingPlayer.value=false;playerValidationAttempted.value=false;success('球员名单已保存。')}catch(e){if(visible)failure(e)}finally{saving.value=false}
+ const current=generation;saving.value=true;error.value='';notice.value=''
+ try{const value=await saveTeamPlayer(team.value.version,playerId.value,{name:player.name,number:Number(player.number),position:player.position});if(current!==generation||!visible)return;team.value=value;editingPlayer.value=false;playerValidationAttempted.value=false;success('球员名单已保存。')}catch(e){if(current===generation&&visible)failure(e)}finally{if(current===generation)saving.value=false}
 }
 async function remove(p:TeamPlayer){
  if(!team.value||saving.value||writeUncertain.value||dissolving.value)return
+ const current=generation
  const choice=await new Promise<boolean>(resolve=>uni.showModal({title:'移出当前名单',content:`确定将 ${p.name}（${p.number}号）移出球队名单吗？`,confirmText:'移出名单',confirmColor:'#963a29',success:r=>resolve(r.confirm),fail:()=>resolve(false)}))
+ if(current!==generation||!visible)return
  if(!choice){feedback('已取消移出');return}
  if(!team.value||saving.value||!visible)return
  saving.value=true;error.value='';notice.value=''
- try{const value=await removeTeamPlayer(team.value.version,p.id);if(!visible)return;team.value=value;success('球员已移出当前名单。')}catch(e){if(visible)failure(e)}finally{saving.value=false}
+ try{const value=await removeTeamPlayer(team.value.version,p.id);if(current!==generation||!visible)return;team.value=value;success('球员已移出当前名单。')}catch(e){if(current===generation&&visible)failure(e)}finally{if(current===generation)saving.value=false}
 }
 async function startDissolution(){
  if(!team.value||saving.value||writeUncertain.value)return
- saving.value=true;error.value='';notice.value=''
- try{await checkTeamDissolution(team.value.version);if(!visible)return;confirmName.value='';dissolving.value=true}
- catch(e){if(visible)failure(e)}finally{saving.value=false}
+ const current=generation;saving.value=true;error.value='';notice.value=''
+ try{await checkTeamDissolution(team.value.version);if(current!==generation||!visible)return;confirmName.value='';dissolving.value=true}
+ catch(e){if(current===generation&&visible)failure(e)}finally{if(current===generation)saving.value=false}
 }
 async function dissolve(){
  if(!team.value||saving.value||writeUncertain.value||!confirmationMatches.value)return
- saving.value=true;error.value='';notice.value=''
- try{await dissolveMyTeam(team.value.version,confirmName.value.trim());if(!visible)return;team.value=null;dissolving.value=false;confirmName.value='';editingTeam.value=false;editingPlayer.value=false;createRequest.value='';success('球队已解散，历史档案已保留。你现在可以重新创建球队。','球队已解散，可以重新建队')}
- catch(e){if(visible)failure(e)}finally{saving.value=false}
+ const current=generation;saving.value=true;error.value='';notice.value=''
+ try{await dissolveMyTeam(team.value.version,confirmName.value.trim());if(current!==generation||!visible)return;team.value=null;dissolving.value=false;confirmName.value='';editingTeam.value=false;editingPlayer.value=false;createRequest.value='';success('球队已解散，历史档案已保留。你现在可以重新创建球队。','球队已解散，可以重新建队')}
+ catch(e){if(current===generation&&visible)failure(e)}finally{if(current===generation)saving.value=false}
 }
 </script>
 <template>

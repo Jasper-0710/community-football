@@ -39,9 +39,15 @@ const submitBlockers=computed(()=>{
 })
 const explain=(e:unknown)=>e instanceof Error?e.message:'操作失败，请重试。'
 onLoad(q=>{competitionId=q?.competitionId||'';id=q?.id||''})
-watch(profile,p=>{if(p)void load();else{generation++;record.value=null;preparation.value=null;ready.value=false}})
+function clearPrivateState(){
+ generation++;ready.value=false;loading.value=false;busy.value=false;confirming.value=false;submitting.value=false
+ editing.value=false;uncertain.value=false;error.value='';notice.value='';locked.value=false
+ record.value=null;preparation.value=null;deadline.value=null;drafts.value=[]
+ Object.assign(form,{teamName:'',district:'',project:'',leaderName:'',contactPhone:''})
+}
+watch(()=>profile.value?.id,userId=>{clearPrivateState();if(userId&&visible)void load()},{flush:'sync'})
 onShow(()=>{visible=true;if(profile.value&&!editing.value&&!busy.value)void load()})
-onUnload(()=>{visible=false;generation++})
+onUnload(()=>{visible=false;clearPrivateState()})
 function back(){uni.navigateBack({fail:()=>uni.reLaunch({url:'/pages/index/index?tab=profile'})})}
 function teamPage(){uni.navigateTo({url:'/pages/team/manage'})}
 function fillForm(){
@@ -50,32 +56,32 @@ function fillForm(){
  drafts.value=r?r.attachments.map(f=>({requestId:teamRequestId(),id:f.id,path:'',name:f.name,size:f.size,file:f,progress:100,error:'',existing:true})):[]
 }
 async function load(){
- if(!profile.value||busy.value)return
+ if(!profile.value||busy.value||loading.value)return
  const current=++generation;loading.value=true;ready.value=false;error.value='';notice.value='';editing.value=false;preparation.value=null;record.value=null
  try{
   if(id){const r=await getMyRegistration(id);if(current!==generation||!visible)return;record.value=r.registration;competitionId=r.registration.competitionId;locked.value=r.locked;deadline.value=r.deadline}
   else{const p=await prepareRegistration(competitionId);if(current!==generation||!visible)return;preparation.value=p;record.value=p.registration;locked.value=!p.competition.registrationEndAt||Date.parse(p.serverTime)>=Date.parse(p.competition.registrationEndAt);deadline.value=p.competition.registrationEndAt;id=p.registration?.id||'';fillForm();editing.value=!!p.team&&!p.registration}
   ready.value=true;uncertain.value=false
- }catch(e){if(current===generation)error.value=explain(e)}finally{if(current===generation)loading.value=false}
+ }catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)loading.value=false}
 }
 async function edit(){
  if(busy.value||locked.value||uncertain.value)return
- busy.value=true;error.value='';notice.value=''
- try{const p=await prepareRegistration(competitionId);if(!visible)return;preparation.value=p;record.value=p.registration;deadline.value=p.competition.registrationEndAt;locked.value=!deadline.value||Date.parse(p.serverTime)>=Date.parse(deadline.value);if(locked.value){notice.value='报名已截止，当前资料已锁定。';return}fillForm();editing.value=true}
- catch(e){error.value=explain(e)}finally{busy.value=false}
+ const current=generation;busy.value=true;error.value='';notice.value=''
+ try{const p=await prepareRegistration(competitionId);if(current!==generation||!visible)return;preparation.value=p;record.value=p.registration;deadline.value=p.competition.registrationEndAt;locked.value=!deadline.value||Date.parse(p.serverTime)>=Date.parse(deadline.value);if(locked.value){notice.value='报名已截止，当前资料已锁定。';return}fillForm();editing.value=true}
+ catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)busy.value=false}
 }
 function failure(e:unknown){error.value=explain(e);uncertain.value=['SERVICE_UNAVAILABLE','INVALID_RESPONSE','CONFLICT','NOT_FOUND'].includes((e as any)?.code||'')}
-async function upload(d:UploadDraft){
- try{await uploadRegistrationFile(competitionId,d)}catch(e){d.error=explain(e)}
+async function upload(d:UploadDraft,current=generation){
+ try{await uploadRegistrationFile(competitionId,d)}catch(e){if(current===generation&&visible)d.error=explain(e)}
 }
 async function choose(){
  if(busy.value||!preparation.value?.uploadsEnabled||drafts.value.length>=5)return
- busy.value=true;error.value=''
- try{const chosen=await chooseRegistrationFiles(5-drafts.value.length);for(const d of chosen){if(!visible)break;drafts.value.push(d);await upload(drafts.value[drafts.value.length-1])}}
- catch(e){error.value=explain(e)}finally{busy.value=false}
+ const current=generation;busy.value=true;error.value=''
+ try{const chosen=await chooseRegistrationFiles(5-drafts.value.length);for(const d of chosen){if(current!==generation||!visible)break;drafts.value.push(d);await upload(drafts.value[drafts.value.length-1],current)}}
+ catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)busy.value=false}
 }
-async function retry(d:UploadDraft){if(busy.value)return;busy.value=true;d.error='';try{await upload(d)}finally{busy.value=false}}
-async function remove(d:UploadDraft){if(busy.value)return;busy.value=true;error.value='';try{if(d.id&&!d.existing)await discardRegistrationFile(d.id);drafts.value=drafts.value.filter(x=>x!==d)}catch(e){error.value=explain(e)}finally{busy.value=false}}
+async function retry(d:UploadDraft){if(busy.value)return;const current=generation;busy.value=true;d.error='';try{await upload(d,current)}finally{if(current===generation)busy.value=false}}
+async function remove(d:UploadDraft){if(busy.value)return;const current=generation;busy.value=true;error.value='';try{if(d.id&&!d.existing)await discardRegistrationFile(d.id);if(current===generation&&visible)drafts.value=drafts.value.filter(x=>x!==d)}catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)busy.value=false}}
 async function submit(){
  if(!canSubmit.value)return
  error.value='';notice.value=''
@@ -86,23 +92,24 @@ async function submit(){
  if(!drafts.value.length){submissionError('请上传至少一份报名材料，再提交审核。');return}
  if(drafts.value.some(d=>d.error)){submissionError('有材料上传失败，请重试上传或移除后重新选择。');return}
  if(drafts.value.some(d=>!d.file)){submissionError('材料尚未上传完成，请等待上传完成后再提交。');return}
- confirming.value=true
+ const current=generation;confirming.value=true
  let confirmed=false
  try{
   confirmed=await new Promise<boolean>((resolve,reject)=>uni.showModal({title:record.value?'确认重新提交':'确认提交报名',content:`${form.teamName} · ${form.project}\n共${drafts.value.length}份材料。提交后等待后台审核${record.value?'，原审核结果将重置':''}。`,confirmText:'确认提交',success:r=>resolve(r.confirm),fail:()=>reject(new Error('无法打开提交确认，请重试。'))}))
- }catch(e){submissionError(explain(e));return}finally{confirming.value=false}
- if(!confirmed||busy.value||!visible)return
+ }catch(e){if(current===generation&&visible)submissionError(explain(e));return}finally{if(current===generation)confirming.value=false}
+ if(current!==generation||!confirmed||busy.value||!visible)return
  busy.value=true;submitting.value=true
- try{const r=await submitRegistration(competitionId,record.value?.version||0,preparation.value!.competition.rulesVersion,teamRequestId(),{...form},drafts.value.map(d=>d.file!.id));if(!visible)return;record.value=r;id=r.id;editing.value=false;notice.value='报名已提交，请等待审核。截止前可修改资料或撤销。';void nextTick(()=>{if(visible)uni.pageScrollTo({scrollTop:0,duration:0})})}catch(e){if(visible){failure(e);submissionError(error.value)}}finally{busy.value=false;submitting.value=false}
+ try{const r=await submitRegistration(competitionId,record.value?.version||0,preparation.value!.competition.rulesVersion,teamRequestId(),{...form},drafts.value.map(d=>d.file!.id));if(current!==generation||!visible)return;record.value=r;id=r.id;editing.value=false;notice.value='报名已提交，请等待审核。截止前可修改资料或撤销。';void nextTick(()=>{if(visible)uni.pageScrollTo({scrollTop:0,duration:0})})}catch(e){if(current===generation&&visible){failure(e);submissionError(error.value)}}finally{if(current===generation){busy.value=false;submitting.value=false}}
 }
 async function cancel(){
  if(!record.value||locked.value||busy.value||uncertain.value)return
+ const current=generation
  const confirm=await new Promise<boolean>(resolve=>uni.showModal({title:'撤销本次报名',content:'撤销后释放球队名额，报名记录会保留。截止前再次报名需要重新提交审核。',confirmText:'撤销报名',confirmColor:'#963a29',success:r=>resolve(r.confirm),fail:()=>resolve(false)}))
- if(!confirm||busy.value||!visible)return
+ if(current!==generation||!confirm||busy.value||!visible||!record.value)return
  busy.value=true;error.value='';notice.value=''
- try{record.value=await cancelRegistration(record.value.id,record.value.version,teamRequestId());notice.value='报名已撤销，名额已释放。'}catch(e){failure(e)}finally{busy.value=false}
+ try{const result=await cancelRegistration(record.value.id,record.value.version,teamRequestId());if(current!==generation||!visible)return;record.value=result;notice.value='报名已撤销，名额已释放。'}catch(e){if(current===generation&&visible)failure(e)}finally{if(current===generation)busy.value=false}
 }
-async function openFile(fileId:string){if(!record.value||busy.value)return;busy.value=true;error.value='';try{await openRegistrationFile(record.value.id,fileId)}catch(e){error.value=explain(e)}finally{busy.value=false}}
+async function openFile(fileId:string){if(!record.value||busy.value)return;const current=generation;busy.value=true;error.value='';try{await openRegistrationFile(record.value.id,fileId)}catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)busy.value=false}}
 </script>
 <template>
 <AppShell active="tournament" detail live><view class="inner-page registration-page">

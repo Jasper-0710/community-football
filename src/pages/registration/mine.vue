@@ -9,9 +9,10 @@ import {competitionTime} from '@/domain/competition'
 const {profile,loading:profileLoading,error:profileError,supported,login}=useUserProfile()
 const records=ref<RegistrationSummary[]>([]),cursor=ref<string|null>(null),loading=ref(false),error=ref(''),ready=ref(false)
 let generation=0,visible=true
-watch(profile,p=>{if(p)void load();else{generation++;records.value=[];ready.value=false}})
-onShow(()=>{visible=true;if(profile.value)void load()});onUnload(()=>{visible=false;generation++})
-async function load(more=false){if(loading.value||!profile.value)return;const current=++generation;loading.value=true;error.value='';if(!more){ready.value=false;records.value=[];cursor.value=null}try{const page=await listMyRegistrations(more?cursor.value||undefined:undefined);if(current!==generation||!visible)return;records.value=more?[...records.value,...page.registrations]:page.registrations;cursor.value=page.nextCursor;ready.value=true}catch(e){error.value=e instanceof Error?e.message:'读取失败，请重试。'}finally{if(current===generation)loading.value=false}}
+function clearPrivateState(){generation++;loading.value=false;records.value=[];cursor.value=null;error.value='';ready.value=false}
+watch(()=>profile.value?.id,id=>{clearPrivateState();if(id&&visible)void load()},{flush:'sync'})
+onShow(()=>{visible=true;if(profile.value)void load()});onUnload(()=>{visible=false;clearPrivateState()})
+async function load(more=false){if(loading.value||!profile.value)return;const current=++generation;loading.value=true;error.value='';if(!more){ready.value=false;records.value=[];cursor.value=null}try{const page=await listMyRegistrations(more?cursor.value||undefined:undefined);if(current!==generation||!visible)return;records.value=more?[...records.value,...page.registrations]:page.registrations;cursor.value=page.nextCursor;ready.value=true}catch(e){if(current===generation&&visible)error.value=e instanceof Error?e.message:'读取失败，请重试。'}finally{if(current===generation)loading.value=false}}
 function open(id:string){uni.navigateTo({url:'/pages/registration/manage?id='+id})}
 function competitions(){uni.reLaunch({url:'/pages/index/index?tab=tournament'})}
 function back(){uni.navigateBack({fail:()=>uni.reLaunch({url:'/pages/index/index?tab=profile'})})}

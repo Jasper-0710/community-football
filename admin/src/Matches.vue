@@ -60,7 +60,7 @@ async function newForm() {
   makeRequestId(); editing.value = null; Object.assign(form, empty()); formOpen.value = true; error.value = ''; notice.value = ''
 }
 async function edit(record: MatchSchedule) {
-  if (record.status === 'finished') { error.value = '请在“榜单与晋级”撤销赛果后再编辑赛程。'; return }
+  if (['live', 'finished'].includes(record.status) || record.result) { error.value = '比赛进行中或已有赛果，请在“榜单与晋级”撤销赛果后再编辑赛程。'; return }
   if (busy.value || !await prepareSources()) return
   editing.value = record
   Object.assign(form, { stage: record.stage, roundText: String(record.round), groupId: record.groupId || '', slotText: record.slot == null ? '' : String(record.slot), homeTeamId: record.homeTeamId || '', awayTeamId: record.awayTeamId || '', homeFrom: record.homeFrom || '', awayFrom: record.awayFrom || '', scheduledAt: inputTime(record.scheduledAt), venue: record.venue, status: record.status })

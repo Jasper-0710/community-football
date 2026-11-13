@@ -1,0 +1,75 @@
+{
+  "batch": "d05-acceptance-20261113",
+  "preparedAt": "2026-11-13T06:39:46.079Z",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "appId": "wx3230f06c755cef3a",
+  "guide": "docs/D05_TEST_DATA.md",
+  "teamName": "云端验证队伍",
+  "material": {
+    "name": "报名材料-模拟球员.xlsx",
+    "size": 4641,
+    "sha256": "dcecfb6f8e8e8b6fbb8557b29521229743dffb270c5cb0f1e85cdfb52f4ff424",
+    "path": "outputs/d05-test-data-20261113/报名材料-模拟球员.xlsx"
+  },
+  "events": [
+    {
+      "id": "c_5ceaca1235447f512b26c763a8083f8f",
+      "name": "【验收01】截止前撤销释放名额",
+      "registrationStatus": "open",
+      "deadline": "2026-11-20T15:59:00.000Z",
+      "stats": {
+        "pending": 1,
+        "approved": 0,
+        "occupied": 1
+      },
+      "registrations": [
+        {
+          "id": "r_9a31594c39f951a8170c891f0c1fe674e067634ef45962ff19d1c256e11cf045",
+          "teamName": "云端验证队伍",
+          "status": "pending",
+          "version": 1,
+          "attachmentCount": 1
+        }
+      ]
+    },
+    {
+      "id": "c_d83716c396ea9b74ee9dba393822076c",
+      "name": "【验收02】报名截止锁定",
+      "registrationStatus": "closed",
+      "deadline": "2026-11-12T15:59:00.000Z",
+      "stats": {
+        "pending": 1,
+        "approved": 0,
+        "occupied": 1
+      },
+      "registrations": [
+        {
+          "id": "r_9699fd25405cdc4003fb6acaefeb31f91906385e64f5ad86d2f21697373421bc",
+          "teamName": "云端验证队伍",
+          "status": "pending",
+          "version": 1,
+          "attachmentCount": 1
+        }
+      ]
+    },
+    {
+      "id": "c_abbaf18185feced03c7a198850361758",
+      "name": "【验收03】最后名额竞争",
+      "registrationStatus": "open",
+      "deadline": "2026-11-20T15:59:00.000Z",
+      "stats": {
+        "pending": 0,
+        "approved": 0,
+        "occupied": 0
+      },
+      "registrations": []
+    }
+  ],
+  "note": "Initial fixture state only; event counts above are historical preparation values. On 2026-11-13 the user confirmed acceptance cases 01, 02 and 03. Targeted cleanup is awaiting native confirmation; no cleanup mutation or deletion has been confirmed.",
+  "acceptance": {
+    "date": "2026-11-13",
+    "cases01To03": "user-confirmed",
+    "broaderCrossAccountAndRetryCases": "pending",
+    "cleanup": "awaiting-native-confirmation"
+  }
+}

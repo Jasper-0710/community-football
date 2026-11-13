@@ -14,3 +14,7 @@ project.private.config.json
 *.local
 .env*
 !.env.example
+
+# Reproducible progress exports; the maintained workbook is in docs/.
+outputs/**/*.inspect.ndjson
+outputs/*/中国社超上海赛区赛事平台-开发计划与进度.xlsx

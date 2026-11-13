@@ -22,6 +22,8 @@ const { createCompetitionMemoryStore } = require('../tests/helpers/competition-s
 const { createMemoryStore } = require('../tests/helpers/admin-store.cjs')
 
 const out = 'artifacts/standings'
+const skipScreenshots = process.env.SKIP_SCREENSHOTS === '1'
+async function capture(page, name) { if (!skipScreenshots) await page.screenshot({ path: `${out}/${name}`, fullPage: true }) }
 await fs.mkdir(out, { recursive: true })
 const now = Date.parse('2026-11-11T00:00:00.000Z')
 const password = randomBytes(24).toString('base64url')
@@ -108,6 +110,7 @@ async function fillGoals(ids, assists = true) {
 function matchRow(text) { return admin.locator('.standings-match-row').filter({ has: admin.getByRole('heading', { name: text, exact: true }) }) }
 async function score(row, hs, as, ids, reason = '技术台确认赛果', penalties) {
   await row.getByRole('button', { name: /^(录入赛果|更正赛果)$/ }).click()
+  await admin.locator('#result-state').selectOption('finished'); await admin.locator('#result-minute').fill('90')
   await admin.locator('#result-home').fill(String(hs)); await admin.locator('#result-away').fill(String(as))
   if (penalties) { await admin.locator('#result-home-penalty').fill(String(penalties[0])); await admin.locator('#result-away-penalty').fill(String(penalties[1])) }
   await admin.getByRole('button', { name: '按比分生成进球记录', exact: true }).click(); await fillGoals(ids)
@@ -131,33 +134,99 @@ try {
   await admin.getByRole('button', { name: '晋级来源', exact: true }).click(); await admin.getByRole('button', { name: '设置分组来源', exact: true }).click()
   await admin.locator('#qualification-home').selectOption(JSON.stringify({ groupId: 'A组', rank: 1 })); await admin.locator('#qualification-away').selectOption(JSON.stringify({ groupId: 'B组', rank: 1 })); await admin.getByRole('button', { name: '保存晋级来源', exact: true }).click(); await admin.getByText('晋级来源已保存，待定对阵已更新。', { exact: true }).waitFor(); check('决赛签位可绑定小组名次，未完赛时保持待定')
   await admin.getByRole('button', { name: '赛果与事件', exact: true }).click()
-  await score(matchRow('江湾联队 vs 徐汇星火'), 2, 0, [home, home]); await saved()
-  await score(matchRow('浦东远航 vs 静安绿茵'), 1, 0, [third]); await saved()
-  await matchRow('江湾联队 vs 浦东远航').waitFor(); check('录入正式比分与进球助攻后，小组名次自动填入决赛')
+  await matchRow('江湾联队 vs 徐汇星火').getByRole('button', { name: '录入赛果', exact: true }).click()
+  await admin.locator('#result-state').selectOption('live'); await admin.locator('#result-minute').fill('35')
+  await admin.locator('#result-home').fill('1'); await admin.locator('#result-away').fill('0')
+  await admin.getByRole('button', { name: '按比分生成进球记录', exact: true }).click(); await fillGoals([home])
+  for (const [index, teamId, minute, kind, playerIndex] of [[0, home, 20, 'yellow', 1], [1, away, 28, 'red', 0]]) {
+    await admin.getByRole('button', { name: '添加牌面', exact: true }).click()
+    await admin.locator(`#card-team-${index}`).selectOption(teamId); await admin.locator(`#card-minute-${index}`).fill(String(minute))
+    await admin.locator(`#card-kind-${index}`).selectOption(kind); await admin.locator(`#card-player-${index}`).selectOption(teamPlayer(teamId, playerIndex))
+  }
+  await admin.getByRole('button', { name: '添加换人', exact: true }).click()
+  await admin.locator('#sub-team-0').selectOption(home); await admin.locator('#sub-minute-0').fill('32')
+  await admin.locator('#sub-in-0').selectOption(teamPlayer(home, 1)); await admin.locator('#sub-out-0').selectOption(teamPlayer(home, 0))
+  const expectedStats = { possession: [60, 40], shots: [8, 4], shotsOnTarget: [4, 2], corners: [3, 1], fouls: [5, 7], offsides: [1, 2] }
+  for (const [field, values] of [['possession', expectedStats.possession], ['shots', expectedStats.shots], ['shots-target', expectedStats.shotsOnTarget], ['corners', expectedStats.corners], ['fouls', expectedStats.fouls], ['offsides', expectedStats.offsides]]) {
+    await admin.locator(`#stats-${field}-home`).fill(String(values[0])); await admin.locator(`#stats-${field}-away`).fill(String(values[1]))
+  }
+  await admin.locator('#result-reason').fill('技术台进行中核对'); await admin.getByRole('button', { name: '保存并发布赛果', exact: true }).click(); await saved()
+  assert.match(await matchRow('江湾联队 vs 徐汇星火').locator('.result-score').innerText(), /1 : 0.*35′/)
+  const liveResponse = await context.request.post(apiUrl, { data: { action: 'matches.getPublic', id: firstId } })
+  assert.equal(liveResponse.status(), 200)
+  const liveMatch = (await liveResponse.json()).match
+  assert.equal(liveMatch.status, 'live'); assert.equal(liveMatch.result.minute, 35); assert.equal(liveMatch.result.state, 'live')
+  assert.equal(liveMatch.result.cards.length, 2); assert.equal(liveMatch.result.substitutions.length, 1); assert.deepEqual(liveMatch.result.stats, expectedStats)
+  check('后台可发布进行中分钟、红黄牌、换人和六项技术统计，并返回同一份公开记录')
   for (let attempt = 0; attempt < 100; attempt++) {
     try { if ((await context.request.get(publicOrigin)).ok()) break } catch {}
     if (attempt === 99) throw new Error('Public Vite server did not start: ' + publicLog)
     await new Promise(resolve => setTimeout(resolve, 200))
   }
-  await user.goto(`${publicOrigin}/#/pages/index/index?tab=stats`, { waitUntil: 'networkidle' }); await user.locator('.live-standing-row').filter({ hasText: '江湾联队' }).waitFor(); await user.getByText('本组已完赛', { exact: true }).first().waitFor(); assert.equal(await user.locator('.live-standing-group').count(), 2); check('前台积分榜读取真实分组、积分与完赛进度')
+  await user.goto(`${publicOrigin}/#/pages/index/index?tab=tournament`, { waitUntil: 'networkidle' })
+  await user.getByRole('button', { name: '真实赛程', exact: true }).click()
+  const liveCard = user.locator('.public-schedule-card').filter({ hasText: '江湾联队' }).filter({ hasText: '徐汇星火' })
+  await liveCard.getByText('进行中', { exact: true }).waitFor(); await liveCard.click()
+  await user.waitForURL(url => url.hash.includes(`/pages/match/detail?id=${firstId}`))
+  await user.locator('.detail-status').filter({ hasText: '35′' }).waitFor()
+  assert.match(await user.locator('.detail-score').innerText(), /1\s*:\s*0/)
+  await user.getByText('当前比分 · 进行中', { exact: true }).waitFor()
+  await user.locator('.detail-team').getByText('江湾联队', { exact: true }).waitFor(); await user.locator('.detail-team').getByText('徐汇星火', { exact: true }).waitFor()
+  const timeline = user.locator('.timeline-event')
+  assert.equal(await timeline.count(), 4)
+  assert.deepEqual(await timeline.locator('.event-minute').allTextContents(), ['15′', '20′', '28′', '32′'])
+  for (const [kind, minute, player] of [['进球', '15′', '江湾联队前锋'], ['黄牌', '20′', '江湾联队中场'], ['红牌', '28′', '徐汇星火前锋'], ['换人', '32′', '江湾联队中场']]) {
+    const event = timeline.filter({ has: user.locator('.event-kind').filter({ hasText: new RegExp(`^${kind}$`) }) })
+    assert.equal(await event.count(), 1); assert.equal(await event.locator('.event-minute').innerText(), minute)
+    assert.match(await event.locator('.event-copy').innerText(), new RegExp(player))
+  }
+  assert.match(await timeline.filter({ hasText: '换人' }).innerText(), /江湾联队前锋 换下/)
+  assert.match(await timeline.filter({ hasText: '进球' }).innerText(), /江湾联队中场 助攻/)
+  check('公开赛程可进入真实比赛详情，进行中分钟、比分与按分钟排序的进球红黄牌换人展示正确')
+  await user.getByRole('button', { name: '技术统计', exact: true }).click()
+  assert.equal(await user.locator('.stat-bar-row').count(), 6); assert.equal(await user.locator('.timeline-event').count(), 0)
+  for (const [label, values, suffix] of [['控球率', expectedStats.possession, '%'], ['射门', expectedStats.shots, ''], ['射正', expectedStats.shotsOnTarget, ''], ['角球', expectedStats.corners, ''], ['犯规', expectedStats.fouls, ''], ['越位', expectedStats.offsides, '']]) {
+    const row = user.locator('.stat-bar-row').filter({ has: user.getByText(label, { exact: true }) })
+    assert.deepEqual(await row.locator(':scope > uni-view > uni-text').allTextContents(), [`${values[0]}${suffix}`, label, `${values[1]}${suffix}`])
+  }
+  await user.getByRole('button', { name: '赛场事件', exact: true }).click(); assert.equal(await timeline.count(), 4); assert.equal(await user.locator('.stat-bar-row').count(), 0)
+  check('比赛详情六项技术统计显示完整且技术统计和赛场事件栏目切换正确')
+  const liveStandingsResponse = await context.request.post(apiUrl, { data: { action: 'standings.getPublic', competitionId: cid } })
+  const liveStandings = await liveStandingsResponse.json()
+  assert.equal(liveStandings.ok, true); assert.deepEqual(liveStandings.goals, []); assert.deepEqual(liveStandings.assists, [])
+  assert.equal(liveStandings.groups.every(group => group.finishedMatches === 0 && group.rows.every(row => row.played === 0 && row.points === 0 && row.goalsFor === 0)), true)
+  const unresolvedFinal = liveStandings.matches.find(match => match.id === finalId)
+  assert.equal(unresolvedFinal.homeTeamId, null); assert.equal(unresolvedFinal.awayTeamId, null); assert.equal(liveStandings.championTeamId, null)
+  await user.locator('.desktop-nav').getByRole('button', { name: '数据', exact: true }).click()
+  await user.locator('.live-standing-row').filter({ hasText: '江湾联队' }).waitFor(); await user.getByText('已完赛 0/1', { exact: true }).first().waitFor()
+  await user.getByRole('button', { name: '射手榜', exact: true }).click(); await user.getByText('暂无进球记录', { exact: true }).waitFor()
+  await user.getByRole('button', { name: '助攻榜', exact: true }).click(); await user.getByText('暂无助攻记录', { exact: true }).waitFor()
+  check('进行中比分与进球助攻不计入三榜，也不提前确定小组晋级与冠军')
+  await score(matchRow('江湾联队 vs 徐汇星火'), 2, 0, [home, home]); await saved()
+  assert.equal(matchRecords.get(firstId).result.state, 'finished'); assert.equal(matchRecords.get(firstId).result.minute, 90)
+  assert.equal(matchRecords.get(firstId).result.cards.length, 2); assert.equal(matchRecords.get(firstId).result.substitutions.length, 1)
+  assert.deepEqual(matchRecords.get(firstId).result.stats, expectedStats)
+  await score(matchRow('浦东远航 vs 静安绿茵'), 1, 0, [third]); await saved()
+  await matchRow('江湾联队 vs 浦东远航').waitFor(); check('进行中可转为完赛并保留牌面换人与技术统计，正式赛果自动填入决赛')
+  await user.getByRole('button', { name: '积分榜', exact: true }).click(); await user.getByRole('button', { name: '刷新榜单', exact: true }).click(); await user.locator('.live-standing-row').filter({ hasText: '江湾联队' }).waitFor(); await user.getByText('本组已完赛', { exact: true }).first().waitFor(); assert.equal(await user.locator('.live-standing-group').count(), 2); check('前台积分榜读取真实分组、积分与完赛进度')
   await user.getByRole('button', { name: '射手榜', exact: true }).click(); assert.match(await user.locator('.live-player-row').nth(1).innerText(), /江湾联队前锋/); assert.equal(await user.locator('.live-player-row').nth(1).locator('.ranking-value').innerText(), '2')
   await user.getByRole('button', { name: '助攻榜', exact: true }).click(); assert.match(await user.locator('.live-player-row').nth(1).innerText(), /江湾联队中场/); check('射手榜和助攻榜从同一份有效进球事件计算')
   await score(matchRow('江湾联队 vs 浦东远航'), 1, 1, [home, third], '决赛含点球确认', [4, 3]); await saved()
   await user.getByRole('button', { name: '刷新榜单', exact: true }).click(); await user.getByRole('button', { name: '晋级对阵', exact: true }).click(); await user.locator('.live-champion').getByText('江湾联队', { exact: true }).waitFor(); await user.getByText('点球 4 : 3', { exact: true }).waitFor(); check('淘汰赛平局由点球决出胜者，前台显示冠军及晋级来源')
   const revisionBefore = competitionMemory.records.get(cid).scheduleMutationVersion
   await score(matchRow('江湾联队 vs 徐汇星火'), 0, 2, [away, away], '更正小组赛胜者')
-  await admin.getByRole('alert').filter({ hasText: '更改会影响已有赛果的参赛球队' }).waitFor(); assert.equal(competitionMemory.records.get(cid).scheduleMutationVersion, revisionBefore); assert.equal(matchRecords.get(firstId).result.homeScore, 2)
+  await admin.getByRole('alert').filter({ hasText: '更改会影响进行中或已有赛果的参赛球队' }).waitFor(); assert.equal(competitionMemory.records.get(cid).scheduleMutationVersion, revisionBefore); assert.equal(matchRecords.get(firstId).result.homeScore, 2)
   await admin.locator('.result-editor').getByRole('button', { name: '关闭', exact: true }).click(); check('更正前轮会改变已有后轮参赛球队时，服务端拒绝且不留下部分写入')
   await matchRow('江湾联队 vs 浦东远航').getByRole('button', { name: '撤销赛果', exact: true }).click(); await admin.locator('#result-reason').fill('先撤销决赛，再更正小组赛'); await admin.getByRole('button', { name: '确认撤销赛果', exact: true }).click(); await admin.getByText('赛果已撤销，榜单和晋级对阵已重新计算。', { exact: true }).waitFor(); await admin.locator('.result-editor').waitFor({ state: 'hidden' })
   await score(matchRow('江湾联队 vs 徐汇星火'), 0, 2, [away, away], '更正小组赛胜者'); await saved(); await matchRow('徐汇星火 vs 浦东远航').waitFor()
   await user.getByRole('button', { name: '刷新榜单', exact: true }).click(); await user.locator('.live-bracket-match').getByText('徐汇星火', { exact: true }).waitFor(); assert.equal(await user.locator('.live-champion').count(), 0)
   await user.getByRole('button', { name: '射手榜', exact: true }).click(); await user.locator('.live-player-row').filter({ hasText: '徐汇星火前锋' }).waitFor(); assert.equal(await user.locator('.live-player-row').filter({ hasText: '江湾联队前锋' }).count(), 0); check('撤销后轮并更正前轮后，个人榜单、晋级球队和冠军状态一致更新')
-  await matchRow('江湾联队 vs 徐汇星火').getByRole('button', { name: '更正历史', exact: true }).click(); await admin.locator('.result-history-row').filter({ hasText: '技术台确认赛果' }).waitFor(); assert.equal(await admin.locator('.result-history-row').count(), 2); check('原始比分和更正原因保留在管理员历史中')
+  await matchRow('江湾联队 vs 徐汇星火').getByRole('button', { name: '更正历史', exact: true }).click(); await admin.locator('.result-history-row').filter({ hasText: '技术台确认赛果' }).waitFor(); assert.equal(await admin.locator('.result-history-row').count(), 3); await admin.locator('.result-history-row').filter({ hasText: '技术台进行中核对' }).waitFor(); check('原始比分和更正原因保留在管理员历史中')
   failPublicRead = true; await user.getByRole('button', { name: '刷新榜单', exact: true }).click(); await user.getByRole('button', { name: '重新加载榜单', exact: true }).waitFor(); assert.equal(await user.locator('.live-player-row').count(), 0); await user.getByRole('button', { name: '重新加载榜单', exact: true }).click(); await user.locator('.live-player-row').first().waitFor(); check('榜单读取失败清除旧结果，重试后恢复且保留当前栏目')
   await user.getByRole('button', { name: '积分榜', exact: true }).click()
-  for (const width of [390, 320]) { await admin.setViewportSize({ width, height: 844 }); await user.setViewportSize({ width, height: 844 }); assert.equal(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true); assert.equal(await user.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true); await admin.screenshot({ path: `${out}/admin-${width}.png`, fullPage: true }); await user.screenshot({ path: `${out}/standings-${width}.png`, fullPage: true }); check(`${width}px后台与前台积分榜无整页横向溢出`) }
-  await user.getByRole('button', { name: '晋级对阵', exact: true }).click(); await user.screenshot({ path: `${out}/advancement-320.png`, fullPage: true })
+  for (const width of [390, 320]) { await admin.setViewportSize({ width, height: 844 }); await user.setViewportSize({ width, height: 844 }); assert.equal(await admin.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true); assert.equal(await user.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true); await capture(admin, `admin-${width}.png`); await capture(user, `standings-${width}.png`); check(`${width}px后台与前台积分榜无整页横向溢出`) }
+  await user.getByRole('button', { name: '晋级对阵', exact: true }).click(); await capture(user, 'advancement-320.png')
   assert.deepEqual(errors, [])
-  await fs.writeFile(`${out}/report.json`, JSON.stringify({ checks, errors, validation: 'Isolated HTTPS API using real auth, competition, registration, schedule and standings services with atomic memory storage; not customer cloud or device evidence.', generatedAt: new Date().toISOString() }, null, 2))
-  console.log(`Verified ${checks.length} D08 browser flows.`)
+  await fs.writeFile(`${out}/report.json`, JSON.stringify({ checks, errors, screenshots: skipScreenshots ? 'skipped' : 'captured', validation: 'D07-D08 isolated browser flows using real auth, competition, registration, schedule and standings services with atomic memory storage; not customer cloud or device evidence.', generatedAt: new Date().toISOString() }, null, 2))
+  console.log(`Verified ${checks.length} D07-D08 browser flows.`)
 } catch (error) { await fs.writeFile(`${out}/failure.txt`, (await admin.locator('body').innerText().catch(() => '')) + '\nPUBLIC\n' + (await user.locator('body').innerText().catch(() => '')) + '\nERRORS\n' + JSON.stringify(errors) + '\nLOG\n' + publicLog); throw error } finally { await browser.close(); await adminVite.close(); try { process.kill(-publicServer.pid, 'SIGTERM') } catch {} server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await fs.rm(certDir, { recursive: true, force: true }) }

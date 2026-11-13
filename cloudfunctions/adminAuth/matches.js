@@ -182,7 +182,7 @@ function createMatchService({ store, authorize, now = Date.now, logger = console
         return await store.transaction(event.id, async (record, save, relatedStore = store) => {
           if (!record) fail('NOT_FOUND', '比赛不存在，请刷新列表。')
           if (record.version !== event.expectedVersion) fail('CONFLICT', '比赛已在其他页面更新，请刷新后核对最新资料。')
-          if (record.status === 'finished') fail('CONFLICT', '比赛已有赛果，请先撤销赛果后再编辑赛程。')
+          if (['live', 'finished'].includes(record.status) || record.result) fail('CONFLICT', '比赛进行中或已有赛果，请先在“榜单与晋级”撤销赛果后再编辑赛程。')
           if (record.competitionId !== form.competitionId) fail('INVALID_ARGUMENT', '比赛不能改到其他赛事。')
           const related = await checkRelated(relatedStore, form, event.id)
           const updated = { ...record, ...form, version: record.version + 1, updatedAt: now() }
