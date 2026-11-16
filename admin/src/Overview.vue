@@ -1,0 +1,12 @@
+<script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
+import type { createAdminAuth } from './auth'
+import type { ContentOverview } from '../../src/domain/content'
+const props = defineProps<{ auth: ReturnType<typeof createAdminAuth> }>()
+const emit = defineEmits<{ navigate: [view: 'teams' | 'matches' | 'news', id?: string] }>()
+const data = ref<ContentOverview | null>(null), busy = ref(false), error = ref('')
+let generation = 0
+async function load() { const serial = ++generation; data.value = null; busy.value = true; error.value = ''; try { const r = await props.auth.authorized((api, token) => api.contentOverview(token)); if (serial === generation) data.value = r } catch (e) { if (serial === generation) error.value = e instanceof Error ? e.message : '概览暂不可用。' } finally { if (serial === generation) busy.value = false } }
+onMounted(() => { void load() }); onUnmounted(() => { generation++ })
+</script>
+<template><section class="content-overview"><div class="workspace-heading"><div><span class="eyebrow">赛事运营</span><h1>运营概览</h1><p class="muted">查看当前业务数量和最近维护的内容。</p></div><button class="secondary-button" :disabled="busy" @click="load">刷新概览</button></div><p v-if="error" class="notice" role="alert">{{ error }}</p><p v-if="busy" class="account-card" role="status">正在读取运营数据…</p><template v-if="data"><div class="overview-grid"><button class="account-card overview-number" @click="emit('navigate', 'teams')"><strong>{{ data.counts.teams }}</strong><span>在管球队</span></button><button class="account-card overview-number" @click="emit('navigate', 'matches')"><strong>{{ data.counts.matches }}</strong><span>比赛总数</span></button><div class="account-card overview-number"><strong>{{ data.counts.goals }}</strong><span>完赛进球 · 不含点球大战</span></div><button class="account-card overview-number" @click="emit('navigate', 'news')"><strong>{{ data.counts.news }}</strong><span>新闻内容 · 已发布{{ data.counts.publishedNews }}</span></button></div><div class="account-card"><div class="card-heading"><h2>最近内容</h2><button class="secondary-button" @click="emit('navigate', 'news')">管理新闻</button></div><p v-if="!data.recentNews.length" class="muted">暂无内容。</p><button v-for="a in data.recentNews" :key="a.id" class="overview-recent" @click="emit('navigate', 'news', a.id)"><span>{{ a.title }}</span><small>{{ a.category }} · {{ a.status === 'published' ? '已发布' : '草稿' }}</small></button></div><p class="muted">更新于{{ new Date(data.serverTime).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) }}。变更后刷新可读取最新数量。</p></template></section></template>

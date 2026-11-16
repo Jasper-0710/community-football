@@ -86,7 +86,15 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
         const matches = await tx.matches()
         const teams = new Map()
         const teamIds = new Set([...(competition.standingsRules?.groups || []).flatMap(group => group.teamIds), ...matches.flatMap(match => [match.homeTeamId, match.awayTeamId, match.result?.homeTeamId, match.result?.awayTeamId]).filter(Boolean)])
-        await Promise.all([...teamIds].map(async id => { const team = await tx.team(id); if (team) teams.set(id, team) }))
+        // CloudBase transaction handles one database operation at a time. Do
+        // not issue parallel reads against the same transaction handle: some
+        // runtimes surface that as a generic transaction failure (503) even
+        // though the individual reads are valid. Keeping the reads ordered
+        // also makes the transaction's read set deterministic.
+        for (const id of teamIds) {
+          const team = await tx.team(id)
+          if (team) teams.set(id, team)
+        }
         const before = calculateStandings(competition, matches, teams)
         let nextCompetition = { ...competition }, updated, touched = []
         if (operation === 'standings.updateRules') {

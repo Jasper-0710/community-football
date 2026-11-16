@@ -9,6 +9,11 @@ export default defineConfig(({ mode }) => ({
   envDir: fileURLToPath(new URL('..', import.meta.url)),
   publicDir: fileURLToPath(new URL('../src/static', import.meta.url)),
   plugins: [vue()],
-  server: { host: '127.0.0.1', port: 5174, strictPort: true },
+  server: {
+    host: '127.0.0.1', port: 5174, strictPort: true,
+    // Shared domain files live outside the admin root. Check disk directly so
+    // newly created files aren't hidden by a long-running dev server's cache.
+    fs: { cachedChecks: false },
+  },
   build: { outDir: '../dist/admin', emptyOutDir: true },
 }))

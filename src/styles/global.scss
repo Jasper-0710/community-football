@@ -927,3 +927,19 @@ input { font: inherit; min-width: 0; }
   .public-standings .section-heading-box { flex-wrap:wrap; gap:12px; }
   .live-bracket { grid-template-columns:minmax(0,1fr); }
 }
+
+// D09: published news and public directory.
+.public-news .news-item-title, .article-title, .result-title { overflow-wrap:anywhere; }
+.article-body .article-block { display:block; margin:24px 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.article-body .article-block > text { display:block; }
+.article-inline-image { width:100%; display:block; margin-bottom:10px; border-radius:10px; }
+.content-profile-about { display:flex; flex-direction:column; gap:20px; padding:24px; margin-bottom:28px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.search-panel { max-height:88vh; overflow-y:auto; }
+.search-input input { min-width:0; }
+.search-kind-filters { gap:7px; margin:12px 0 0; flex-wrap:wrap; }
+.search-kind-filters .filter-chip { padding:7px 10px; font-size:13px; }
+.search-history { padding-top:20px; }
+.search-discovery .section-heading { margin-bottom:10px; }
+.search-discovery .chip { max-width:100%; overflow-wrap:anywhere; }
+.public-team-profile .roster-card { text-align:left; }
+@media(max-width:480px) { .search-panel { max-height:90vh; } .search-input { gap:8px; padding:10px; } .search-input .text-button { font-size:13px; } .content-profile-about { padding:20px; } }

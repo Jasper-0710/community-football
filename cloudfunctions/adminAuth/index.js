@@ -12,6 +12,10 @@ const { createMatchService, PUBLIC_ACTIONS: MATCH_PUBLIC_ACTIONS } = require('./
 const { createStandingsService, PUBLIC_ACTIONS: STANDINGS_PUBLIC_ACTIONS } = require('./standings')
 const { createStandingsStore } = require('./standings-store')
 const { registrationId } = require('./registration-model')
+const { createContentService, PUBLIC_ACTIONS: CONTENT_PUBLIC_ACTIONS } = require('./content')
+const { createContentStore } = require('./content-store')
+const { createNewsImageService } = require('./news-images')
+const tcb = require('@cloudbase/node-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const database = cloud.database({ throwOnNotFound: false })
 const store = {
@@ -127,7 +131,11 @@ const registrationStore = {
 }
 const registrations = createAdminRegistrationService({store:registrationStore,storage:registrationStorage,authorize:token=>service({action:'session',token}),uploadsEnabled:process.env.REGISTRATION_UPLOADS_ENABLED==='true'})
 const cleanup = createRegistrationCleanupService({store:registrationStore,storage:registrationStorage,authorize:token=>service({action:'session',token})})
-const router = event => event?.action === 'registrations.cleanup' ? cleanup(event) : typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : typeof event?.action === 'string' && event.action.startsWith('matches.') ? matches(event) : typeof event?.action === 'string' && event.action.startsWith('standings.') ? standings(event) : baseRouter(event)
+const contentStore = createContentStore(database)
+const imageStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.getWXContext().ENV || process.env.SCF_NAMESPACE, tcb.init({env:tcb.SYMBOL_CURRENT_ENV}))
+const newsImages = createNewsImageService({store:contentStore,storage:imageStorage,authorize:token=>service({action:'session',token}),enabled:process.env.NEWS_IMAGE_UPLOADS_ENABLED==='true'})
+const content = createContentService({ store: contentStore, storage:imageStorage, authorize: token => service({ action: 'session', token }) })
+const router = event => typeof event?.action === 'string' && event.action.startsWith('news.images.') ? newsImages(event) : typeof event?.action === 'string' && /^(news|search|directory|content)\./.test(event.action) ? content(event) : event?.action === 'registrations.cleanup' ? cleanup(event) : typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : typeof event?.action === 'string' && event.action.startsWith('matches.') ? matches(event) : typeof event?.action === 'string' && event.action.startsWith('standings.') ? standings(event) : baseRouter(event)
 const origins = ['http://127.0.0.1:5174', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://localhost:5173', ...(process.env.ADMIN_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)]
-const http = createHttpHandler(router, origins, [...PUBLIC_ACTIONS, ...MATCH_PUBLIC_ACTIONS, ...STANDINGS_PUBLIC_ACTIONS])
+const http = createHttpHandler(router, origins, [...PUBLIC_ACTIONS, ...MATCH_PUBLIC_ACTIONS, ...STANDINGS_PUBLIC_ACTIONS, ...CONTENT_PUBLIC_ACTIONS])
 exports.main = async event => event && typeof event.httpMethod === 'string' ? http(event) : router(event)

@@ -100,6 +100,33 @@ test('result writes are atomic, version checked and retry safe; correction repla
   assert.deepEqual(data.goals, []); assert.equal(data.groups[0].rows[0].played, 0); assert.equal(f.revisions.size, 3)
 })
 
+test('result transactions work with a database that rejects overlapping reads on one transaction', async () => {
+  const f = fixture(), id = await f.create(1, 2)
+  const transaction = f.standingsStore.transaction
+  f.standingsStore.transaction = (competitionId: string, callback: (tx: any) => Promise<unknown>) => transaction(competitionId, (tx: any) => {
+    let pending = false
+    return callback(new Proxy(tx, {
+      get(target, key: string) {
+        return async (...args: any[]) => {
+          if (pending) throw new Error('Another operation is pending on this transaction')
+          pending = true
+          try {
+            await new Promise(resolve => setImmediate(resolve))
+            return await target[key](...args)
+          } finally { pending = false }
+        }
+      },
+    }))
+  })
+  assert.equal((await f.save(id, f.result(2, 1))).ok, true)
+  const saved = await f.snapshot()
+  assert.equal(saved.matches.find(match => match.id === id)!.homeScore, 2)
+  assert.equal(saved.goals[0].value, 2)
+  assert.equal(f.revisions.size, 1)
+  assert.equal((await f.revoke(id)).ok, true)
+  assert.deepEqual((await f.snapshot()).goals, [])
+})
+
 test('invalid event ownership, self-assists, mismatched scores, invalid penalties and unknown fields never partially persist', async () => {
   const f = fixture(), id = await f.create(1, 2); await f.rules()
   const before = structuredClone({ records: [...f.records], teams: [...f.teams], competitions: [...f.competitions] })

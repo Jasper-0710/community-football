@@ -7,9 +7,9 @@ import type { RegistrationSummary } from '../../src/domain/registration'
 import type { GroupQualification, MatchCardKind, MatchStats } from '../../src/domain/match'
 import { matchStageLabels, matchStatusLabels, matchTime } from '../../src/domain/match'
 import type { RankedMatch, ResultHistory, ResultInput, ResultPlayer, StandingsRules, StandingsSnapshot } from '../../src/domain/standings'
-const props = defineProps<{ auth: ReturnType<typeof createAdminAuth> }>()
+const props = defineProps<{ auth: ReturnType<typeof createAdminAuth>; initialCompetitionId?: string; initialMatchId?: string }>()
 const competitions = ref<AdminCompetition[]>([]), teams = ref<TeamSummary[]>([]), approvedIds = ref<string[]>([])
-const competitionId = ref(''), snapshot = ref<StandingsSnapshot | null>(null)
+const competitionId = ref(props.initialCompetitionId || ''), snapshot = ref<StandingsSnapshot | null>(null)
 const busy = ref(false), error = ref(''), notice = ref(''), active = ref('results')
 const tabs = [{ id: 'results', label: '赛果与事件' }, { id: 'rules', label: '积分与分组' }, { id: 'rankings', label: '榜单预览' }, { id: 'advancement', label: '晋级来源' }]
 const draft = reactive<StandingsRules>({ winPoints: 3, drawPoints: 1, lossPoints: 0, legs: 1, groups: [] })
@@ -173,7 +173,7 @@ async function moreHistory() {
   try { const page = await props.auth.authorized((api, token) => api.resultHistory(token, competitionId.value, editor.value!.id, history.value.nextVersion!)); history.value = { revisions: [...history.value.revisions, ...page.revisions], nextVersion: page.nextVersion } }
   catch (e) { error.value = explain(e) } finally { busy.value = false }
 }
-onMounted(() => { void refresh() })
+onMounted(async () => { await refresh(); const match = snapshot.value?.matches.find(m => m.id === props.initialMatchId); if (match) await open(match, 'history') })
 onUnmounted(() => { ++generation })
 </script>
 
@@ -182,7 +182,7 @@ onUnmounted(() => { ++generation })
     <div class="workspace-heading"><div><span class="eyebrow">赛事运营</span><h1>榜单与晋级</h1><p class="muted">从同一份赛果计算积分、射手、助攻和晋级对阵。</p></div><button class="secondary-button" :disabled="busy" @click="refresh">刷新数据</button></div>
     <div class="section-guide"><strong>赛果发布后自动联动</strong><p>先设置分组并排赛，再录入进行中或完赛比分与事件。进行中赛果会展示在赛程和详情，但不会进入积分、射手、助攻或晋级计算；更正、撤销会同步重算。影响已有赛果的后轮球队时，须先撤销后轮赛果。</p></div>
     <p v-if="error" class="notice" role="alert">{{ error }}</p><p v-if="notice" class="notice success" role="status">{{ notice }}</p>
-    <div v-if="competitions.length" class="account-card registration-filters"><div><label for="standings-competition">选择赛事</label><select id="standings-competition" v-model="competitionId" :disabled="busy" @change="notice = ''; loadCurrent()"><option v-for="item in competitions" :key="item.id" :value="item.id">{{ item.name }}</option></select></div><p class="muted">{{ entrants.length }} 支已审核球队 · {{ snapshot?.matches.filter(m => m.status === 'finished').length || 0 }} 场已完赛</p></div>
+    <div v-if="competitions.length" class="account-card registration-filters competition-filters"><div><label for="standings-competition">选择赛事</label><select id="standings-competition" v-model="competitionId" :disabled="busy" @change="notice = ''; loadCurrent()"><option v-for="item in competitions" :key="item.id" :value="item.id">{{ item.name }}</option></select></div><p class="muted">{{ entrants.length }} 支已审核球队 · {{ snapshot?.matches.filter(m => m.status === 'finished').length || 0 }} 场已完赛</p></div>
     <div class="standings-admin-tabs"><button v-for="tab in tabs" :key="tab.id" class="secondary-button" :class="{ selected: active === tab.id }" :disabled="busy" @click="active = tab.id; editor = null">{{ tab.label }}</button></div>
     <p v-if="busy && !snapshot" class="account-card competition-empty" role="status">正在读取赛事数据…</p>
     <div v-else-if="!competitions.length && !busy && !error" class="account-card competition-empty">请先创建赛事，再设置榜单与晋级。</div>

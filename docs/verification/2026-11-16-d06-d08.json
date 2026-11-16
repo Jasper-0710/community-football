@@ -1,0 +1,282 @@
+{
+  "date": "2026-11-16",
+  "timezone": "Asia/Shanghai",
+  "sourceCommit": "58ed44c",
+  "environment": {
+    "appId": "wx3230f06c755cef3a",
+    "cloudEnvId": "cloud1-d6gzg20x709d7f6c1",
+    "gatewayPath": "/admin-suth"
+  },
+  "deployment": {
+    "function": "adminAuth",
+    "method": "WeChat DevTools CLI inc-deploy",
+    "file": "standings.js",
+    "filesCount": 1,
+    "packSize": "3.6 KB",
+    "statusAfterDeployment": "Active",
+    "timeoutSeconds": 20,
+    "runtime": "Nodejs16.13",
+    "localFileSha256": "d68f7ad0a4c06db49cf2ad94eb3227e42c2c1ddfbb66ef78ea0b58815f455d1f"
+  },
+  "competitionId": "c_9f5427d27b4acc8ecac2aad615d663a9",
+  "finalState": {
+    "revision": 18,
+    "matchVersion": 8,
+    "score": "3:1",
+    "championTeamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+    "historyCount": 7,
+    "matches": 3,
+    "configured": false,
+    "registrationStats": {
+      "approved": 4,
+      "occupied": 4,
+      "pending": 0
+    },
+    "scorerRows": 4,
+    "assistRows": 4,
+    "regulationGoals": 9,
+    "assists": 6
+  },
+  "phases": {
+    "resultCorrectionRevocationRepublish": {
+      "generatedAt": "2026-11-16T02:27:23.342Z",
+      "checks": [
+        {
+          "name": "admin login"
+        },
+        {
+          "name": "read non-empty admin schedule",
+          "matches": 3,
+          "revision": 12,
+          "finalVersion": 2
+        },
+        {
+          "name": "resume non-empty final result after transaction probe",
+          "status": "finished",
+          "homeScore": 0,
+          "awayScore": 0
+        },
+        {
+          "name": "champion and rankings resolve after final",
+          "championTeamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+          "goals": 4,
+          "assists": 4
+        },
+        {
+          "name": "correct final result",
+          "revision": 13
+        },
+        {
+          "name": "revision history contains original and correction",
+          "revisions": 2
+        },
+        {
+          "name": "revoke final result",
+          "revision": 14
+        },
+        {
+          "name": "revoke clears champion and keeps match scheduled"
+        },
+        {
+          "name": "republish final result",
+          "revision": 15
+        },
+        {
+          "name": "republish restores champion and rankings",
+          "championTeamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7"
+        },
+        {
+          "name": "upstream match edit rejected while final has result",
+          "ok": false,
+          "code": "CONFLICT",
+          "message": "比赛进行中或已有赛果，请先在“榜单与晋级”撤销赛果后再编辑赛程。"
+        },
+        {
+          "name": "admin logout"
+        }
+      ],
+      "errors": []
+    },
+    "transactionProtection": {
+      "generatedAt": "2026-11-16T02:49:39.537Z",
+      "checks": [
+        {
+          "name": "upstream winner change blocked with finished final; snapshot and history unchanged"
+        },
+        {
+          "name": "upstream revocation blocked with finished final; snapshot and history unchanged"
+        },
+        {
+          "name": "live cloud result exposes minute and events, removes final from finished rankings and clears champion",
+          "revision": 16
+        },
+        {
+          "name": "identical request retry is idempotent and leaves revision unchanged"
+        },
+        {
+          "name": "upstream winner change blocked with live final; snapshot and history unchanged"
+        },
+        {
+          "name": "upstream revocation blocked with live final; snapshot and history unchanged"
+        },
+        {
+          "name": "stale revision and invalid player are rejected without partial data or history writes"
+        },
+        {
+          "name": "finished final restores champion and all player totals"
+        }
+      ],
+      "note": "All eight transaction checks passed. A later browser automation timeout on the history close button was resolved and verified in adminBrowser; the original local report is retained."
+    },
+    "adminBrowser": {
+      "generatedAt": "2026-11-16T03:08:50.904Z",
+      "target": {
+        "competitionId": "c_9f5427d27b4acc8ecac2aad615d663a9",
+        "finalId": "m_2bff5ca2cc3ed7ce932c1996cd2cdcdf"
+      },
+      "checks": [
+        {
+          "name": "normal browser login reaches customer cloud admin workspace"
+        },
+        {
+          "name": "normal admin API returns four approved entrants and correct 4/4 registration counters",
+          "stats": {
+            "approved": 4,
+            "occupied": 4,
+            "pending": 0
+          }
+        },
+        {
+          "name": "browser schedule shows three matches, exact four qualified candidates and finished-match edit guard"
+        },
+        {
+          "name": "browser loads nonempty revision history and final 3:1 result"
+        },
+        {
+          "name": "browser save publishes through real gateway and public schedule/detail/rankings read back the same result",
+          "revision": 18,
+          "matchVersion": 8,
+          "score": "3:1",
+          "championTeamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+          "historyCount": 7,
+          "matches": 3,
+          "configured": false
+        },
+        {
+          "name": "browser player rankings and final semifinal winner sources render correctly"
+        },
+        {
+          "name": "browser logout invalidates real admin session"
+        }
+      ],
+      "errors": [],
+      "failedRequests": [],
+      "finalState": {
+        "revision": 18,
+        "matchVersion": 8,
+        "score": "3:1",
+        "championTeamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "historyCount": 7,
+        "matches": 3,
+        "configured": false
+      }
+    },
+    "publicH5Browser": {
+      "generatedAt": "2026-11-16T03:12:17.950Z",
+      "target": {
+        "endpoint": "https://cloud1-d6gzg20x709d7f6c1-1526726605.ap-shanghai.app.tcloudbase.com/admin-suth",
+        "competitionId": "c_9f5427d27b4acc8ecac2aad615d663a9",
+        "finalId": "m_2bff5ca2cc3ed7ce932c1996cd2cdcdf"
+      },
+      "checks": [
+        {
+          "name": "public cloud APIs return finished final, champion, scorer and assist data",
+          "competitions": 4,
+          "matches": 3,
+          "goals": 4,
+          "assists": 4
+        },
+        {
+          "name": "public cloud match detail returns events and six technical statistics",
+          "goals": 4,
+          "cards": 1
+        },
+        {
+          "name": "H5 real schedule renders three customer cloud matches and final score"
+        },
+        {
+          "name": "H5 cloud schedule date, team, status and clear filters work"
+        },
+        {
+          "name": "H5 real match detail renders final events and technical statistics"
+        },
+        {
+          "name": "finished real match without technical data displays accurate empty state"
+        },
+        {
+          "name": "H5 customer cloud semifinal detail renders red card and substitution"
+        },
+        {
+          "name": "H5 real standings renders scorer, assist and champion advancement tabs"
+        },
+        {
+          "name": "390px H5 real schedule and mobile picker work without page overflow",
+          "viewport": 390,
+          "scrollWidth": 390
+        },
+        {
+          "name": "390px H5 final detail renders statistics without page overflow",
+          "viewport": 390,
+          "scrollWidth": 390
+        },
+        {
+          "name": "320px H5 real schedule and mobile picker work without page overflow",
+          "viewport": 320,
+          "scrollWidth": 320
+        },
+        {
+          "name": "320px H5 final detail renders statistics without page overflow",
+          "viewport": 320,
+          "scrollWidth": 320
+        }
+      ],
+      "errors": [],
+      "failedRequests": []
+    },
+    "publicFinalRead": {
+      "generatedAt": "2026-11-16T03:12:17.481Z",
+      "checks": [
+        "three finished matches",
+        "9 regulation goals, excluding shootout",
+        "6 assists",
+        "competition ranks retain ties",
+        "revision18"
+      ]
+    }
+  },
+  "localVerification": {
+    "tests": {
+      "passed": 208,
+      "failed": 0
+    },
+    "typechecks": [
+      "frontend",
+      "admin"
+    ],
+    "builds": [
+      "admin",
+      "h5",
+      "mp-weixin"
+    ],
+    "registrationContract": "passed"
+  },
+  "remaining": [
+    "nonempty group points and group-rank qualification in customer cloud",
+    "iPhone and Android physical devices",
+    "full customer sign-off",
+    "schedule creation/rescheduling/postponement, hidden competition and larger pagination not re-executed in this round",
+    "group-rule/source-change protections only covered by existing local tests",
+    "team statistics, automatic event/history restoration, real team/player pages and complete bracket visualization",
+    "D05 second-account permissions and native attachment handling remain separate"
+  ]
+}

@@ -55,6 +55,13 @@
         "navigationStyle": "custom",
         "navigationBarTitleText": "我的报名"
       }
+    },
+    {
+      "path": "pages/player/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "球员档案"
+      }
     }
   ],
   "globalStyle": {

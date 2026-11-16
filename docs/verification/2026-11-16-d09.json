@@ -1,0 +1,93 @@
+{
+  "date": "2026-11-16",
+  "generatedAt": "2026-11-16T09:21:41.274Z",
+  "checks": [
+    "后台保存草稿，公开列表、直达和未登录管理接口正确隔离",
+    "发布和置顶后前台读取同一条记录，五类筛选可用",
+    "图文详情保留段落与图片，正文标签作为文字显示",
+    "首页公告和新闻摘要接入已发布内容",
+    "四类公开搜索返回真实数据，球员与所属球队详情可跳转",
+    "搜索历史跨页面保存、复用和清空",
+    "慢响应不能覆盖较新的搜索结果",
+    "运营概览读取球队、比赛、完赛进球和新闻数量",
+    "后台全局搜索进入对应新闻编辑记录",
+    "后台球员搜索进入球队名单，比赛搜索定位对应赛事历史",
+    "公开请求失败清除旧内容并允许重试",
+    "新闻分页加载超过20条且无重复",
+    "后台更正新闻标题保留原发布记录",
+    "390px后台图文编辑、文章与搜索无横向溢出",
+    "320px后台图文编辑、文章与搜索无横向溢出",
+    "删除后的文章直达与搜索同步不可见",
+    "新建文章保存前上传封面，丢失分片回执后重试复用已传分片，未完成时禁止保存",
+    "JPG正文上传期间移动段落，完成后图片和说明仍绑定原段落",
+    "保存只持久化图片标识，前台经真实HTTPS接口获取并加载封面和正文图片",
+    "编辑回读保留图片标识，可手动刷新临时访问链接",
+    "替换上传失败可取消选择，保存后原图及引用保持有效",
+    "成功替换后保存新图引用，旧图解除引用并进入24小时保留期",
+    "公开图片加载失败显示重试入口，重读文章恢复图片",
+    "后台清理先预览再执行，移除过期候选和临时分片，保护文章封面与正文最终图片",
+    "390px封面与正文图片上传控件无横向溢出",
+    "320px封面与正文图片上传控件无横向溢出"
+  ],
+  "errors": [],
+  "validation": "Local browsers against isolated HTTPS API using real services and in-memory transactional stores. Not customer cloud or physical-device evidence.",
+  "version": "2.22",
+  "sourceCommit": "58ed44c plus uncommitted changes",
+  "localVerification": {
+    "tests": {
+      "passed": 241,
+      "failed": 0
+    },
+    "typechecks": [
+      "frontend",
+      "admin"
+    ],
+    "builds": [
+      "admin",
+      "h5",
+      "mp-weixin"
+    ],
+    "registrationContract": "passed",
+    "browser": {
+      "passed": 26,
+      "failed": 0,
+      "pageErrors": []
+    },
+    "imageTests": 18,
+    "imageUiWidths": [
+      390,
+      320
+    ]
+  },
+  "customerCloud": {
+    "deployedThisRound": false,
+    "collectionCreatedOrRulesVerified": false,
+    "newCollections": [
+      "newsArticles",
+      "newsImages"
+    ],
+    "newsImageUploadSwitchConfiguredOrVerified": false
+  },
+  "remaining": [
+    "customer cloud private collections/storage, adminAuth deployment and NEWS_IMAGE_UPLOADS_ENABLED=true",
+    "customer cloud nonempty publication/image upload/replacement/cleanup/search verification",
+    "WeChat image domains, iPhone/Android physical devices and customer sign-off",
+    "large-scale indexed search and actual popularity analytics"
+  ],
+  "imageUploads": {
+    "formats": [
+      "image/jpeg",
+      "image/png"
+    ],
+    "maxBytes": 2097152,
+    "maxEdge": 4096,
+    "maxPixels": 8000000,
+    "chunkBytes": 196608,
+    "unreferencedRetentionHours": 24,
+    "uploadLeaseMinutes": 10,
+    "canonicalReferencesOnly": true,
+    "automaticCleanup": false,
+    "signedUrlSeconds": 300,
+    "customerEnvironmentWrittenThisRound": false
+  }
+}

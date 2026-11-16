@@ -2,6 +2,8 @@ import {parseCleanupResult} from './registration-maintenance'
 import { parseMatch, parseMatchPage, type MatchScheduleForm } from '../../src/domain/match'
 import { parseStandings, parseResultHistory, type StandingsRules, type ResultInput } from '../../src/domain/standings'
 import type { GroupQualification } from '../../src/domain/match'
+import { parseNewsArticle, parseNewsPage, parseSearchPage, parseContentOverview, type NewsForm, type ContentCategory, type SearchKind } from '../../src/domain/content'
+import { parseNewsImage, parseNewsImageConfig, parseNewsImageUpload, parseNewsImageCleanup } from '../../src/domain/news-image'
 export interface AdminSession {
   admin: { username: string; displayName: string; role: 'admin' }
   expiresAt: string
@@ -50,6 +52,19 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     } finally { clearTimeout(timer) }
   }
   return {
+    async newsImageConfig(token: string) { return parseNewsImageConfig(await request('news.images.config',{},token)) },
+    async startNewsImage(token: string, fields: {articleId:string;requestId:string;name:string;size:number;mime:string;sha256:string}) { return parseNewsImageUpload(await request('news.images.start',fields,token)) },
+    async newsImageChunk(token: string, id: string, index: number, data: string) { const r = await request('news.images.chunk',{id,index,data},token); if (r.index !== index) throw new AdminApiError('INVALID_RESPONSE','图片分片回执异常，请重试。') },
+    async finishNewsImage(token: string, id: string) { return parseNewsImage((await request('news.images.finish',{id},token)).image) },
+    async newsImage(token: string, id: string, articleId: string) { return parseNewsImage((await request('news.images.get',{id,articleId},token)).image) },
+    async cleanupNewsImages(token: string, dryRun = true, cursor?: string) { const r = parseNewsImageCleanup(await request('news.images.cleanup',{dryRun,...(cursor?{cursor}:{})},token)); if (r.dryRun !== dryRun) throw new AdminApiError('INVALID_RESPONSE','图片清理回执异常，请重新检查。'); return r },
+    async news(token: string, category?: ContentCategory, cursor?: string) { return parseNewsPage(await request('news.listAdmin', { ...(category ? { category } : {}), ...(cursor ? { cursor } : {}) }, token), true) },
+    async article(token: string, id: string) { return parseNewsArticle((await request('news.getAdmin', { id }, token)).article, true, true) },
+    async createNews(token: string, requestId: string, form: NewsForm) { return parseNewsArticle((await request('news.create', { requestId, form }, token)).article, true, true) },
+    async updateNews(token: string, id: string, expectedVersion: number, form: NewsForm) { return parseNewsArticle((await request('news.update', { id, expectedVersion, form }, token)).article, true, true) },
+    async deleteNews(token: string, id: string, expectedVersion: number) { await request('news.delete', { id, expectedVersion }, token) },
+    async search(token: string, query: string, kind: 'all' | SearchKind = 'all', cursor?: string) { return parseSearchPage(await request('search.admin', { query, kind, ...(cursor ? { cursor } : {}) }, token)) },
+    async contentOverview(token: string) { return parseContentOverview(await request('content.overview', {}, token)) },
     async standings(token: string, competitionId: string) { return parseStandings(await request('standings.getAdmin', { competitionId }, token), true) },
     async updateStandingsRules(token: string, competitionId: string, expectedRevision: number, rules: StandingsRules) { await request('standings.updateRules', { competitionId, expectedRevision, rules }, token) },
     async bindQualification(token: string, competitionId: string, id: string, expectedVersion: number, expectedRevision: number, homeQualification: GroupQualification | null, awayQualification: GroupQualification | null) { await request('standings.bindMatch', { competitionId, id, expectedVersion, expectedRevision, homeQualification, awayQualification }, token) },

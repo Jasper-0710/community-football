@@ -27,6 +27,7 @@
     "test:registrations:browser": "node scripts/verify-registrations.mjs",
     "test:matches:browser": "node scripts/verify-matches.mjs",
     "test:standings:browser": "node scripts/verify-standings.mjs",
+    "test:content:browser": "node scripts/verify-content.mjs",
     "check:registration-contract": "node scripts/sync-registration-model.mjs --check",
     "cloud:setup": "node scripts/setup-cloud-environment.mjs",
     "cloud:check": "node --input-type=module -e \"import {loadCloudEnvironment} from './scripts/cloud-environment.mjs'; for (const mode of ['development','production','admin']) console.log(mode, loadCloudEnvironment(mode));\""

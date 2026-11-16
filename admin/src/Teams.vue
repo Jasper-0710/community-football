@@ -2,7 +2,7 @@
 import {onMounted,onUnmounted,ref} from 'vue'
 import {positionLabel,type ManagedTeam,type TeamSummary} from '../../src/domain/team'
 import type {createAdminAuth} from './auth'
-const props=defineProps<{auth:ReturnType<typeof createAdminAuth>}>()
+const props=defineProps<{auth:ReturnType<typeof createAdminAuth>;initialId?:string}>()
 const teams=ref<TeamSummary[]>([]),selected=ref<ManagedTeam|null>(null),cursor=ref<string|null>(null),busy=ref(false),error=ref('')
 let request=0
 const explain=(e:unknown)=>e instanceof Error?e.message:'球队档案暂不可用，请重试。'
@@ -18,7 +18,7 @@ async function open(id:string){
  try{const team=await props.auth.authorized((api,token)=>api.team(token,id));if(current===request)selected.value=team}
  catch(e){if(current===request)error.value=explain(e)}finally{if(current===request)busy.value=false}
 }
-onMounted(()=>{void load()});onUnmounted(()=>{request++})
+onMounted(()=>{void (props.initialId?open(props.initialId):load())});onUnmounted(()=>{request++})
 </script>
 <template>
 <section class="teams-admin">
@@ -26,7 +26,7 @@ onMounted(()=>{void load()});onUnmounted(()=>{request++})
  <p v-if="error" class="notice" role="alert">{{ error }}</p>
  <p v-if="busy" class="account-card competition-empty" role="status">正在读取球队档案…</p>
  <template v-else-if="selected">
-  <button class="secondary-button team-back-button" @click="selected=null">← 返回球队列表</button>
+  <button class="secondary-button team-back-button" @click="load()">← 返回球队列表</button>
   <article class="account-card admin-team-detail">
    <div class="admin-team-heading"><div class="admin-team-crest" aria-hidden="true">{{ selected.name.slice(0,1) }}</div><div><span class="status-badge neutral">{{ selected.district }}</span><span class="status-badge team-lifecycle" :class="{archived:selected.status==='dissolved'}">{{ selected.status==='dissolved'?'已解散':'正常管理' }}</span><h2>{{ selected.name }}</h2><p class="muted">{{ selected.status==='dissolved'?'解散时名单':'当前名单' }} {{ selected.playerCount }} 人 · 默认队徽</p></div></div>
    <p v-if="selected.status==='dissolved'" class="section-guide">已于 {{ new Date(selected.dissolvedAt!).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false}) }} 解散。以下为解散时保留的档案，原领队已可重新建队。</p><div class="admin-team-info-grid"><section class="admin-team-info"><h3>领队联系方式</h3><dl><div><dt>领队昵称</dt><dd>{{ selected.leaderNickname||'未填写' }}</dd></div><div><dt>联系电话</dt><dd>{{ selected.contactPhone }}</dd></div></dl><p class="muted">仅球队领队和授权管理员可查看联系方式。</p></section><section class="admin-team-info"><h3>球队介绍</h3><p class="competition-description">{{ selected.description||'领队暂未填写球队介绍。' }}</p></section></div>
