@@ -46,7 +46,7 @@ const teams = createAdminTeamService({ store: { read: id => store.read('teams', 
 const matches = createMatchService({ store: matchesMemory.store, authorize, now: () => now, logger: { error() {} } })
 const standings = createStandingsService({ store: matchesMemory.standingsStore, authorize, now: () => now, logger: { error() {} } })
 const registrations = createAdminRegistrationService({ store: { competition: matchesMemory.store.competition, async list() { return [] } }, authorize })
-let failNews = false, slowSearch = false, failImageChunk = false, slowImageChunk = false, failImageRequests = false
+let failNews = false, slowSearch = false, failImageChunk = false, slowImageChunk = false, failImageRequests = false, rejectNextImageChunk = false
 const imageRequests = []
 const router = async event => {
   if (event.action.startsWith('news.images.')) {
@@ -72,6 +72,11 @@ const server = createServer({ key: await fs.readFile(`${certDir}/key.pem`), cert
     res.writeHead(200, { 'Content-Type': id.endsWith('.png') ? 'image/png' : 'image/jpeg', 'Cache-Control': 'no-store' }); res.end(bytes); return
   }
   let body = ''; for await (const chunk of req) body += chunk
+  if (Buffer.byteLength(body) > 100000 || rejectNextImageChunk && body.includes('"action":"news.images.chunk"')) {
+    rejectNextImageChunk = false
+    res.writeHead(413, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': req.headers.origin || adminOrigin })
+    res.end(JSON.stringify({ code: 'EXCEED_MAX_PAYLOAD_SIZE' })); return
+  }
   const result = await http({ httpMethod: req.method, headers: req.headers, body }); res.writeHead(result.statusCode, result.headers); res.end(result.body)
 })
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
@@ -132,6 +137,12 @@ try {
   await admin.getByRole('button', { name: '新建内容', exact: true }).click()
   await admin.getByLabel('标题', { exact: true }).fill('本地图片上传验收'); await admin.getByLabel('正文文字', { exact: true }).fill('上传正文段落'); await admin.getByLabel('发布状态', { exact: true }).selectOption('published')
   const pngBytes = PNG.sync.write({ width: 300, height: 300, data: randomBytes(360000) }), pngFile = { name: '社区球场.png', mimeType: 'image/png', buffer: pngBytes }
+  const oversized = Buffer.from(pngBytes), beforeOversized = imageRequests.length
+  oversized.writeUInt32BE(4201, 16); oversized.writeUInt32BE(2379, 20)
+  await admin.getByLabel('封面上传图片', { exact: true }).setInputFiles({ name: 'wallpaper.png', mimeType: 'image/png', buffer: oversized })
+  await admin.getByText('图片尺寸为4201×2379，边长不能超过4096像素，总像素不能超过800万。请缩小图片后重新选择。', { exact: true }).waitFor()
+  assert.equal(imageRequests.length, beforeOversized)
+  check('超大尺寸选图显示实际宽高和限制，在上传前拒绝且保留表单')
   failImageChunk = true
   await admin.getByLabel('封面上传图片', { exact: true }).setInputFiles(pngFile)
   await admin.getByText('模拟连接中断，请重试上传。', { exact: true }).waitFor()
@@ -163,6 +174,13 @@ try {
   await coverControl.locator('img').evaluate(img => img.decode())
   await coverControl.getByRole('button', { name: '刷新图片链接', exact: true }).click(); await admin.waitForFunction(old => document.querySelector('.news-image-input img').getAttribute('src') !== old, beforeLink)
   check('编辑回读保留图片标识，可手动刷新临时访问链接')
+  rejectNextImageChunk = true
+  await admin.getByLabel('封面上传图片', { exact: true }).setInputFiles(pngFile)
+  await admin.getByText('上传请求超过云网关大小限制，请刷新后台后重新选择图片；如仍失败，请更新云函数。', { exact: true }).waitFor()
+  assert.equal(await admin.getByRole('button', { name: '保存内容', exact: true }).isDisabled(), true)
+  await coverControl.getByRole('button', { name: '取消本次选择', exact: true }).click()
+  assert.equal(collections.newsArticles.get(uploadedArticleId).coverImageId, coverRecord._id)
+  check('云网关413显示明确提示，取消候选后保留原图和保存入口')
   failImageChunk = true
   await admin.getByLabel('封面上传图片', { exact: true }).setInputFiles(pngFile); await admin.getByText('模拟连接中断，请重试上传。', { exact: true }).waitFor(); await coverControl.getByRole('button', { name: '取消本次选择', exact: true }).click()
   assert.equal(await admin.getByRole('button', { name: '保存内容', exact: true }).isEnabled(), true); assert.equal(collections.newsArticles.get(uploadedArticleId).coverImageId, coverRecord._id)
@@ -191,7 +209,7 @@ try {
     await admin.screenshot({ path: `${out}/image-upload-${width}.png`, fullPage: true }); check(`${width}px封面与正文图片上传控件无横向溢出`)
   }
   assert.deepEqual(errors, [])
-  await fs.writeFile(`${out}/report.json`, JSON.stringify({ date: '2026-11-16', generatedAt: new Date().toISOString(), checks, errors, validation: 'Local browsers against isolated HTTPS API using real services and in-memory transactional stores. Not customer cloud or physical-device evidence.' }, null, 2))
+  await fs.writeFile(`${out}/report.json`, JSON.stringify({ date: '2026-11-17', generatedAt: new Date().toISOString(), checks, errors, gatewayMaxBodyBytes: 100000, validation: 'Local browsers against isolated HTTPS API using real services and in-memory transactional stores. Not customer cloud or physical-device evidence.' }, null, 2))
   console.log(`Verified ${checks.length} D09 browser flows.`)
 } catch (e) { await fs.writeFile(`${out}/failure.txt`, `ADMIN\n${await admin.locator('body').innerText().catch(() => '')}\nPUBLIC\n${await user.locator('body').innerText().catch(() => '')}\nERRORS\n${JSON.stringify(errors)}\nLOG\n${publicLog}`); throw e }
 finally { await browser.close(); await adminVite.close(); try { process.kill(-publicServer.pid, 'SIGTERM') } catch {} server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await fs.rm(certDir, { recursive: true, force: true }) }

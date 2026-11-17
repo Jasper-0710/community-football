@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-17",
+  "timezone": "Asia/Shanghai",
+  "feature": "D04-2 球队队徽上传客户云端验收",
+  "status": "deployed; configuration verification failed; waiting for console correction before badge writes",
+  "target": {
+    "appid": "wx3230f06c755cef3a",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "gatewayPath": "/admin-suth"
+  },
+  "collection": {
+    "name": "teamBadges",
+    "created": true,
+    "requestId": "12d32056-26fb-4e45-9f78-b7aaf8aa4652",
+    "defaultIndexCount": 2,
+    "lastAdminReadCount": 0,
+    "emptyCollectionReadRequestId": "c7dc451a-33dd-40b1-ad2e-3f9b35a4548b"
+  },
+  "deployment": {
+    "method": "wechatide cloud_fn_deploy with remote-npm-install",
+    "teamManagement": {
+      "taskId": "confirmation_cloud_fn_deploy_1f6b68f5-37c7-4aea-afde-c81e6d3dbfad",
+      "status": "success/execution_success",
+      "filesCount": 12,
+      "packSize": "25.5 KB",
+      "downloadedSourceHashesMatched": 12,
+      "stateAfterDeployment": "Active",
+      "timeoutSeconds": 60,
+      "runtime": "Nodejs16.13",
+      "imageDependenciesInitialized": true
+    },
+    "adminAuth": {
+      "taskId": "confirmation_cloud_fn_deploy_694201c2-4742-4515-a79d-403abc1e257b",
+      "status": "success/execution_success",
+      "filesCount": 23,
+      "packSize": "55.9 KB",
+      "downloadedSourceHashesMatched": 23,
+      "stateAfterDeployment": "Active",
+      "timeoutSeconds": 20,
+      "runtime": "Nodejs16.13"
+    }
+  },
+  "realChecks": {
+    "transport": "WeChat simulator wx.cloud.callFunction/database explicitly targeting the customer environment; HTTPS admin gateway",
+    "trustedOwnerRead": true,
+    "adminTeamProjectionRead": true,
+    "anonymousAdminTeamDenied": true,
+    "anonymousAdminCleanupDenied": true,
+    "cleanupPreview": {
+      "httpStatus": 200,
+      "scanned": 0,
+      "eligibleObjects": 0,
+      "removedObjects": 0
+    },
+    "capability": {
+      "enabled": false,
+      "maxBytes": 262144,
+      "chunkSize": 65536,
+      "maxEdge": 2048,
+      "maxPixels": 4000000
+    },
+    "teamBadgesClientReadAllowed": true,
+    "teamBadgesClientWriteAllowed": true,
+    "existingPrivateMatchesRead": {
+      "allowed": false,
+      "code": -502003
+    },
+    "permissionProbe": {
+      "id": "d042_permission_1794906995227",
+      "createdDuringPermissionCheck": true,
+      "removed": true,
+      "removedCount": 1,
+      "collectionEmptyAfterRemoval": true
+    }
+  },
+  "localValidation": {
+    "unitTests": { "passed": 267, "failed": 0 },
+    "teamBrowserFlows": 23,
+    "typechecks": ["frontend", "admin"],
+    "builds": ["mp-weixin", "admin"],
+    "sharedModelCheck": true,
+    "diffWhitespaceCheck": true
+  },
+  "scope": {
+    "customerCollectionCreated": true,
+    "customerFunctionsDeployed": true,
+    "customerBadgeImagesUploaded": false,
+    "customerTeamDataChanged": false,
+    "nonemptyBadgeLifecycleAccepted": false,
+    "nativeDeviceVerified": false,
+    "customerFormalSignoff": false
+  },
+  "blocker": "User-reported console settings did not match real runtime behavior. Desktop control timed out; existing CLI has no collection-rule or environment-variable configuration operation. Requested correction of teamBadges private rules and teamManagement TEAM_BADGE_UPLOADS_ENABLED=true; further uploads await verification.",
+  "remaining": [
+    "Verify teamBadges client direct reads and writes both denied",
+    "Verify teamManagement badge capability enabled=true after saving its environment variables",
+    "Real upload, save, owner/admin/public reread, replace, restore default and scoped cleanup",
+    "iPhone/Android native picker/camera/compression and second-account/cross-device verification"
+  ],
+  "localEvidenceDirectory": ".tools/customer-d04-2-20261117/",
+  "notes": [
+    "No credentials, private contact details or signed URLs are persisted in this summary.",
+    "The first acceptance runner used an obsolete --args CLI parameter; it was corrected before badge business writes.",
+    "Deployment and empty cleanup reads are not nonempty business acceptance."
+  ]
+}

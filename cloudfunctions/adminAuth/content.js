@@ -3,6 +3,7 @@
 const { createHash } = require('node:crypto')
 const { KINDS, normalize, rankSearch, compare } = require('./search-engine')
 const { IMAGE_ID, NewsImageError, syncImageReferences, scopedObject, inventory } = require('./news-image-model')
+const {badgeView} = require('./team-badge-model')
 const CATEGORIES = ['快讯', '战报', '公告', '深度', '独家']
 const PUBLIC_ACTIONS = ['news.listPublic', 'news.getPublic', 'search.public', 'search.suggestions', 'directory.teamPublic', 'directory.playerPublic']
 const ACTIONS = [...PUBLIC_ACTIONS, 'news.listAdmin', 'news.getAdmin', 'news.create', 'news.update', 'news.delete', 'search.admin', 'content.overview']
@@ -164,14 +165,14 @@ function createContentService({ store, storage, authorize, now = Date.now, logge
         const data = await catalog(store, true), record = data.teams.find(t => t._id === (event.teamId || event.id))
         if (!record) fail('NOT_FOUND', '档案不存在或暂未公开。')
         const team = publicTeam(record)
-        if (action === 'directory.teamPublic') return { ok: true, team }
+        if (action === 'directory.teamPublic') { const {hasBadge,badgeUrl}=await badgeView(record,storage); return { ok: true, team:{...team,hasBadge,badgeUrl} } }
         const player = team.players.find(p => p.id === event.id)
         if (!player) fail('NOT_FOUND', '档案不存在或暂未公开。')
         return { ok: true, player: { ...player, teamId: team.id, teamName: team.name, district: team.district } }
       }
       fields(event, base)
       const data = await catalog(store, false)
-      return { ok: true, counts: { teams: data.teams.filter(t => t.status !== 'dissolved').length, matches: data.matches.length, goals: data.matches.filter(m => m.status === 'finished').reduce((sum, m) => sum + (m.homeScore || 0) + (m.awayScore || 0), 0), news: data.articles.length, publishedNews: data.articles.filter(n => n.status === 'published').length }, recentNews: await Promise.all(data.articles.sort((a, b) => b.updatedAt - a.updatedAt || compare(a._id, b._id)).slice(0, 5).map(n => present(n,true))), serverTime: iso(now()) }
+      return { ok: true, counts: { teams: data.teams.filter(t => t.status !== 'dissolved').length, matches: data.matches.length, goals: data.matches.filter(m => m.status === 'finished').reduce((sum, m) => sum + (m.result?.homeScore ?? 0) + (m.result?.awayScore ?? 0), 0), news: data.articles.length, publishedNews: data.articles.filter(n => n.status === 'published').length }, recentNews: await Promise.all(data.articles.sort((a, b) => b.updatedAt - a.updatedAt || compare(a._id, b._id)).slice(0, 5).map(n => present(n,true))), serverTime: iso(now()) }
     } catch (error) {
       if (error instanceof ContentError || error instanceof NewsImageError) return { ok: false, error: { code: error.code, message: error.message } }
       logger?.error?.('[content] operation failed')

@@ -17,7 +17,8 @@ const apiUrl = import.meta.env.VITE_ADMIN_API_URL?.trim() || ''
 const apiConfigured = Boolean(apiUrl)
 const environmentName = import.meta.env.VITE_CLOUD_ENVIRONMENT_NAME || '客户环境'
 const environmentId = import.meta.env.VITE_WECHAT_CLOUD_ENV_ID || ''
-const auth = createAdminAuth(createAdminApi(apiUrl), storage)
+const api = createAdminApi(apiUrl)
+const auth = createAdminAuth(api, storage)
 const { status, account, message, busy } = auth
 const username = ref(''), password = ref(''), showPassword = ref(false)
 const activeView = ref<'account' | 'competitions' | 'teams' | 'registrations' | 'matches' | 'standings' | 'news' | 'overview' | 'search'>('account')

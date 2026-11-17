@@ -1,3 +1,4 @@
+import {safeBadgeUrl} from './team'
 export const newsCategories = ['快讯', '战报', '公告', '深度', '独家'] as const
 export type ContentCategory = typeof newsCategories[number]
 export type NewsBlock = { type: 'text'; text: string } | { type: 'image'; url: string; caption: string; imageId?: string | null }
@@ -8,7 +9,7 @@ export const searchKinds: { id: 'all' | SearchKind; label: string }[] = [{ id: '
 export interface SearchItem { kind: SearchKind; id: string; title: string; detail: string; rank: number; teamId?: string; competitionId?: string }
 export interface SearchPage { results: SearchItem[]; counts: Record<SearchKind, number>; nextCursor: string | null; total: number }
 export interface PublicPlayer { id: string; name: string; number: number; position: string }
-export interface PublicTeam { id: string; name: string; district: string; description: string; players: PublicPlayer[] }
+export interface PublicTeam { id: string; name: string; district: string; description: string; hasBadge:boolean; badgeUrl:string; players: PublicPlayer[] }
 export interface PlayerProfile extends PublicPlayer { teamId: string; teamName: string; district: string }
 export interface ContentOverview { counts: { teams: number; matches: number; goals: number; news: number; publishedNews: number }; recentNews: NewsArticle[]; serverTime: string }
 export class ContentClientError extends Error { constructor(public readonly code: string, message: string) { super(message); this.name = 'ContentClientError' } }
@@ -64,9 +65,10 @@ function parsePlayer(v: any): PublicPlayer {
 }
 export function parsePublicTeam(v: any): PublicTeam {
   if (!object(v) || typeof v.id !== 'string' || !ids.team.test(v.id) || !validText(v.name, 80) || !validText(v.district, 40) || !validText(v.description, 1000, false) || !Array.isArray(v.players) || v.players.length > 99) return invalid()
+  if (v.hasBadge !== undefined && typeof v.hasBadge !== 'boolean' || v.badgeUrl !== undefined && v.badgeUrl !== '' && !safeBadgeUrl(v.badgeUrl) || v.badgeUrl && v.hasBadge !== true) return invalid()
   const players = v.players.map(parsePlayer)
   if (new Set(players.map(p => p.id)).size !== players.length) return invalid()
-  return { id: v.id, name: v.name, district: v.district, description: v.description, players }
+  return { id: v.id, name: v.name, district: v.district, description: v.description, hasBadge:v.hasBadge||false, badgeUrl:v.badgeUrl||'', players }
 }
 export function parsePlayerProfile(v: any): PlayerProfile {
   const p = parsePlayer(v)

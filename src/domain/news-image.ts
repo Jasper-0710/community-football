@@ -4,7 +4,7 @@ export interface NewsImage { id: string; articleId: string; name: string; size: 
 export interface NewsImageUpload { id: string; chunkSize: number; uploaded: number[] }
 export interface NewsImageCleanup { dryRun: boolean; scanned: number; eligibleObjects: number; removedObjects: number; protectedImages: number; deferredImages: number; nextCursor: string | null }
 export const NEWS_IMAGE_MAX_BYTES = 2 * 1024 * 1024
-export const NEWS_IMAGE_CHUNK = 192 * 1024
+export const NEWS_IMAGE_CHUNK = 64 * 1024
 const id = (v: unknown): v is string => typeof v === 'string' && /^ni_[a-f0-9]{32}$/.test(v)
 const int = (v: unknown): v is number => Number.isSafeInteger(v) && Number(v) >= 0
 const invalid = (): never => { throw new ContentClientError('INVALID_RESPONSE','图片服务返回异常，请重试。') }
@@ -17,7 +17,8 @@ export function parseNewsImage(v: any): NewsImage {
   return {id:v.id,articleId:v.articleId,name:v.name,size:v.size,mime:v.mime,width:v.width,height:v.height,url:v.url}
 }
 export function parseNewsImageUpload(v: any): NewsImageUpload {
-  if (v?.ok !== true || !id(v.id) || v.chunkSize !== NEWS_IMAGE_CHUNK || !Array.isArray(v.uploaded) || v.uploaded.length > 11 || v.uploaded.some((i: unknown) => !int(i) || i > 10) || new Set(v.uploaded).size !== v.uploaded.length) return invalid()
+  const chunks = Math.ceil(NEWS_IMAGE_MAX_BYTES / NEWS_IMAGE_CHUNK)
+  if (v?.ok !== true || !id(v.id) || v.chunkSize !== NEWS_IMAGE_CHUNK || !Array.isArray(v.uploaded) || v.uploaded.length > chunks || v.uploaded.some((i: unknown) => !int(i) || Number(i) >= chunks) || new Set(v.uploaded).size !== v.uploaded.length) return invalid()
   return {id:v.id,chunkSize:v.chunkSize,uploaded:v.uploaded}
 }
 export function parseNewsImageCleanup(v: any): NewsImageCleanup {

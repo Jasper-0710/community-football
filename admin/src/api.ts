@@ -1,3 +1,4 @@
+import {parseBadgeCleanup} from '../../src/domain/team-badge'
 import {parseCleanupResult} from './registration-maintenance'
 import { parseMatch, parseMatchPage, type MatchScheduleForm } from '../../src/domain/match'
 import { parseStandings, parseResultHistory, type StandingsRules, type ResultInput } from '../../src/domain/standings'
@@ -38,6 +39,7 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ action, ...fields }),
       })
+      if (response.status === 413) throw new AdminApiError('PAYLOAD_TOO_LARGE', '上传请求超过云网关大小限制，请刷新后台后重新选择图片；如仍失败，请更新云函数。')
       let data: any
       try { data = await response.json() } catch { throw new AdminApiError('INVALID_RESPONSE', '管理服务返回异常，请重试。') }
       if (data?.ok === false && typeof data.error?.code === 'string' && typeof data.error?.message === 'string') {
@@ -76,6 +78,7 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async registration(token:string,id:string) { return parseRegistration((await request('registrations.getAdmin',{id},token)).registration) },
     async reviewRegistration(token:string,id:string,expectedVersion:number,requestId:string,decision:'approved'|'rejected',reason:string,playerCount:number|null) { return parseRegistration((await request('registrations.review',{id,expectedVersion,requestId,decision,reason,playerCount},token)).registration) },
     async registrationFile(token:string,id:string,fileId:string) { return parseFileLink(await request('registrations.fileLink',{id,fileId},token)) },
+    async cleanupTeamBadges(token:string,dryRun=true,cursor?:string) {const result=parseBadgeCleanup(await request('teams.badges.cleanup',{dryRun,...(cursor?{cursor}:{})},token));if(result.dryRun!==dryRun)throw new AdminApiError('INVALID_RESPONSE','队徽清理回执异常。');return result},
     async teams(token: string, cursor?: string) { return parseTeamPage(await request('teams.listAdmin', cursor ? { cursor } : {}, token)) },
     async team(token: string, id: string) { return parseManagedTeam((await request('teams.getAdmin', { id }, token)).team) },
     async competitions(token: string, cursor?: string) { return parseCompetitionPage(await request('competitions.listAdmin', cursor ? { cursor } : {}, token), true) },
@@ -111,6 +114,10 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
 }
 
 export type AdminApi = ReturnType<typeof createAdminApi>
+
+// Auth retains the API object created at login. Replacing only this module
+// cannot add new methods to that object; reload to recreate it from current code.
+if (import.meta.hot) import.meta.hot.accept(() => window.location.reload())
 import { parseCompetition, parseCompetitionPage, type CompetitionForm } from '../../src/domain/competition'
 
 import { parseTeamPage, parseManagedTeam } from '../../src/domain/team'

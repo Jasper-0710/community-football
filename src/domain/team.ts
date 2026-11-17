@@ -9,11 +9,19 @@ export interface PlayerForm { name:string; number:number; position:PlayerPositio
 export interface TeamPlayer extends PlayerForm { id:string }
 export interface TeamSummary extends TeamForm {
   status:'active'|'dissolved'; dissolvedAt:string|null
-  id:string; version:number; playerCount:number; badgeUploadEnabled:boolean; badgeUrl:string; createdAt:string; updatedAt:string
+  id:string; version:number; playerCount:number; badgeId:string; hasBadge:boolean; badgeUploadEnabled:boolean; badgeUrl:string; createdAt:string; updatedAt:string
 }
 export interface ManagedTeam extends TeamSummary { leaderNickname:string; players:TeamPlayer[] }
 export class TeamClientError extends Error { constructor(public readonly code:string,message:string) { super(message);this.name='TeamClientError' } }
 const object=(v:any):v is Record<string,any>=>!!v&&typeof v==='object'&&!Array.isArray(v)
+export function safeBadgeUrl(url:unknown):url is string {
+  if(typeof url!=='string'||url.length>2000||/[\u0000-\u0020\u007f\\#]/.test(url))return false
+  if(typeof URL==='function'){try{const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&!u.hash}catch{return false}}
+  // Native runtimes need not expose the browser URL constructor. Cloud storage
+  // signs ordinary HTTPS hostnames; validate those without a browser global.
+  const match=/^https:\/\/([a-z0-9.-]+)(?::([0-9]{1,5}))?(?:[/?][^\s\\#]*)?$/i.exec(url)
+  return !!match&&match[1].length<=253&&match[1].split('.').every(label=>/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label))&&(!match[2]||Number(match[2])<=65535)
+}
 const invalid=():never=>{throw new TeamClientError('INVALID_RESPONSE','球队资料返回异常，请重新读取。')}
 export function positionLabel(value:string){return playerPositions.find(p=>p.value===value)?.label||'未设置'}
 export function parseTeamSummary(v:unknown):TeamSummary {
@@ -21,11 +29,13 @@ export function parseTeamSummary(v:unknown):TeamSummary {
     ||typeof v.name!=='string'||!v.name.trim()||typeof v.district!=='string'||!teamDistricts.includes(v.district)
     ||typeof v.description!=='string'||typeof v.contactPhone!=='string'||!v.contactPhone
     ||!Number.isSafeInteger(v.version)||v.version<1||!Number.isInteger(v.playerCount)||v.playerCount<0||v.playerCount>99
-    ||v.badgeUploadEnabled!==false||v.badgeUrl!==''
+    ||typeof v.badgeUploadEnabled!=='boolean'||(v.badgeId!==undefined && v.badgeId!=='' && (typeof v.badgeId!=='string'||!/^tb_[a-f0-9]{32}$/.test(v.badgeId)))
+    ||(v.hasBadge!==undefined && typeof v.hasBadge!=='boolean')||typeof v.badgeUrl!=='string'||v.badgeUrl!==''&&!safeBadgeUrl(v.badgeUrl)
+    ||(v.badgeUrl!=='' && v.hasBadge!==true)||(v.hasBadge===true && !v.badgeId)
     ||![undefined,'active','dissolved'].includes(v.status)
     ||(v.status==='dissolved'?(typeof v.dissolvedAt!=='string'||!Number.isFinite(Date.parse(v.dissolvedAt))):v.dissolvedAt!=null)
     ||typeof v.createdAt!=='string'||!Number.isFinite(Date.parse(v.createdAt))||typeof v.updatedAt!=='string'||!Number.isFinite(Date.parse(v.updatedAt))) return invalid()
-  return {id:v.id,status:v.status||'active',dissolvedAt:v.dissolvedAt||null,name:v.name,district:v.district,description:v.description,contactPhone:v.contactPhone,version:v.version,playerCount:v.playerCount,badgeUploadEnabled:v.badgeUploadEnabled,badgeUrl:v.badgeUrl,createdAt:v.createdAt,updatedAt:v.updatedAt}
+  return {id:v.id,status:v.status||'active',dissolvedAt:v.dissolvedAt||null,name:v.name,district:v.district,description:v.description,contactPhone:v.contactPhone,version:v.version,playerCount:v.playerCount,badgeId:v.badgeId||'',hasBadge:v.hasBadge||false,badgeUploadEnabled:v.badgeUploadEnabled,badgeUrl:v.badgeUrl,createdAt:v.createdAt,updatedAt:v.updatedAt}
 }
 export function parseManagedTeam(v:unknown):ManagedTeam {
   const summary=parseTeamSummary(v)

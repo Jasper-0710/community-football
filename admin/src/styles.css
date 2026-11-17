@@ -339,10 +339,18 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 500; }
 .overview-recent { width:100%; display:flex; justify-content:space-between; align-items:center; text-align:left; gap:16px; padding:18px 0; border:0; border-bottom:1px solid var(--line); background:transparent; color:inherit; font:inherit; overflow-wrap:anywhere; }
 .overview-recent span { min-width:0; }
 .overview-recent small { color:var(--muted); font-size:14px; }
-.content-search-form { display:flex; align-items:flex-end; gap:14px; margin-bottom:20px; }
-.content-search-form label { flex:1; min-width:0; }
+.content-search-form { display:flex; align-items:flex-end; gap:14px; width:100%; margin-bottom:20px; }
+.content-search-form label { display:block; flex:1 1 auto; min-width:0; margin:0; white-space:normal; writing-mode:horizontal-tb; }
 .content-search-form input { display:block; width:100%; min-width:0; padding:12px; margin-top:8px; border:1px solid var(--line); border-radius:8px; font:inherit; }
+.content-search-form > .primary-button { width:auto; flex:0 0 auto; min-width:96px; margin-top:0; justify-content:center; }
 .admin-search-result strong, .admin-search-result small { display:block; margin:5px 0; }
 .admin-search-result > span:last-child { flex-shrink:0; font-size:14px; }
 @media(max-width:1000px) { .overview-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:480px) { .content-row { flex-direction:column; align-items:stretch; } .content-search-form { flex-direction:column; align-items:stretch; } .overview-grid { gap:10px; } .overview-number { padding:14px; } .overview-number strong { font-size:28px; } .overview-recent { flex-wrap:wrap; } .news-block { padding:12px; } }
+@media(max-width:480px) { .content-row { flex-direction:column; align-items:stretch; } .content-search-form { flex-direction:column; align-items:stretch; } .content-search-form > .primary-button { width:100%; } .overview-grid { gap:10px; } .overview-number { padding:14px; } .overview-number strong { font-size:28px; } .overview-recent { flex-wrap:wrap; } .news-block { padding:12px; } }
+
+.admin-team-crest { overflow:hidden; }
+.admin-team-crest img { display:block; width:100%; height:100%; object-fit:contain; }
+
+.team-badge-maintenance { margin:22px 0; }
+.team-badge-maintenance summary { cursor:pointer; font-weight:600; }
+.team-badge-maintenance p { margin:14px 0; overflow-wrap:anywhere; }

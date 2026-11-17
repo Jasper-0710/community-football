@@ -67,8 +67,8 @@ test('admin team list and detail require authorization and expose only intended 
  for(const key of ['leaderUserId','openId','appId','creationRequestId','creationFingerprint','roster'])assert.equal(key in detail.team,false)
  s.failures.read=true;assert.equal((await service({action:'teams.listAdmin',token:'test-token'})).error.code,'SERVICE_UNAVAILABLE')
 })
-test('client rejects malformed roster, duplicate IDs/numbers, or unexpected upload capability',async()=>{
- const s=fixture();await s.create();const r=await s.service({action:'savePlayer',id:pid,expectedVersion:1,form:player});for(const change of [{players:[]},{badgeUploadEnabled:true},{version:0},{id:'forged'},{players:[r.team.players[0],r.team.players[0]],playerCount:2}])assert.throws(()=>parseManagedTeam({...r.team,...change}));assert.deepEqual(teamDistricts,DISTRICTS);assert.deepEqual(playerPositions.map(x=>x.value),POSITIONS)
+test('client rejects malformed roster, duplicate IDs/numbers, or malformed upload capability',async()=>{
+ const s=fixture();await s.create();const r=await s.service({action:'savePlayer',id:pid,expectedVersion:1,form:player});for(const change of [{players:[]},{badgeUploadEnabled:'yes'},{version:0},{id:'forged'},{players:[r.team.players[0],r.team.players[0]],playerCount:2}])assert.throws(()=>parseManagedTeam({...r.team,...change}));assert.deepEqual(teamDistricts,DISTRICTS);assert.deepEqual(playerPositions.map(x=>x.value),POSITIONS)
 })
 
 test('dissolution confirms exact name and owner, archives roster, releases binding/role, and is retry safe',async()=>{

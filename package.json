@@ -22,6 +22,7 @@
     "admin:prepare": "node scripts/prepare-admin-account.mjs",
     "demo:data": "node scripts/generate-demo-data.mjs",
     "test:admin:browser": "node scripts/verify-admin.mjs",
+    "test:admin:hmr:browser": "node scripts/verify-admin-api-hmr.mjs",
     "test:competitions:browser": "node scripts/verify-competitions.mjs",
     "test:teams:browser": "node scripts/verify-teams.mjs",
     "test:registrations:browser": "node scripts/verify-registrations.mjs",

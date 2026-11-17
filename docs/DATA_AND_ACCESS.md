@@ -1,6 +1,8 @@
 # 数据与权限基础说明
 
-项目：中国社超上海赛区赛事平台。更新日期：2026-11-05。对应需求：#3、#11、#14、#18、#25。
+项目：中国社超上海赛区赛事平台。更新日期：2026-11-17。对应需求：#3、#11、#14、#18、#25。
+
+D04-2队徽本地实现新增`teamBadges`私有上传登记和`teams.badgeId/badgeFileId`引用；客户端直读写均应关闭。领队上传/分片/保存逐次核验可信身份和本人当前球队绑定，保存/替换/移除与球队版本、新旧引用同事务，解散保留最终图，重新建队不能引用旧上传。文件路径限定本环境本球队本会话，公开投影只签发已公开参赛球队的最终图片，不含文件ID/领队联系方式；管理员先预览后清理，保护活跃与解散档案引用。客户集合/部署/开关/真实规则未在本轮执行，详见[队徽契约](TEAM_BADGE_UPLOAD_SETUP.md)。以下原草案的历史状态以对应模块最新开发记录为准。
 
 本文件记录用户已确认规则及据此形成的基础设计。现有云端已验证用户建档、昵称和用户资料权限；后台认证已完成本地测试、真实云函数部署及8项认证检查，管理员集合权限已实测，首个账号已开通。网页经真实HTTP网关到云数据库的7项流程已通过。D03赛事接口、私有集合和部署已完成，真实网页及模拟器联调通过；D04球队、归属及球员结构已实现并部署，集合客户端直读写权限已实测拒绝；用户授权的联调球队云端写入及后台同步已通过，D05报名结构与审核服务已部署，新增两个集合私有权限/4个索引及云端查询通过，实际材料/报名待验。
 
@@ -19,7 +21,7 @@
 
 11/5用户明确采用D04建议规则：队名、所属区、领队电话必填，介绍选填；球员姓名、号码、位置必填，号码1–99且同队唯一，位置为门将/后卫/中场/前锋；队徽先用默认图案，上传待环境配置。首次微信建档仍允许空昵称，建队前须填写。长度边界与完整接口见[球队开发说明](TEAMS_DEVELOPMENT.md)。
 
-头像沿用此前决定：暂不升级云套餐，客户端入口和云端头像写入保持关闭。D04已确认使用默认队徽；上传需求保留，环境配置并验证后开放。
+个人头像已于11/10获用户上传通过，其余真机分支独立跟踪；旧环境套餐限制保留历史含义。队徽未设置时继续使用默认图案，新的独立上传开关须在部署及权限验证后开放。
 
 ## 用户数据现状
 
@@ -28,7 +30,7 @@
 | users._id | 已实现：sha256(APPID + ':' + OPENID)，使用内置唯一标识实现幂等建档 |
 | users.appId / openId | 已实现：仅服务端保存；身份来自可信微信调用上下文 |
 | users.nickname | 已实现：首次可为空；编辑后去除首尾空格，1–30个Unicode码点，拒绝控制字符 |
-| users.avatarFileId | 已有代码，当前头像能力关闭；不等于头像已验收 |
+| users.avatarFileId | 个人头像已启用且用户确认上传通过；其他真机分支见图片上传说明 |
 | users.role | 已实现：首次为user；客户端不得修改角色；D04在建队事务内授予leader，客户端不能自授 |
 | users.createdAt / updatedAt | 已实现：服务端维护时间，不能由客户端指定 |
 | users.phone | D04已实现：领队联系电话，与球队资料在同一事务更新；仅本人及授权管理员读取 |
@@ -47,7 +49,8 @@ teams、leaderTeamBindings、players及competitions已实现；四个集合客�
 
 | 集合 | 主要字段 | 关联与约束 |
 | --- | --- | --- |
-| teams | _id、leaderUserId、name、district、contactPhone、badgeFileId、description、roster、version、creationRequestId/creationFingerprint、createdAt/updatedAt | D04已实现；首次ID为t_+用户ID，重建使用请求派生ID；status为active/dissolved，roster保留当前或解散时名单快照；队徽当前为空；事务限制归属和版本 |
+| teams | _id、leaderUserId、name、district、contactPhone、badgeId/badgeFileId、description、roster、version、creationRequestId/creationFingerprint、createdAt/updatedAt | D04已实现；首次ID为t_+用户ID，重建使用请求派生ID；status为active/dissolved，roster保留当前或解散时名单快照；队徽引用同事务更新，客户队徽版本尚待部署 |
+| teamBadges | _id、teamId、ownerUserId、size/mime/width/height/sha256、chunks/objects、fileID、status、referenced、expiresAt、清理租约/已删除对象 | D04-2本地已实现；私有集合、24小时未引用保留、10分钟写入保护，归属及引用事务校验，当前与解散档案最终图受保护 |
 | leaderTeamBindings | _id=用户ID、teamId、lastTeamVersion、lastDissolution | 以用户ID作为唯一键，建队事务内占用，防止并发创建多队；仅服务端维护 |
 | players | _id、teamId、name、number、position、createdAt、updatedAt | 球员归属teams；D04已实现1–99同队唯一及四位置；status为active/removed；与teams.roster同事务提交，移出后保留档案 |
 | competitions | _id、name、description、format、displayEnabled、registrationEnabled、registrationStartAt、registrationEndAt | 展示与报名开关独立；赛制、队伍名额及报名限制按后续确认配置 |

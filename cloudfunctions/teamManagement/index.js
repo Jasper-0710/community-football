@@ -3,6 +3,7 @@ const cloud=require('wx-server-sdk')
 const tcb=require('@cloudbase/node-sdk')
 const {createStorageAdapter}=require('./registration-storage')
 const {createTeamService,APP_ID}=require('./service')
+const {createTeamBadgeService}=require('./team-badges')
 const {createReferenceChecker}=require('./references')
 const {createRegistrationService}=require('./registrations')
 const {createRegistrationFileService}=require('./registration-files')
@@ -21,7 +22,9 @@ const registrationStore={...store,
  async read(id){return (await db.collection('registrations').doc(id).get()).data},
  async competition(id){return (await db.collection('competitions').doc(id).get()).data},
 }
-const teams=createTeamService({store,context,expectedAppId})
+const badgeUploadEnabled=process.env.TEAM_BADGE_UPLOADS_ENABLED==='true'
+const teams=createTeamService({store,context,expectedAppId,storage,badgeUploadEnabled})
+const badges=createTeamBadgeService({store,context,expectedAppId,storage,enabled:badgeUploadEnabled})
 const registrations=createRegistrationService({store:registrationStore,context,storage,uploadsEnabled,expectedAppId})
 const files=createRegistrationFileService({store,context,storage,enabled:uploadsEnabled,expectedAppId})
-exports.main=event=>typeof event?.action==='string'&&event.action.startsWith('registrations.')?registrations(event):typeof event?.action==='string'&&event.action.startsWith('files.')?files(event):teams(event)
+exports.main=event=>typeof event?.action==='string'&&event.action.startsWith('badges.')?badges(event):typeof event?.action==='string'&&event.action.startsWith('registrations.')?registrations(event):typeof event?.action==='string'&&event.action.startsWith('files.')?files(event):teams(event)

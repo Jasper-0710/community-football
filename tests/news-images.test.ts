@@ -76,9 +76,10 @@ test('incomplete chunks, changed stored bytes and aggregate hash mismatches cann
   const wrong = await f.start(png(), { sha256: '0'.repeat(64) }); await f.call('chunk', { id: wrong.id, index: 0, data: png().toString('base64') })
   assert.equal((await f.call('finish', { id: wrong.id })).error.code, 'INVALID_ARGUMENT')
 })
-test('HTTP accepts authenticated 192KiB chunks while keeping 16KiB limits on ordinary requests', async () => {
+test('HTTP accepts authenticated 64KiB chunks below the cloud gateway limit while keeping ordinary requests bounded', async () => {
   const f = fixture(), bytes = randomBytes(CHUNK), s = await f.start(bytes), http = createHttpHandler(f.images)
   const request = { httpMethod: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ action: 'news.images.chunk', id: s.id, index: 0, data: bytes.toString('base64') }) }
+  assert.ok(Buffer.byteLength(request.body) < 100000)
   assert.equal((await http(request)).statusCode, 200)
   assert.equal((await http({ ...request, body: JSON.stringify({ action: 'news.create', padding: 'a'.repeat(17000) }) })).statusCode, 400)
   assert.equal((await http({ ...request, headers: { 'content-type': 'application/json' } })).statusCode, 401)
@@ -193,6 +194,7 @@ test('browser upload helper resumes successful chunks after network failure and 
   const gateway = createHttpHandler(async (event: any) => f.images(event)), requests: any[] = []
   let failSecond = true
   const fetcher = async (_url: any, options: any) => {
+    if (Buffer.byteLength(options.body) > 100000) return new Response(JSON.stringify({ code: 'EXCEED_MAX_PAYLOAD_SIZE' }), { status: 413 })
     const body = JSON.parse(options.body); requests.push(body)
     if (body.action === 'news.images.chunk' && body.index === 1 && failSecond) { failSecond = false; throw new Error('Network disconnected') }
     const r = await gateway({ httpMethod: 'POST', headers: options.headers, body: options.body })
@@ -203,4 +205,62 @@ test('browser upload helper resumes successful chunks after network failure and 
   assert.equal(r.articleId, ARTICLE); assert.equal(draft.progress, 100); assert.equal(requests.filter(r => r.action === 'news.images.chunk' && r.index === 0).length, 1)
   const before = requests.length; await assert.rejects(uploadNewsImage(draft, ARTICLE, authorized, () => false)); assert.equal(requests.length, before)
   await assert.rejects(prepareNewsImage({ name: 'bad.svg', size: 6, type: 'image/svg+xml', arrayBuffer: async () => Buffer.from('<svg/>') }))
+})
+test('a near-2MiB image uploads through a 100KB gateway using 32 chunks and one final object', async () => {
+  const f = fixture(), bytes = PNG.sync.write({ width: 720, height: 720, data: randomBytes(720 * 720 * 4) })
+  assert.ok(bytes.length <= 2 * 1024 * 1024)
+  const draft = await prepareNewsImage({ name: 'large.png', size: bytes.length, type: 'image/png', arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) })
+  const gateway = createHttpHandler(f.images), sizes: number[] = []
+  const api = createAdminApi('https://api.example.test', (async (_url: any, options: any) => {
+    sizes.push(Buffer.byteLength(options.body))
+    if (sizes.at(-1)! > 100000) return new Response('{"code":"EXCEED_MAX_PAYLOAD_SIZE"}', { status: 413 })
+    const r = await gateway({ httpMethod: 'POST', headers: options.headers, body: options.body })
+    return new Response(r.body, { status: r.statusCode })
+  }) as typeof fetch)
+  const image = await uploadNewsImage(draft, ARTICLE, (fn: any) => fn(api, TOKEN))
+  assert.equal(image.size, bytes.length); assert.equal(draft.progress, 100)
+  assert.equal(f.collections.newsImages.get(image.id).chunks.length, 32)
+  assert.equal(f.objects.size, 33); assert.ok(Math.max(...sizes) < 100000)
+})
+test('legacy uploads migrate only when untouched, restart partial sessions and preserve completed images', async () => {
+  const f = fixture(), bytes = PNG.sync.write({ width: 200, height: 200, data: randomBytes(160000) })
+  const draft = await prepareNewsImage({ name: 'legacy.png', size: bytes.length, type: 'image/png', arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) })
+  const args = { articleId: ARTICLE, requestId: draft.requestId, name: draft.name, size: draft.size, mime: draft.mime, sha256: draft.sha256 }
+  const s = await f.call('start', args), old = f.collections.newsImages.get(s.id)
+  delete old.chunkSize; old.chunks = [null]
+  const migrated = await f.call('start', args)
+  assert.equal(migrated.chunkSize, CHUNK); assert.equal(f.collections.newsImages.get(s.id).chunks.length, 3)
+  await f.call('chunk', { id: s.id, index: 0, data: bytes.subarray(0, CHUNK).toString('base64') })
+  const partial = f.collections.newsImages.get(s.id); delete partial.chunkSize
+  const before = structuredClone(partial)
+  assert.equal((await f.call('start', args)).error.code, 'UPLOAD_RESTART_REQUIRED')
+  assert.deepEqual(f.collections.newsImages.get(s.id), before)
+  const gateway = createHttpHandler(f.images)
+  const api = createAdminApi('https://api.example.test', (async (_url: any, options: any) => {
+    const r = await gateway({ httpMethod: 'POST', headers: options.headers, body: options.body })
+    return new Response(r.body, { status: r.statusCode })
+  }) as typeof fetch)
+  const image = await uploadNewsImage(draft, ARTICLE, (fn: any) => fn(api, TOKEN))
+  assert.notEqual(image.id, s.id); assert.deepEqual(f.collections.newsImages.get(s.id), before)
+  const ready = f.collections.newsImages.get(image.id); delete ready.chunkSize
+  assert.equal((await uploadNewsImage(draft, ARTICLE, (fn: any) => fn(api, TOKEN))).id, image.id)
+})
+test('cloud gateway 413 JSON and HTML responses show a specific upload error', async () => {
+  for (const body of ['{"code":"EXCEED_MAX_PAYLOAD_SIZE"}', '<html>Payload Too Large</html>']) {
+    const api = createAdminApi('https://api.example.test', (async () => new Response(body, { status: 413 })) as typeof fetch)
+    await assert.rejects(api.newsImageChunk(TOKEN, `ni_${'1'.repeat(32)}`, 0, ''), (error: any) => error.code === 'PAYLOAD_TOO_LARGE' && error.message.includes('云网关'))
+  }
+})
+test('image selection rejects oversized PNG and JPEG dimensions before making upload requests', async () => {
+  const check = (bytes: Buffer, name = 'wallpaper.png', type = 'image/png') => prepareNewsImage({ name, size: bytes.length, type, arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) })
+  for (const [width, height] of [[4201, 2379], [3000, 3000]]) {
+    const bytes = png(); bytes.writeUInt32BE(width, 16); bytes.writeUInt32BE(height, 20)
+    await assert.rejects(check(bytes), (error: any) => error.code === 'INVALID_ARGUMENT' && error.message.includes(`${width}×${height}`))
+  }
+  const jpg = Buffer.from(jpeg.encode({ width: 3, height: 2, data: Buffer.alloc(24, 180) }, 80).data)
+  assert.equal((await check(jpg, 'valid.jpg', 'image/jpeg')).mime, 'image/jpeg')
+  const frame = jpg.indexOf(Buffer.from([0xff, 0xc0])); assert.ok(frame >= 0)
+  jpg.writeUInt16BE(4201, frame + 7)
+  await assert.rejects(check(jpg, 'wide.jpg', 'image/jpeg'), (error: any) => error.message.includes('4201×2'))
+  await assert.rejects(check(png().subarray(0, 20)), (error: any) => error.message.includes('尺寸无法读取'))
 })

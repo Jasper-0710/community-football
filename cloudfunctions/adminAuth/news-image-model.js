@@ -1,7 +1,8 @@
 'use strict'
 const IMAGE_ID = /^ni_[a-f0-9]{32}$/
 const ARTICLE_ID = /^n_[a-f0-9]{32}$/
-const MAX_BYTES = 2 * 1024 * 1024, CHUNK = 192 * 1024, TTL = 24 * 3600000, LEASE = 10 * 60000
+// Base64 plus JSON must fit the HTTP gateway's request body limit.
+const MAX_BYTES = 2 * 1024 * 1024, CHUNK = 64 * 1024, TTL = 24 * 3600000, LEASE = 10 * 60000
 class NewsImageError extends Error { constructor(code, message) { super(message); this.code = code } }
 const fail = (code, message) => { throw new NewsImageError(code, message) }
 function imageIds(record) {

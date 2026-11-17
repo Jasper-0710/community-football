@@ -45,7 +45,7 @@ onUnmounted(() => { generation++; clear(); emit('pending', false) })
 </script>
 <template>
   <div class="news-image-input">
-    <div class="news-image-heading"><strong>{{ label }}图片</strong><span class="muted">JPG / PNG · 每张≤2MB</span></div>
+    <div class="news-image-heading"><strong>{{ label }}图片</strong><span class="muted">JPG / PNG · ≤2MB · 边长≤4096 · ≤800万像素</span></div>
     <div v-if="preview || url" class="news-image-preview">
       <img v-if="preview || !broken" :src="preview || url" :alt="`${label}预览`" @error="broken = true" />
       <p v-else class="muted">图片暂时无法显示，可刷新访问链接。</p>

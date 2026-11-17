@@ -1,5 +1,6 @@
 'use strict'
 const { createHash } = require('node:crypto')
+const {badgeView} = require('./team-badge-model')
 const APP_ID = 'wx3230f06c755cef3a'
 const DISTRICTS = ['黄浦区','徐汇区','长宁区','静安区','普陀区','虹口区','杨浦区','浦东新区','闵行区','宝山区','嘉定区','金山区','松江区','青浦区','奉贤区','崇明区']
 const POSITIONS = ['goalkeeper','defender','midfielder','forward']
@@ -31,11 +32,11 @@ function playerForm(v) {
 }
 function userId(appId, openId) { return createHash('sha256').update(`${appId}:${openId}`).digest('hex') }
 function publicPlayer(p) { return { id:p.id, name:p.name, number:p.number, position:p.position } }
-function result(team, user) {
+function result(team, user, badgeUploadEnabled = false) {
   return { id:team._id, name:team.name, district:team.district, description:team.description, contactPhone:team.contactPhone,
     status:team.status||'active', dissolvedAt:team.dissolvedAt||null,
     leaderNickname:user.nickname, version:team.version, playerCount:team.roster.length, players:team.roster.map(publicPlayer).sort((a,b)=>a.number-b.number),
-    badgeUploadEnabled:false, badgeUrl:'', createdAt:team.createdAt, updatedAt:team.updatedAt }
+    badgeUploadEnabled, badgeId:team.badgeId||'', _badgeFileId:team.badgeFileId||'', hasBadge:!!team.badgeFileId, badgeUrl:'', createdAt:team.createdAt, updatedAt:team.updatedAt }
 }
 function version(v) { if (!Number.isSafeInteger(v) || v < 1) fail('INVALID_ARGUMENT', '球队版本无效，请重新读取资料。') }
 function sameVersion(team, v) { if (team.version !== v) fail('CONFLICT', '球队已在其他页面更新，请重新读取后再操作。') }
@@ -43,7 +44,7 @@ function assertTeam(team, uid) {
   if (!team || team.leaderUserId !== uid || team.schemaVersion !== 1 || !Array.isArray(team.roster) || ![undefined,'active'].includes(team.status)) fail('SERVICE_UNAVAILABLE', '球队资料暂不可用，请联系平台负责人。')
 }
 /** All changes to the team, roster, player archives, owner binding and role commit together. */
-function createTeamService({ store, context, expectedAppId = APP_ID, now = () => new Date().toISOString(), logger = console }) {
+function createTeamService({ store, context, storage, badgeUploadEnabled = false, expectedAppId = APP_ID, now = () => new Date().toISOString(), logger = console }) {
   return async event => {
     try {
       const identity = context()
@@ -59,20 +60,20 @@ function createTeamService({ store, context, expectedAppId = APP_ID, now = () =>
       if (['update','savePlayer','removePlayer','checkDissolution','dissolve'].includes(action)) version(event.expectedVersion)
       if (action === 'dissolve') text(event.confirmName,'确认队名',40)
       if (['savePlayer','removePlayer'].includes(action) && (typeof event.id !== 'string' || !PLAYER_ID.test(event.id))) fail('INVALID_ARGUMENT', '球员标识无效，请重新读取名单。')
-      return await store.transaction(async tx => {
+      const response = await store.transaction(async tx => {
         const user = await tx.get('users', uid)
         if (!user || user.appId !== identity.APPID || user.openId !== identity.OPENID) fail('AUTH_REQUIRED', '请先登录个人中心。')
         const binding = await tx.get('leaderTeamBindings', uid)
         let team = binding?.teamId ? await tx.get('teams', binding.teamId) : null
         if (binding?.teamId) assertTeam(team, uid)
-        if (action === 'mine') return { ok:true, team:team ? result(team, user) : null, badgeUploadEnabled:false }
+        if (action === 'mine') return { ok:true, team:team ? result(team, user, badgeUploadEnabled) : null, badgeUploadEnabled }
         const timestamp = now()
         if (action === 'create') {
           if (!user.nickname?.trim()) fail('PROFILE_REQUIRED', '请先在个人中心填写昵称，再创建球队。')
           const fingerprint = createHash('sha256').update(JSON.stringify(form)).digest('hex')
           if (team) {
             if (team.creationRequestId !== event.requestId || team.creationFingerprint !== fingerprint) fail('ALREADY_EXISTS', '你已经管理一支球队，请返回查看我的球队。')
-            return { ok:true, team:result(team,user), created:false }
+            return { ok:true, team:result(team,user,badgeUploadEnabled), created:false }
           }
           const legacyId = 't_' + uid
           const nextId = 't_' + createHash('sha256').update(`${uid}:${event.requestId}`).digest('hex')
@@ -86,7 +87,7 @@ function createTeamService({ store, context, expectedAppId = APP_ID, now = () =>
           await tx.set('teams',id,team)
           await tx.set('leaderTeamBindings',uid,{teamId:id,createdAt:timestamp})
           await tx.set('users',uid,{...user,role:user.role === 'admin' ? 'admin' : 'leader',phone:form.contactPhone,updatedAt:timestamp})
-          return { ok:true, team:result(team,user), created:true }
+          return { ok:true, team:result(team,user,badgeUploadEnabled), created:true }
         }
         if (!team && action==='dissolve' && binding?.lastDissolution?.expectedVersion===event.expectedVersion && binding.lastDissolution.name===event.confirmName) return {ok:true,team:null,dissolved:true}
         if (!team) fail('NOT_FOUND', '请先创建球队，再维护球队与球员资料。')
@@ -113,8 +114,8 @@ function createTeamService({ store, context, expectedAppId = APP_ID, now = () =>
           const index = team.roster.findIndex(p=>p.id===event.id)
           // Exact retries of a successful add/update/remove return the current team without another write.
           if (action === 'savePlayer' && previous && previous.status==='active' && index>=0
-            && previous.lastExpectedVersion===event.expectedVersion && ['name','number','position'].every(k=>previous[k]===form[k])) return {ok:true,team:result(team,user)}
-          if (action === 'removePlayer' && previous?.status==='removed' && previous.lastExpectedVersion===event.expectedVersion) return {ok:true,team:result(team,user)}
+            && previous.lastExpectedVersion===event.expectedVersion && ['name','number','position'].every(k=>previous[k]===form[k])) return {ok:true,team:result(team,user,badgeUploadEnabled)}
+          if (action === 'removePlayer' && previous?.status==='removed' && previous.lastExpectedVersion===event.expectedVersion) return {ok:true,team:result(team,user,badgeUploadEnabled)}
           sameVersion(team,event.expectedVersion)
           if (action === 'savePlayer') {
             if (previous?.status==='removed') fail('CONFLICT', '该球员已移出名单，请重新添加。')
@@ -133,8 +134,14 @@ function createTeamService({ store, context, expectedAppId = APP_ID, now = () =>
           }
         }
         await tx.set('teams',team._id,team)
-        return {ok:true,team:result(team,user)}
+        return {ok:true,team:result(team,user,badgeUploadEnabled)}
       })
+      if (response.team) {
+        // Resolve short-lived URLs after the business transaction commits.
+        const {_badgeFileId,...team} = response.team
+        response.team = {...team,...await badgeView({_id:team.id,badgeId:team.badgeId,badgeFileId:_badgeFileId},storage)}
+      }
+      return response
     } catch(error) {
       if(error instanceof TeamError) return {ok:false,error:{code:error.code,message:error.message}}
       logger?.error?.('[teamManagement] operation failed')

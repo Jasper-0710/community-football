@@ -15,6 +15,7 @@ const { registrationId } = require('./registration-model')
 const { createContentService, PUBLIC_ACTIONS: CONTENT_PUBLIC_ACTIONS } = require('./content')
 const { createContentStore } = require('./content-store')
 const { createNewsImageService } = require('./news-images')
+const {createTeamBadgeCleanup}=require('./team-badge-cleanup')
 const tcb = require('@cloudbase/node-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const database = cloud.database({ throwOnNotFound: false })
@@ -109,7 +110,9 @@ const matchStore = {
 const matches = createMatchService({ store: matchStore, authorize: token => service({ action: 'session', token }) })
 const standings = createStandingsService({ store: standingsStore, authorize: token => service({ action: 'session', token }) })
 const baseRouter = createApplicationRouter(service, competitions)
+const imageStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.getWXContext().ENV || process.env.SCF_NAMESPACE, tcb.init({env:tcb.SYMBOL_CURRENT_ENV}))
 const teams = createAdminTeamService({
+  storage: imageStorage,
   authorize: token => service({ action: 'session', token }),
   store: {
     async list(cursor, limit) { return (await database.collection('teams').where(cursor ? { _id: database.command.gt(cursor) } : {}).orderBy('_id', 'asc').limit(limit).get()).data },
@@ -132,10 +135,10 @@ const registrationStore = {
 const registrations = createAdminRegistrationService({store:registrationStore,storage:registrationStorage,authorize:token=>service({action:'session',token}),uploadsEnabled:process.env.REGISTRATION_UPLOADS_ENABLED==='true'})
 const cleanup = createRegistrationCleanupService({store:registrationStore,storage:registrationStorage,authorize:token=>service({action:'session',token})})
 const contentStore = createContentStore(database)
-const imageStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.getWXContext().ENV || process.env.SCF_NAMESPACE, tcb.init({env:tcb.SYMBOL_CURRENT_ENV}))
 const newsImages = createNewsImageService({store:contentStore,storage:imageStorage,authorize:token=>service({action:'session',token}),enabled:process.env.NEWS_IMAGE_UPLOADS_ENABLED==='true'})
+const badgeCleanup=createTeamBadgeCleanup({store:{...contentStore,async listBadges(cursor,limit){return (await database.collection('teamBadges').where(cursor?{_id:database.command.gt(cursor)}:{}).orderBy('_id','asc').limit(limit).get()).data}},storage:imageStorage,authorize:token=>service({action:'session',token})})
 const content = createContentService({ store: contentStore, storage:imageStorage, authorize: token => service({ action: 'session', token }) })
-const router = event => typeof event?.action === 'string' && event.action.startsWith('news.images.') ? newsImages(event) : typeof event?.action === 'string' && /^(news|search|directory|content)\./.test(event.action) ? content(event) : event?.action === 'registrations.cleanup' ? cleanup(event) : typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : typeof event?.action === 'string' && event.action.startsWith('matches.') ? matches(event) : typeof event?.action === 'string' && event.action.startsWith('standings.') ? standings(event) : baseRouter(event)
+const router = event => event?.action==='teams.badges.cleanup' ? badgeCleanup(event) : typeof event?.action === 'string' && event.action.startsWith('news.images.') ? newsImages(event) : typeof event?.action === 'string' && /^(news|search|directory|content)\./.test(event.action) ? content(event) : event?.action === 'registrations.cleanup' ? cleanup(event) : typeof event?.action === 'string' && event.action.startsWith('registrations.') ? registrations(event) : typeof event?.action === 'string' && event.action.startsWith('teams.') ? teams(event) : typeof event?.action === 'string' && event.action.startsWith('matches.') ? matches(event) : typeof event?.action === 'string' && event.action.startsWith('standings.') ? standings(event) : baseRouter(event)
 const origins = ['http://127.0.0.1:5174', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://localhost:5173', ...(process.env.ADMIN_ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean)]
 const http = createHttpHandler(router, origins, [...PUBLIC_ACTIONS, ...MATCH_PUBLIC_ACTIONS, ...STANDINGS_PUBLIC_ACTIONS, ...CONTENT_PUBLIC_ACTIONS])
 exports.main = async event => event && typeof event.httpMethod === 'string' ? http(event) : router(event)

@@ -1,10 +1,16 @@
 # D09 新闻图片开通与验收
 
-2026-11-16，v2.22。代码及本机隔离回归通过；本轮未部署客户云端、创建集合、改变存储规则或开启云端开关。
+2026-11-17更新。新闻图片64KiB分片修复及`content.js`统计修复已增量部署到客户`adminAuth`，真实D09文章发布、图片关联/替换、公开展示、搜索、撤回、软删除和清理已收口；245项自动测试、28组隔离浏览器、真实后台/H5回归通过。微信iPhone/Android真机、正式图片域名和客户正式签收仍需继续。详见[本次修复记录](verification/2026-11-17-news-image-upload.json)及本机`.tools/customer-d09-20261117/`运行报告。
+
+## 上传失败排查
+
+- `413 / EXCEED_MAX_PAYLOAD_SIZE`：请求被HTTP网关拒绝。旧版192KiB分片转为Base64后过大，增加云函数超时或内存无法解决。当前分片为64KiB，需同步更新后台与`adminAuth`的`news-image-model.js`、`news-images.js`和`http.js`。已完成图片保持有效；未完成旧会话安全迁移或重新开始，已登记对象留待正常清理。
+- 图片文件小不代表尺寸符合要求。`wallhaven-eyj8dk.png`实际为4201×2379、9994179像素，超过4096边长和800万总像素限制；选图时已提前显示实际尺寸，需先缩小图片。
+- `NEWS_IMAGE_UPLOADS_ENABLED`仍应为小写`true`；本次实际成功上传证明当前上传已开启。客户函数回读Active、20秒、Nodejs16.13；此次未调整超时、内存或存储权限。
 
 ## 部署配置
 
-1. 确认客户AppID为`wx3230f06c755cef3a`、环境为`cloud1-d6gzg20x709d7f6c1`。创建`newsArticles`及`newsImages`，规则均为`{"read":false,"write":false}`，只允许可信云函数访问。查询使用默认`_id`索引，无需创建公开读规则。
+1. 确认客户AppID为`wx3230f06c755cef3a`、环境为`cloud1-d6gzg20x709d7f6c1`。核对已有`newsArticles`及`newsImages`，缺失时再创建，规则均为`{"read":false,"write":false}`，只允许可信云函数访问。查询使用默认`_id`索引，无需创建公开读规则。
 2. 部署完整当前`cloudfunctions/adminAuth`并云端安装依赖，包含`@cloudbase/node-sdk@2.10.0`、`pngjs@7.0.0`及`jpeg-js@0.4.4`。保留现有账户、环境变量、报名及D06–D08业务数据。网关仍是`/admin-suth`。
 3. 保持存储桶客户端`read/write=false`。新闻存储使用独立`news-images/`前缀，不能为展示新闻图片而开放整个存储桶。管理员通过服务上传，公开已发布文章由服务生成短期访问URL。
 4. 保留`adminAuth`20秒超时，并核对实际运行状态/依赖安装；10分钟上传保护期长于一次函数执行。环境变量新增`NEWS_IMAGE_UPLOADS_ENABLED`，精确值为小写`true`。不是`VITE_`变量，也不复用头像或报名开关。未配置时本地选图禁用，外部HTTPS地址仍可用。

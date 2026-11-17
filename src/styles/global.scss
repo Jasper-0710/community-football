@@ -943,3 +943,20 @@ input { font: inherit; min-width: 0; }
 .search-discovery .chip { max-width:100%; overflow-wrap:anywhere; }
 .public-team-profile .roster-card { text-align:left; }
 @media(max-width:480px) { .search-panel { max-height:90vh; } .search-input { gap:8px; padding:10px; } .search-input .text-button { font-size:13px; } .content-profile-about { padding:20px; } }
+
+/* D04-2: managed and public team badges. */
+.team-default-crest { overflow:hidden; }
+.team-default-crest > image { display:block; width:100%; height:100%; }
+.team-badge-editor { padding:28px; margin-bottom:24px; min-width:0; }
+.team-badge-state { flex:none; font-size:14px; border:1px solid #c8dcc2; background:#edf5e8; color:#356340; border-radius:20px; padding:4px 10px; }
+.team-badge-preview-row { display:flex; align-items:center; gap:20px; margin:22px 0; }
+.team-badge-preview { width:96px; height:100px; background:#fff; }
+.team-badge-copy { flex:1; min-width:0; overflow-wrap:anywhere; }
+.team-badge-actions { display:flex; flex-wrap:wrap; align-items:center; gap:14px; }
+.team-badge-progress { padding:16px; border-radius:10px; background:#f1f6ed; margin-top:18px; font-size:14px; }
+.team-badge-progress > text { display:block; margin-top:8px; }
+.team-badge-refresh { margin-top:16px; }
+.public-team-heading { justify-content:flex-start; align-items:center; gap:22px; }
+.public-team-heading-copy { flex:1; min-width:0; overflow-wrap:anywhere; }
+@media(max-width:760px) { .team-badge-editor { padding:22px 20px; } .team-badge-preview-row { gap:14px; } .team-badge-preview { width:80px; height:84px; } }
+@media(max-width:360px) { .team-badge-editor { padding:20px 16px; } .team-badge-editor .section-heading { align-items:flex-start; flex-wrap:wrap; } .team-badge-preview-row { align-items:flex-start; } .team-badge-preview { width:64px; height:70px; } .team-badge-actions > button { width:100%; } .public-team-heading { gap:14px; } }

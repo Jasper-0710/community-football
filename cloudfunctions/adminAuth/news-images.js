@@ -40,7 +40,7 @@ function createNewsImageService({store,storage,authorize,enabled=false,now=Date.
       if (!r || r.status !== 'uploading' || r.expiresAt <= now()) M.fail('CONFLICT','图片上传状态已变化，请重试或重新选择。')
       const existing = (r.objects || []).find(o => o.key === key)
       if (existing && existing.fileID !== fileID) M.fail('CONFLICT','同一分片不能替换内容。')
-      if (!existing && (r.objects || []).length >= 32) M.fail('CONFLICT','图片重试次数过多，请重新选择。')
+      if (!existing && (r.objects || []).length >= 64) M.fail('CONFLICT','图片重试次数过多，请重新选择。')
       await tx.set('newsImages',r._id,{...r,objects:[...(r.objects || []).filter(o => o.key !== key),object]})
     })
     if (await storage.upload(cloudPath,bytes) !== fileID) throw new Error('Image storage reservation changed')
@@ -98,9 +98,17 @@ function createNewsImageService({store,storage,authorize,enabled=false,now=Date.
           const existing = await tx.get('newsImages',id)
           if (existing) {
             if (existing.articleId !== event.articleId || Object.entries(meta).some(([key,value]) => existing[key] !== value) || !['uploading','ready'].includes(existing.status) || !existing.referenced && existing.expiresAt <= now()) M.fail('CONFLICT','本次图片上传已失效或内容不一致，请重新选择。')
+            if (existing.status === 'ready') return {ok:true,id,chunkSize:M.CHUNK,uploaded:Array.from({length:Math.ceil(meta.size/M.CHUNK)},(_,i)=>i)}
+            if (existing.chunkSize !== M.CHUNK) {
+              // Only an untouched legacy session can change its partitioning.
+              // Keep any reserved/uploaded legacy objects for normal cleanup.
+              if (existing.chunks.some(Boolean) || (existing.objects || []).length) M.fail('UPLOAD_RESTART_REQUIRED','图片上传会话已更新，请重新上传。')
+              await tx.set('newsImages',id,{...existing,chunkSize:M.CHUNK,chunks:Array(Math.ceil(meta.size/M.CHUNK)).fill(null),updatedAt:now()})
+              return {ok:true,id,chunkSize:M.CHUNK,uploaded:[]}
+            }
             return {ok:true,id,chunkSize:M.CHUNK,uploaded:existing.chunks.flatMap((c,i) => c?[i]:[])}
           }
-          await tx.set('newsImages',id,{_id:id,articleId:event.articleId,...meta,status:'uploading',referenced:false,chunks:Array(Math.ceil(meta.size/M.CHUNK)).fill(null),objects:[],createdAt:now(),updatedAt:now(),expiresAt:now()+M.TTL})
+          await tx.set('newsImages',id,{_id:id,articleId:event.articleId,...meta,status:'uploading',chunkSize:M.CHUNK,referenced:false,chunks:Array(Math.ceil(meta.size/M.CHUNK)).fill(null),objects:[],createdAt:now(),updatedAt:now(),expiresAt:now()+M.TTL})
           return {ok:true,id,chunkSize:M.CHUNK,uploaded:[]}
         })
       }
@@ -112,6 +120,7 @@ function createNewsImageService({store,storage,authorize,enabled=false,now=Date.
         return await image(file)
       }
       if (action === 'news.images.chunk') {
+        if (file.chunkSize !== M.CHUNK) M.fail('UPLOAD_RESTART_REQUIRED','图片上传会话已更新，请重新上传。')
         const i = event.index, data = event.data
         if (!Number.isSafeInteger(i) || i < 0 || i >= file.chunks.length || typeof data !== 'string' || data.length > Math.ceil(M.CHUNK/3)*4 || !/^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) M.fail('INVALID_ARGUMENT','图片分片无效。')
         const bytes = Buffer.from(data,'base64'), expected = Math.min(M.CHUNK,file.size-i*M.CHUNK), hash = createHash('sha256').update(bytes).digest('hex')

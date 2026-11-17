@@ -1,0 +1,113 @@
+{
+  "date": "2026-11-17",
+  "timezone": "Asia/Shanghai",
+  "feature": "D04-2 球队队徽上传",
+  "sourceBase": "594d2ec plus uncommitted changes",
+  "status": "local implementation/regression passed; customer functions deployed; real configuration verification failed; nonempty lifecycle and native verification pending",
+  "validation": {
+    "unitTests": {
+      "command": "npm test",
+      "passed": 266,
+      "failed": 0,
+      "newTeamBadgeTests": 21
+    },
+    "teamBrowser": {
+      "command": "npm run test:teams:browser",
+      "passed": 22,
+      "pageErrors": [],
+      "report": "artifacts/teams/report.json"
+    },
+    "contentBrowser": {
+      "command": "npm run test:content:browser",
+      "passed": 28,
+      "pageErrors": [],
+      "report": "artifacts/content/report.json"
+    },
+    "typechecks": [
+      "npm run typecheck",
+      "npm run typecheck:admin"
+    ],
+    "builds": [
+      "npm run build:admin",
+      "npm run build:h5",
+      "npm run build:mp-weixin"
+    ],
+    "contract": "npm run check:registration-contract",
+    "whitespace": "git diff --check",
+    "decodersUsedForFinalServiceRegression": {
+      "pngjs": "7.0.0",
+      "jpeg-js": "0.4.4"
+    },
+    "visualInspection": [
+      "artifacts/teams/badge-preview-390.png",
+      "artifacts/teams/team-390.png",
+      "artifacts/teams/team-320.png",
+      "artifacts/teams/admin-320.png"
+    ]
+  },
+  "implemented": [
+    "Post-creation local image preview, compression, cancellation, upload, replacement and restore default",
+    "256KiB JPG/PNG, 64KiB immutable chunks, resume after lost chunk response, bounded server decoding",
+    "Trusted WeChat identity, current owned-team binding, independent disabled-by-default capability",
+    "Transactional team version and image references, retry idempotency, stale/cross-team and recreated-team rejection",
+    "Owner, admin and approved-public-team presentation with temporary links and recoverable fallback",
+    "Admin cleanup preview, pagination, retention, upload leases, partial retries and archive reference protection"
+  ],
+  "testScope": {
+    "browser": "Real Vue pages and service handlers with isolated transactional memory and byte storage. Only WeChat transport and H5-incompatible native file preparation are replaced.",
+    "nativeClient": "Real client service tested against isolated uni API mocks; no physical WeChat device.",
+    "widths": [
+      390,
+      320
+    ],
+    "cloudDeploymentPerformed": false,
+    "customerConfigurationChanged": false,
+    "customerTeamDataWritten": false,
+    "nativeDeviceVerified": false
+  },
+  "pending": [
+    "Correct and verify customer teamBadges private client rules; last live direct reads and writes were allowed",
+    "Correct and verify teamManagement TEAM_BADGE_UPLOADS_ENABLED=true; last live capability returned false",
+    "Customer real upload/save/reload/replace/remove, public visibility, signing, concurrency and cleanup acceptance",
+    "iPhone/Android picker, camera, compression and second-account/cross-device verification"
+  ],
+  "existingWorkPreserved": "D09 cloud acceptance, image gateway fixes and global-search style changes remain separate existing work.",
+  "customerTarget": {
+    "appId": "wx3230f06c755cef3a",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "gatewayPath": "/admin-suth"
+  },
+  "followUpFix": {
+    "reportedError": "api.cleanupTeamBadges is not a function",
+    "diagnosis": "Current disk and local served API modules contain the method; reproduced a retained legacy API object missing it before any server request.",
+    "fix": "Reload the page when the API module hot-updates, revalidate the existing session, and recreate the API instance. Keep the disabled picker visible when uploads are unavailable; explain the native WeChat entry in admin.",
+    "unitTests": {
+      "passed": 267,
+      "failed": 0
+    },
+    "teamBrowser": {
+      "passed": 23,
+      "report": "artifacts/teams/report.json"
+    },
+    "apiHotReloadBrowser": {
+      "passed": 3,
+      "pageErrors": [],
+      "command": "npm run test:admin:hmr:browser",
+      "report": "artifacts/admin-hmr/report.json"
+    },
+    "typechecks": [
+      "npm run typecheck",
+      "npm run typecheck:admin"
+    ],
+    "builds": [
+      "npm run build:admin",
+      "npm run build:h5",
+      "npm run build:mp-weixin"
+    ],
+    "contentBrowser": "28 passing flows from earlier the same day; not rerun for this follow-up",
+    "customerRequests": false,
+    "customerConfigurationChanged": false,
+    "nativeDeviceVerified": false
+  },
+  "customerCloudEvidence": "2026-11-17-team-badges-cloud.json"
+}

@@ -110,3 +110,20 @@ test('registration cleanup API defaults to preview, preserves authentication and
   await assert.rejects(broken.cleanupRegistrationFiles(token),(e:any)=>e.code==='INVALID_RESPONSE')
  }
 })
+
+test('team badge cleanup is available through the authenticated API and validates preview and paginated execution',async()=>{
+ const calls:any[]=[],cursor='tb_'+'b'.repeat(32)
+ const result={ok:true,dryRun:true,scanned:2,eligibleObjects:3,removedObjects:0,protectedBadges:1,deferredBadges:0,nextCursor:cursor}
+ const client=createAdminApi('https://example.test/api',async(_url,init)=>{calls.push(init);const fields=JSON.parse(init!.body as string);return new Response(JSON.stringify({...result,dryRun:fields.dryRun,removedObjects:fields.dryRun?0:3}))})
+ const auth=createAdminAuth(client,storage())
+ // Authenticate with the fixture auth methods and retain the real business API.
+ client.login=async()=>({...session,token});client.overview=async()=>overview
+ await auth.initialize();await auth.login('admin','password')
+ assert.equal((await auth.authorized((api,token)=>api.cleanupTeamBadges(token))).dryRun,true)
+ assert.equal((await auth.authorized((api,token)=>api.cleanupTeamBadges(token,false,cursor))).removedObjects,3)
+ assert.deepEqual(JSON.parse(calls[0].body),{action:'teams.badges.cleanup',dryRun:true})
+ assert.deepEqual(JSON.parse(calls[1].body),{action:'teams.badges.cleanup',dryRun:false,cursor})
+ assert.equal(calls[0].headers.Authorization,`Bearer ${token}`);assert.equal(calls[0].body.includes(token),false)
+ const invalid=createAdminApi('https://example.test/api',async()=>new Response(JSON.stringify({...result,dryRun:false})))
+ await assert.rejects(invalid.cleanupTeamBadges(token),(e:any)=>e.code==='INVALID_RESPONSE')
+})

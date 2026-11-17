@@ -17,7 +17,7 @@ function fixture() {
   for (const [id, name] of [[teamId, '社区联队'], [privateTeamId, '私有球队']]) memory.collections.teams.set(id, { _id: id, name, district: '虹口区', description: '球队介绍', status: 'active', contactPhone: 'secret-phone', leaderUserId: 'secret-user', roster: [{ id: id === teamId ? playerId : `p_${'2'.repeat(32)}`, name: id === teamId ? '社区球员' : '私有球员', number: 7, position: 'forward' }] })
   memory.collections.registrations.set('approved', { _id: 'approved', teamId, competitionId: cid, status: 'approved', attachments: ['secret-material'] })
   memory.collections.registrations.set('pending', { _id: 'pending', teamId: privateTeamId, competitionId: cid, status: 'pending' })
-  for (const [key, competitionId] of [['1', cid], ['2', hidden]]) memory.collections.matches.set(`m_${key.repeat(32)}`, { _id: `m_${key.repeat(32)}`, competitionId, homeTeamId: teamId, awayTeamId: privateTeamId, scheduledAt: '2026-11-20T08:00:00.000Z', venue: '社区球场', stage: 'semi', status: 'finished', homeScore: 2, awayScore: 1, penalties: [4, 3] })
+  for (const [key, competitionId] of [['1', cid], ['2', hidden]]) memory.collections.matches.set(`m_${key.repeat(32)}`, { _id: `m_${key.repeat(32)}`, competitionId, homeTeamId: teamId, awayTeamId: privateTeamId, scheduledAt: '2026-11-20T08:00:00.000Z', venue: '社区球场', stage: 'semi', status: 'finished', result: { state: 'finished', homeScore: 2, awayScore: 1, penalties: [4, 3] } })
   const service = createContentService({ store: memory.store, authorize: async (token: string) => token === TOKEN ? { ok: true } : { ok: false, error: { code: 'UNAUTHORIZED', message: '请先登录' } }, now: () => clock.value, logger: { error() {} } })
   const call = (action: string, fields: Record<string, unknown> = {}) => service({ action, token: TOKEN, ...fields })
   const create = (changes = {}, requestId = key) => call('news.create', { requestId, form: { ...form, ...changes } })
@@ -129,6 +129,12 @@ test('operational counts and recent content reflect publication and deletion, go
   const r = parseContentOverview(await f.call('content.overview'))
   assert.deepEqual(r.counts, { teams: 2, matches: 2, goals: 6, news: 2, publishedNews: 1 })
   assert.equal(r.recentNews.length, 2)
+  // The store contains nested results, including live scores; public match DTOs
+  // flatten scores and must not be used as fixtures for the raw-store catalog.
+  f.collections.matches.get(`m_${'1'.repeat(32)}`).status = 'live'
+  assert.equal((await f.call('content.overview')).counts.goals, 3)
+  f.collections.matches.get(`m_${'2'.repeat(32)}`).result = null
+  assert.equal((await f.call('content.overview')).counts.goals, 0)
   await f.call('news.delete', { id, expectedVersion: 1 })
   assert.equal((await f.call('content.overview')).counts.news, 1)
 })
