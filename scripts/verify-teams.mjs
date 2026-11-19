@@ -22,6 +22,7 @@ const { createNewsImageStorage } = require('../tests/helpers/news-image-storage.
 const { createTeamBadgeService } = require('../cloudfunctions/teamManagement/team-badges.js')
 const { createTeamBadgeCleanup } = require('../cloudfunctions/adminAuth/team-badge-cleanup.js')
 const { createContentService, PUBLIC_ACTIONS } = require('../cloudfunctions/adminAuth/content.js')
+const { createSettingsService, PUBLIC_ACTIONS: SETTINGS_PUBLIC_ACTIONS } = require('../cloudfunctions/adminAuth/platform-settings.js')
 const { PNG } = require('pngjs')
 const out = process.env.TEAM_BROWSER_ARTIFACTS || 'artifacts/teams'
 await mkdir(out, { recursive: true }); await mkdir('.tools', { recursive: true })
@@ -47,9 +48,10 @@ const owner = event => createTeamService({ store: memory.store, storage: files.s
 const badges = createTeamBadgeService({ store: memory.store, storage: files.storage, context: () => identity, enabled: true, now: () => badgeTime, logger: { error() {} } })
 const cleanup = createTeamBadgeCleanup({ store: badgeStore, storage: files.storage, authorize, now: () => badgeTime, logger: { error() {} } })
 const content = createContentService({ store: badgeStore, storage: files.storage, authorize, logger: { error() {} } })
+const settings = createSettingsService({store:badgeStore,authorize,logger:{error(){}}})
 const archives = createAdminTeamService({ store: memory.adminStore, storage: files.storage, authorize, logger: { error() {} } })
 const adminBase = 'http://127.0.0.1:5186', userBase = 'http://127.0.0.1:5188'
-const http = createHttpHandler(event => event.action === 'teams.badges.cleanup' ? cleanup(event) : event.action?.startsWith('teams.') ? archives(event) : PUBLIC_ACTIONS.includes(event.action) ? content(event) : auth(event), [adminBase, userBase], PUBLIC_ACTIONS)
+const http = createHttpHandler(event => event.action?.startsWith('settings.') ? settings(event) : event.action === 'teams.badges.cleanup' ? cleanup(event) : event.action?.startsWith('teams.') ? archives(event) : PUBLIC_ACTIONS.includes(event.action) ? content(event) : auth(event), [adminBase, userBase], [...PUBLIC_ACTIONS,...SETTINGS_PUBLIC_ACTIONS])
 const server = createServer({ key: await readFile(join(certDir, 'key.pem')), cert: await readFile(join(certDir, 'cert.pem')) }, async (req, res) => {
   if (req.url?.startsWith('/badge?')) {
     const id = new URL(req.url, 'https://127.0.0.1').searchParams.get('id'), bytes = files.objects.get(id)

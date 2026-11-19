@@ -21,7 +21,7 @@ const verifyGuestProfile = async p => {
   assert.equal(await p.locator('.account-panel uni-button').count(), 0, 'H5 must not expose a fake WeChat login or editable profile')
   assert.equal(await p.locator('.nickname-input').count(), 0)
   assert.match(await p.locator('.favorites-panel .section-subtitle').innerText(), /仅保存在本机/)
-  assert.match(await p.locator('.prototype-note').innerText(), /赛程、球队与新闻仍为示例内容/)
+  assert.match(await p.locator('.prototype-note').innerText(), /游客收藏和演示球队记录保存在本机/)
   await noOverflow(p)
 }
 try {

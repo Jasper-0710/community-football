@@ -32,7 +32,7 @@ function createHttpHandler(service, allowedOrigins = [], publicActions = []) {
       if (Buffer.byteLength(raw) > 270000) throw new Error()
       input = JSON.parse(raw)
       if (!input || typeof input !== 'object' || Array.isArray(input) || Object.hasOwn(input, 'token')) throw new Error()
-      if (Buffer.byteLength(raw) > 16384 && input.action !== 'news.images.chunk') throw new Error()
+      if (Buffer.byteLength(raw) > 16384 && !['news.images.chunk', 'live.images.chunk'].includes(input.action)) throw new Error()
     } catch { return error(400, 'INVALID_ARGUMENT', '请求格式不正确。') }
     if (input.action !== 'login' && !publicActions.includes(input.action)) {
       const authorization = /^Bearer ([a-f0-9]{64})$/.exec(requestHeaders.authorization || '')

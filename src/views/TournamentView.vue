@@ -4,13 +4,14 @@ defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } }
 import { ref, computed, watch } from 'vue'
 import type { Tournament, Match } from '@/domain/types'
 import { filterMatches, dateLabel, weekday } from '@/domain/tournament'
-import { useFavorites } from '@/composables/useFavorites'
+import { useDemoFavorites } from '@/composables/useDemoFavorites'
 import AppIcon from '@/components/AppIcon.vue'
 import CompetitionList from '@/components/CompetitionList.vue'
 import MatchCard from '@/components/MatchCard.vue'
 import PublicStandings from '@/components/PublicStandings.vue'
 import TeamBadge from '@/components/TeamBadge.vue'
 import PublicSchedule from '@/components/PublicSchedule.vue'
+import PublicTeamFinder from '@/components/PublicTeamFinder.vue'
 const props = defineProps<{ data: Tournament; matches: Match[]; initialView?: string }>()
 const mode = ref(props.initialView || 'competitions')
 watch(() => props.initialView, v => { if (v) mode.value = v })
@@ -21,16 +22,17 @@ const selectedTeamIndex = computed(() => props.data.teams.findIndex(t => t.id ==
 const teamName = computed(() => props.data.teams.find(t => t.id === teamId.value)?.name || '全部球队')
 const visibleMatches = computed(() => filterMatches(props.matches, { date: selectedDate.value, status: status.value, teamId: teamId.value }))
 const filters = [{ id: 'all', label: '全部比赛' }, { id: 'live', label: '进行中' }, { id: 'scheduled', label: '未开始' }, { id: 'finished', label: '已结束' }]
-const { favoriteIds, toggle } = useFavorites()
+const { favoriteIds, toggle } = useDemoFavorites()
 function selectTeam(event: { detail: { value: string | number } }) { const index = Number(event.detail.value); teamId.value = index ? props.data.teams[index - 1].id : '' }
 function reset() { selectedDate.value = props.data.demoDate; status.value = 'all'; teamId.value = '' }
 function openTeam(id: string) { uni.navigateTo({ url: `/pages/team/detail?id=${id}` }) }
 </script>
 <template>
   <view class="inner-page"><view class="page-heading"><view><text class="eyebrow">THE MATCHDAY</text><text class="page-title">每一场，都为热爱。</text><text class="page-description">赛事信息、真实赛程与晋级对阵读取云端数据；示例内容单独标注</text></view><view class="page-emblem"><AppIcon name="ball" :size="46" tone="green" /></view></view>
-    <view class="page-tabs"><button class="ui-button" :class="{ active: mode === 'competitions' }" @click="mode = 'competitions'">赛事信息</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'live-schedule' }" @click="mode = 'live-schedule'"><AppIcon name="calendar" :tone="mode === 'live-schedule' ? 'green' : 'muted'" :size="18" />真实赛程</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'schedule' }" @click="mode = 'schedule'"><AppIcon name="calendar" :tone="mode === 'schedule' ? 'green' : 'muted'" :size="18" />示例赛程</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'bracket' }" @click="mode = 'bracket'"><AppIcon name="bracket" :tone="mode === 'bracket' ? 'green' : 'muted'" :size="18" />晋级对阵</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'teams' }" @click="mode = 'teams'"><AppIcon name="users" :tone="mode === 'teams' ? 'green' : 'muted'" :size="18" />示例球队</button></view>
+    <view class="page-tabs"><button class="ui-button" :class="{ active: mode === 'competitions' }" @click="mode = 'competitions'">赛事信息</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'live-schedule' }" @click="mode = 'live-schedule'"><AppIcon name="calendar" :tone="mode === 'live-schedule' ? 'green' : 'muted'" :size="18" />真实赛程</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'schedule' }" @click="mode = 'schedule'"><AppIcon name="calendar" :tone="mode === 'schedule' ? 'green' : 'muted'" :size="18" />示例赛程</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'bracket' }" @click="mode = 'bracket'"><AppIcon name="bracket" :tone="mode === 'bracket' ? 'green' : 'muted'" :size="18" />晋级对阵</button><button role="button" tabindex="0" hover-class="none" class="ui-button" :class="{ active: mode === 'real-teams' }" @click="mode = 'real-teams'"><AppIcon name="heart" :tone="mode === 'real-teams' ? 'green' : 'muted'" :size="18"/>参赛球队</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: mode === 'teams' }" @click="mode = 'teams'"><AppIcon name="users" :tone="mode === 'teams' ? 'green' : 'muted'" :size="18" />示例球队</button></view>
     <CompetitionList v-if="mode === 'competitions'" />
     <PublicSchedule v-else-if="mode === 'live-schedule'" />
+    <PublicTeamFinder v-else-if="mode === 'real-teams'" />
     <view v-else-if="mode === 'schedule'" class="schedule-layout"><view class="schedule-main"><scroll-view scroll-x class="date-scroll"><view class="date-strip"><button hover-class="none" role="button" tabindex="0" v-for="date in dates" :key="date" class="ui-button date-cell" :class="{ active: selectedDate === date }" :aria-label="`选择${date}`" @click="selectedDate = date"><text>{{ weekday(date) }}</text><text class="date-number">{{ date.slice(5).replace('-', '.') }}</text><text class="date-indicator">{{ date === data.demoDate ? '演示日' : matches.some(m => m.date === date) ? `${matches.filter(m => m.date === date).length} 场比赛` : '休赛日' }}</text></button></view></scroll-view>
       <view class="schedule-filters"><view class="filter-chips"><button hover-class="none" role="button" tabindex="0" v-for="filter in filters" :key="filter.id" class="ui-button filter-chip" :class="{ active: status === filter.id }" @click="status = filter.id">{{ filter.label }}</button></view><picker :range="teamOptions" :value="selectedTeamIndex" @change="selectTeam"><view class="team-picker">{{ teamName }}<AppIcon name="down" :size="14" /></view></picker></view>
       <view class="schedule-day-heading"><text>{{ dateLabel(selectedDate) }} <text class="muted">{{ weekday(selectedDate) }}</text></text><text class="muted small-text">{{ visibleMatches.length }} 场比赛</text></view>

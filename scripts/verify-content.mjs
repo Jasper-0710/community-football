@@ -10,6 +10,7 @@ import { execFileSync, spawn } from 'node:child_process'
 const require = createRequire(import.meta.url)
 const { createAdminService, createAccount } = require('../cloudfunctions/adminAuth/service.js')
 const { createHttpHandler } = require('../cloudfunctions/adminAuth/http.js')
+const { createSettingsService, PUBLIC_ACTIONS: SETTINGS_PUBLIC_ACTIONS } = require('../cloudfunctions/adminAuth/platform-settings.js')
 const { createContentService, PUBLIC_ACTIONS } = require('../cloudfunctions/adminAuth/content.js')
 const { createCompetitionService, PUBLIC_ACTIONS: COMPETITION_PUBLIC_ACTIONS } = require('../cloudfunctions/adminAuth/competitions.js')
 const { createMatchService, PUBLIC_ACTIONS: MATCH_PUBLIC_ACTIONS } = require('../cloudfunctions/adminAuth/matches.js')
@@ -30,6 +31,7 @@ const timestamp = new Date(now).toISOString(), password = randomBytes(24).toStri
 const auth = createAdminService({ store: createMemoryStore(await createAccount('admin', password, now)).store, now: () => authNow, logger: { error() {} } })
 const authorize = token => auth({ action: 'session', token })
 const memory = createContentMemoryStore(), { collections, store } = memory
+const settings = createSettingsService({store,authorize,now:()=>now,logger:{error(){}}})
 const cid = 'c_' + '1'.repeat(32), teamId = 't_' + 'a'.repeat(64), awayId = 't_' + 'b'.repeat(64), playerId = 'p_' + '1'.repeat(32), matchId = 'm_' + '1'.repeat(32)
 collections.competitions.set(cid, { _id: cid, name: '社区杯', description: '浏览器隔离测试', format: 'round_robin', formatDescription: '单循环', startDate: '2026-11-20', endDate: '2026-12-31', venue: '社区球场', registrationRequirements: '提交材料', registrationStartAt: null, registrationEndAt: null, registrationEnabled: false, displayEnabled: true, version: 1, createdAt: now, updatedAt: now })
 for (const [id, name] of [[teamId, '社区联队'], [awayId, '社区星火']]) {
@@ -49,6 +51,7 @@ const registrations = createAdminRegistrationService({ store: { competition: mat
 let failNews = false, slowSearch = false, failImageChunk = false, slowImageChunk = false, failImageRequests = false, rejectNextImageChunk = false
 const imageRequests = []
 const router = async event => {
+  if (event.action.startsWith('settings.')) return settings(event)
   if (event.action.startsWith('news.images.')) {
     imageRequests.push(structuredClone(event))
     if (slowImageChunk && event.action === 'news.images.chunk') await new Promise(resolve => setTimeout(resolve, 500))
@@ -62,7 +65,7 @@ const router = async event => {
 }
 const adminOrigin = 'http://127.0.0.1:5184', publicOrigin = 'http://127.0.0.1:5183', certDir = await fs.mkdtemp('/tmp/community-football-content-')
 execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', `${certDir}/key.pem`, '-out', `${certDir}/cert.pem`, '-days', '1', '-subj', '/CN=127.0.0.1', '-addext', 'subjectAltName=IP:127.0.0.1'], { stdio: 'ignore' })
-const http = createHttpHandler(router, [adminOrigin, publicOrigin], [...PUBLIC_ACTIONS, ...COMPETITION_PUBLIC_ACTIONS, ...MATCH_PUBLIC_ACTIONS, ...STANDINGS_PUBLIC_ACTIONS])
+const http = createHttpHandler(router, [adminOrigin, publicOrigin], [...PUBLIC_ACTIONS, ...COMPETITION_PUBLIC_ACTIONS, ...MATCH_PUBLIC_ACTIONS, ...STANDINGS_PUBLIC_ACTIONS, ...SETTINGS_PUBLIC_ACTIONS])
 const cover = await fs.readFile('src/static/images/football.jpg')
 const server = createServer({ key: await fs.readFile(`${certDir}/key.pem`), cert: await fs.readFile(`${certDir}/cert.pem`) }, async (req, res) => {
   if (req.url === '/image.jpg') { res.writeHead(200, { 'Content-Type': 'image/jpeg' }); res.end(cover); return }
@@ -102,6 +105,13 @@ const publicNews = async () => { await user.goto(`${publicOrigin}/#/pages/index/
 const openSearch = async () => { await user.goto(publicOrigin); await user.locator('.search-trigger').click(); await user.locator('.search-panel').waitFor() }
 const fillSearch = value => user.locator('.search-input input').fill(value)
 try {
+  const deadline=Date.now()+30000
+  for(;;){
+    if(publicServer.exitCode!==null)throw new Error('Content preview exited: '+publicLog.slice(-3000))
+    try{if((await fetch(publicOrigin,{signal:AbortSignal.timeout(1000)})).ok)break}catch{}
+    if(Date.now()>deadline)throw new Error('Content preview did not start: '+publicLog.slice(-3000))
+    await new Promise(resolve=>setTimeout(resolve,250))
+  }
   const unauthorized = await context.request.post(endpoint, { data: { action: 'news.create' } }); assert.equal(unauthorized.status(), 401)
   await admin.goto(adminOrigin); await admin.getByLabel('管理员账号', { exact: true }).fill('admin'); await admin.getByLabel('登录密码', { exact: true }).fill(password); await admin.getByRole('button', { name: '登录管理后台' }).click(); await admin.locator('.workspace').waitFor(); await newsTab(); await admin.getByRole('button', { name: '新建内容', exact: true }).click()
   await admin.getByLabel('标题', { exact: true }).fill('社区杯观赛公告'); await admin.getByLabel('分类', { exact: true }).selectOption('公告'); await admin.getByLabel('摘要', { exact: true }).fill('周末来为社区球队加油'); await admin.getByLabel('正文文字', { exact: true }).fill('观赛须知\n<script>window.d09Injected = true</script>'); await admin.getByRole('button', { name: '保存内容', exact: true }).click(); await admin.getByText('草稿已保存，仅管理员可见。', { exact: true }).waitFor()

@@ -2,7 +2,8 @@
 import { onUnmounted, ref } from 'vue'
 import type { createAdminAuth } from './auth'
 import { prepareNewsImage, uploadNewsImage, type NewsImageDraft } from './news-images'
-const props = defineProps<{ auth: ReturnType<typeof createAdminAuth>; articleId: string; label: string; url: string; imageId?: string | null; enabled: boolean; disabled?: boolean; required?: boolean }>()
+import { uploadLiveImage } from './live-images'
+const props = defineProps<{ auth: ReturnType<typeof createAdminAuth>; articleId: string; label: string; url: string; imageId?: string | null; enabled: boolean; disabled?: boolean; required?: boolean; scope?: 'news' | 'live' }>()
 const emit = defineEmits<{ change: [value: { id: string | null; url: string }]; pending: [value: boolean] }>()
 const candidate = ref<NewsImageDraft | null>(null), preview = ref(''), error = ref(''), running = ref(false), broken = ref(false)
 let generation = 0
@@ -14,7 +15,7 @@ async function upload() {
   const serial = ++generation, articleId = props.articleId
   running.value = true; error.value = ''; emit('pending', true)
   try {
-    const result = await uploadNewsImage(candidate.value, articleId, props.auth.authorized, () => serial === generation && articleId === props.articleId)
+    const result = await (props.scope === 'live' ? uploadLiveImage : uploadNewsImage)(candidate.value, articleId, props.auth.authorized, () => serial === generation && articleId === props.articleId)
     if (serial !== generation) return
     emit('change', { id: result.id, url: result.url }); broken.value = false; clear(); emit('pending', false)
   } catch (e) { if (serial === generation) error.value = explain(e) }
@@ -34,7 +35,9 @@ async function refresh() {
   if (!props.imageId || running.value) return
   const serial = ++generation; running.value = true; error.value = ''
   try {
-    const result = await props.auth.authorized((api, token) => api.newsImage(token, props.imageId!, props.articleId))
+    const result = props.scope === 'live'
+      ? await props.auth.authorized((api, token) => api.liveImage(token, props.imageId!, props.articleId))
+      : await props.auth.authorized((api, token) => api.newsImage(token, props.imageId!, props.articleId))
     if (serial === generation) { emit('change', { id: result.id, url: result.url }); broken.value = false }
   } catch (e) { if (serial === generation) error.value = explain(e) }
   finally { if (serial === generation) running.value = false }

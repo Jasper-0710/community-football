@@ -1,13 +1,14 @@
 'use strict'
 function createContentMemoryStore() {
-  const collections = Object.fromEntries(['newsArticles', 'newsImages', 'competitions', 'teams', 'matches', 'registrations'].map(name => [name, new Map()]))
+  const collections = Object.fromEntries(['newsArticles', 'newsImages', 'competitions', 'teams', 'matches', 'registrations', 'platformSettings', 'matchLiveEntries', 'matchLiveImages'].map(name => [name, new Map()]))
   const failures = { scan: false, read: false, write: false }
   const copy = value => value == null ? value : structuredClone(value)
   let queue = Promise.resolve()
   const store = {
+    async liveEntries(matchId) { if (failures.scan) throw new Error('Unavailable'); return [...collections.matchLiveEntries.values()].filter(r => r.matchId === matchId).map(copy) },
     async scan(name) { if (failures.scan) throw new Error('Unavailable'); return [...collections[name].values()].map(copy) },
     async read(name, id) { if (failures.read) throw new Error('Unavailable'); return copy(collections[name].get(id)) },
-    async listImages(cursor, limit = 20) { if (failures.scan) throw new Error('Unavailable'); return [...collections.newsImages.values()].filter(r => !cursor || r._id > cursor).sort((a,b) => a._id.localeCompare(b._id)).slice(0,limit).map(copy) },
+    async listImages(cursor, limit = 20, collection = 'newsImages') { if (failures.scan) throw new Error('Unavailable'); return [...collections[collection].values()].filter(r => !cursor || r._id > cursor).sort((a,b) => a._id.localeCompare(b._id)).slice(0,limit).map(copy) },
     atomic(fn) {
       const operation = queue.then(async () => {
         if (failures.read) throw new Error('Unavailable')

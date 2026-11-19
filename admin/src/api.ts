@@ -1,10 +1,12 @@
 import {parseBadgeCleanup} from '../../src/domain/team-badge'
+import {parsePlatformSettings,type PlatformForm} from '../../src/domain/platform-settings'
 import {parseCleanupResult} from './registration-maintenance'
 import { parseMatch, parseMatchPage, type MatchScheduleForm } from '../../src/domain/match'
 import { parseStandings, parseResultHistory, type StandingsRules, type ResultInput } from '../../src/domain/standings'
 import type { GroupQualification } from '../../src/domain/match'
 import { parseNewsArticle, parseNewsPage, parseSearchPage, parseContentOverview, type NewsForm, type ContentCategory, type SearchKind } from '../../src/domain/content'
 import { parseNewsImage, parseNewsImageConfig, parseNewsImageUpload, parseNewsImageCleanup } from '../../src/domain/news-image'
+import { parseLiveEntry, parseLivePage, parseLiveUploadedImage, parseLiveImageUpload, parseLiveImageCleanup, type LiveForm } from '../../src/domain/match-live'
 export interface AdminSession {
   admin: { username: string; displayName: string; role: 'admin' }
   expiresAt: string
@@ -54,6 +56,18 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     } finally { clearTimeout(timer) }
   }
   return {
+    async liveEntries(token: string, matchId: string, cursor?: string) { return parseLivePage(await request('live.listAdmin', { matchId, ...(cursor ? { cursor } : {}) }, token), true, matchId) },
+    async publishLive(token: string, matchId: string, requestId: string, form: LiveForm) { return parseLiveEntry((await request('live.publish', { matchId, requestId, form }, token)).entry, true) },
+    async correctLive(token: string, matchId: string, id: string, expectedVersion: number, requestId: string, form: LiveForm) { return parseLiveEntry((await request('live.correct', { matchId, id, expectedVersion, requestId, form }, token)).entry, true) },
+    async deleteLive(token: string, matchId: string, id: string, expectedVersion: number, requestId: string) { await request('live.delete', { matchId, id, expectedVersion, requestId }, token) },
+    async liveImageConfig(token: string) { return parseNewsImageConfig(await request('live.images.config', {}, token)) },
+    async startLiveImage(token: string, fields: {entryId: string; requestId: string; name: string; size: number; mime: string; sha256: string}) { return parseLiveImageUpload(await request('live.images.start', fields, token)) },
+    async liveImageChunk(token: string, id: string, index: number, data: string) { const r = await request('live.images.chunk', { id, index, data }, token); if (r.index !== index) throw new AdminApiError('INVALID_RESPONSE', '图片分片回执异常，请重试。') },
+    async finishLiveImage(token: string, id: string) { return parseLiveUploadedImage((await request('live.images.finish', { id }, token)).image) },
+    async liveImage(token: string, id: string, entryId: string) { return parseLiveUploadedImage((await request('live.images.get', { id, entryId }, token)).image) },
+    async cleanupLiveImages(token: string, dryRun = true, cursor?: string) { const r = parseLiveImageCleanup(await request('live.images.cleanup', { dryRun, ...(cursor ? { cursor } : {}) }, token)); if (r.dryRun !== dryRun) throw new AdminApiError('INVALID_RESPONSE', '直播图片清理回执异常。'); return r },
+    async platformSettings(token:string){return parsePlatformSettings((await request('settings.getAdmin',{},token)).settings)},
+    async savePlatformSettings(token:string,expectedVersion:number,requestId:string,form:PlatformForm){return parsePlatformSettings((await request('settings.update',{expectedVersion,requestId,form},token)).settings)},
     async newsImageConfig(token: string) { return parseNewsImageConfig(await request('news.images.config',{},token)) },
     async startNewsImage(token: string, fields: {articleId:string;requestId:string;name:string;size:number;mime:string;sha256:string}) { return parseNewsImageUpload(await request('news.images.start',fields,token)) },
     async newsImageChunk(token: string, id: string, index: number, data: string) { const r = await request('news.images.chunk',{id,index,data},token); if (r.index !== index) throw new AdminApiError('INVALID_RESPONSE','图片分片回执异常，请重试。') },

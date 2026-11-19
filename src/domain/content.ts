@@ -21,8 +21,7 @@ const integer = (v: unknown): v is number => Number.isSafeInteger(v) && Number(v
 const cursor = (v: unknown): v is string | null => v === null || typeof v === 'string' && /^[a-f0-9]{32}:\d{1,6}$/.test(v)
 const ids = { team: /^t_[a-f0-9]{64}$/, player: /^p_[a-f0-9]{32}$/, match: /^m_[a-f0-9]{32}$/, news: /^n_[a-f0-9]{32}$/ }
 export function safeContentImage(v: unknown): v is string {
-  if (typeof v !== 'string' || v.length > 2000) return false
-  try { const u = new URL(v); return u.protocol === 'https:' && !u.username && !u.password && !u.hash } catch { return false }
+  return safeBadgeUrl(v)
 }
 export function parseNewsArticle(v: unknown, admin = false, full = false): NewsArticle {
   if (!object(v) || typeof v.id !== 'string' || !ids.news.test(v.id) || !validText(v.title, 80) || !newsCategories.includes(v.category) || !validText(v.excerpt, 200, false) || !validText(v.author, 40) || v.coverUrl !== '' && !safeContentImage(v.coverUrl) || typeof v.pinned !== 'boolean' || v.competitionId !== null && (typeof v.competitionId !== 'string' || !/^c_[a-f0-9]{32}$/.test(v.competitionId)) || v.publishedAt !== null && !iso(v.publishedAt) || !iso(v.updatedAt) || !admin && v.publishedAt === null || admin && (!['draft', 'published'].includes(v.status) || !integer(v.version) || v.version < 1 || !iso(v.createdAt))) return invalid()

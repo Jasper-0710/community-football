@@ -1,0 +1,153 @@
+{
+  "date": "2026-11-18",
+  "feature": "D10 平台设置到客户端同步",
+  "sourceBase": "e71e70e plus working changes",
+  "status": "Platform default settings sync passed local regression and real nonempty customer-cloud acceptance; physical devices and D10 extensions remain pending",
+  "implemented": [
+    "platform title/subtitle",
+    "eight named themes/custom hex color",
+    "light/dark and three corner styles",
+    "six fixed internal targets with editable labels/icons/order",
+    "live unsaved preview, reset preview then explicit save",
+    "authenticated transactional singleton save, optimistic version and idempotent retry",
+    "public settings projection without management metadata",
+    "client environment-scoped validated cache, foreground/navigation refresh, stale-version protection and retry"
+  ],
+  "validation": {
+    "unitPassed": 281,
+    "settingsSpecificUnitPassed": 14,
+    "browserSettingsPassed": 10,
+    "browserTeamsPassed": 23,
+    "browserContentPassed": 28,
+    "browserAdminHmrPassed": 3,
+    "typechecks": [
+      "client",
+      "admin"
+    ],
+    "sharedCatalogConsistency": true,
+    "builds": [
+      "admin",
+      "h5",
+      "mp-weixin"
+    ],
+    "browserPageErrors": [],
+    "darkDisabledTextButtons": "Corrected after screenshot review; targeted browser regression and H5/WeChat builds rerun."
+  },
+  "scope": "Local browser regressions use isolated transactional stores. Customer acceptance separately used normal admin/H5 browsers, real HTTPS and WeChat cloud functions, and WeChat simulator re-entry/rendering; no business mocks. Physical-device acceptance remains pending.",
+  "cloud": {
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "collection": "platformSettings",
+    "document": "primary",
+    "collectionCreation": "success",
+    "functionDeployment": "success",
+    "businessWritePassed": true,
+    "deployedFileCount": 25,
+    "sourceVerification": {
+      "runtimeFiles": 24,
+      "runtimeMatches": 24,
+      "documentationDifference": [
+        "README.md"
+      ]
+    },
+    "runtime": "Nodejs16.13",
+    "status": "Active",
+    "timeoutSeconds": 20,
+    "privateRuleChecks": [
+      {
+        "mode": "read",
+        "allowed": false,
+        "code": -502003,
+        "probeCreated": false
+      },
+      {
+        "mode": "write",
+        "allowed": false,
+        "code": -502003,
+        "probeCreated": false
+      }
+    ],
+    "publicWechatBaselineVersion": 0,
+    "simulatorBaseline": {
+      "scopedCache": true,
+      "sixNavigationScreenshotReviewed": true
+    },
+    "savedVersion": 1,
+    "restoredVersion": 2,
+    "originalFormRestored": true,
+    "adminSessionRevoked": true,
+    "acceptanceCheckEntries": 14,
+    "checkCountNote": "Includes repeated permission checks and stage-specific public rereads, not independent test-case count.",
+    "browserPageErrors": [],
+    "failures": [],
+    "publicProjectionRereads": true,
+    "h5ForegroundAndReload": true,
+    "simulatorReentryCacheAndScreenshotReviewed": true,
+    "h5Widths": [
+      1440,
+      390,
+      320
+    ],
+    "idempotentRetryVersionUnchanged": true,
+    "reusedIdWithChangedPayloadStatus": 409,
+    "staleVersionStatus": 409,
+    "savedAt": "2026-11-18T02:32:51.768Z",
+    "restoredAt": "2026-11-18T02:33:09.252Z",
+    "acceptanceChecks": [
+      {
+        "name": "private collection denies direct client reads and writes"
+      },
+      {
+        "name": "HTTPS and trusted WeChat public projection agree without management metadata",
+        "version": 0
+      },
+      {
+        "name": "normal administrator login and form reread; anonymous administration denied"
+      },
+      {
+        "name": "private collection denies direct client reads and writes"
+      },
+      {
+        "name": "unsaved real admin preview does not change customer public settings"
+      },
+      {
+        "name": "HTTPS and trusted WeChat public projection agree without management metadata",
+        "version": 1
+      },
+      {
+        "name": "real H5 foreground/reload applies title, color, dark mode, six navigation order and search",
+        "version": 1
+      },
+      {
+        "name": "WeChat simulator re-entry fetches customer settings into scoped cache; screenshot captured",
+        "version": 1,
+        "label": "saved"
+      },
+      {
+        "name": "real transaction retry increments once; reused request with changed content and stale version both reject"
+      },
+      {
+        "name": "HTTPS and trusted WeChat public projection agree without management metadata",
+        "version": 2
+      },
+      {
+        "name": "WeChat simulator re-entry fetches customer settings into scoped cache; screenshot captured",
+        "version": 2,
+        "label": "restored"
+      },
+      {
+        "name": "original customer form restored through versioned transaction and reread by admin/H5/WeChat",
+        "version": 2
+      },
+      {
+        "name": "browser page errors absent"
+      },
+      {
+        "name": "administrator session revoked"
+      }
+    ]
+  },
+  "remaining": [
+    "physical iPhone/Android validation",
+    "personal theme overrides/priority, external/community/insurance targets and cross-device favorites remain separate D10 extensions"
+  ]
+}

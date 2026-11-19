@@ -1,0 +1,96 @@
+{
+  "date": "2026-11-18",
+  "scope": "Actual Vue UI, HTTP routing and cloud business handlers with isolated transactional/database/storage fixtures; not customer-cloud or physical-device acceptance",
+  "checks": [
+    "后台直播入口与客户端比赛详情入口可达，空态和匿名管理隔离正确",
+    "后台文字发布后客户端刷新可见，换行和标签安全显示，比分事件不被改写",
+    "直播更正保持发布顺序，客户端显示更正标记",
+    "多管理员版本冲突阻止覆盖，重新读取后可继续维护",
+    "发布响应中断不显示虚假成功，重新读取确认已提交且不重复发布",
+    "删除需明确确认，软删除后客户端刷新移除",
+    "本地图片分片中断可续传，上传未结束禁止发布和切换，双图顺序正确且不持久化签名链接",
+    "图文发布后客户端读取真实上传图片，公开投影隐藏管理信息和图片关联ID",
+    "图片加载失败有占位，刷新签名链接后可恢复",
+    "直播读取失败保留已确认内容并提示，手动重试恢复",
+    "前台每15秒自动读取最新直播",
+    "页面进入后台停止轮询，回到前台立即同步",
+    "时间排序分页无重复，查看更早动态时暂停自动刷新以保留阅读位置",
+    "切换比赛清空上一场内容，两场直播相互隔离",
+    "赛事隐藏后公开直播拒绝并移除旧内容，重新公开可恢复",
+    "图片维护真实检查已发布引用保护，未到期图片不误删",
+    "后台与客户端直播在1440/390/320px布局无横向溢出"
+  ],
+  "errors": [],
+  "requestCount": 90,
+  "feature": "D11 per-match text and photo live feed",
+  "unitTests": {
+    "total": 338,
+    "passed": 338,
+    "addedLiveServiceTests": 13,
+    "addedLiveClientTests": 5
+  },
+  "browserRegression": {
+    "live": 17,
+    "existingNewsSearchImages": 28,
+    "errors": []
+  },
+  "validationPassed": [
+    "client typecheck",
+    "admin typecheck",
+    "shared registration/settings contract",
+    "H5 build",
+    "admin build",
+    "WeChat build",
+    "git diff --check"
+  ],
+  "visualReview": {
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "reviewed": [
+      "admin-390.png",
+      "public-320.png",
+      "public-photos-320.png",
+      "admin-editor-390.png",
+      "admin-editor-320.png"
+    ],
+    "directory": "artifacts/match-live/",
+    "horizontalOverflow": false
+  },
+  "deployment": {
+    "customerFunction": "adminAuth",
+    "performed": false,
+    "customerLiveBusinessWrites": false,
+    "collectionsProvisionedOrVerified": false,
+    "uploadFlagVerified": false
+  },
+  "requiredConfiguration": {
+    "collections": [
+      "matchLiveEntries",
+      "matchLiveImages"
+    ],
+    "clientRules": {
+      "read": false,
+      "write": false
+    },
+    "imageUploadFlag": "LIVE_IMAGE_UPLOADS_ENABLED=true",
+    "suggestedIndex": "matchLiveEntries: matchId asc, _id asc; verify against real cloud queries",
+    "preserveExistingVariablesAndTimeoutSeconds": 20
+  },
+  "limitations": [
+    "Each match scans at most 2000 rows including soft-deleted entries; fails rather than truncates",
+    "Existing external HTTPS images depend on external hosting",
+    "No physical-device or real multi-administrator concurrency acceptance"
+  ],
+  "pending": [
+    "customer deployment and source comparison",
+    "private rules and actual cloud index checks",
+    "nonempty cloud publish, image upload, readback, correction, hiding, deletion and cleanup",
+    "native image preview and lifecycle",
+    "WeChat iPhone and Android"
+  ],
+  "workbookUpdatedThisIncrement": false,
+  "gitCommitted": false
+}

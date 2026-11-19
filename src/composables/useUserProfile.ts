@@ -11,6 +11,8 @@ let restoreAttempted = false
 // Share only this running app's cloud-confirmed profile. Never persist identity or
 // use this presentation state to authorize a cloud operation.
 const profile = ref<UserProfile | null>(null)
+// Presentation scope only. Authorization continues to use the verified cloud context.
+export const currentUserId = computed(() => profile.value?.id || null)
 const loading = ref(false)
 const saving = ref(false)
 const refreshingAvatar = ref(false)

@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useTournament } from '@/composables/useTournament'
-import { useFavorites } from '@/composables/useFavorites'
+import { useDemoFavorites } from '@/composables/useDemoFavorites'
 import { findTeam, dateLabel } from '@/domain/tournament'
 import AppShell from '@/components/AppShell.vue'
 import AppIcon from '@/components/AppIcon.vue'
@@ -10,7 +10,7 @@ import TeamBadge from '@/components/TeamBadge.vue'
 import MatchCard from '@/components/MatchCard.vue'
 import PublicTeamProfile from '@/components/PublicTeamProfile.vue'
 const { data, matches, error, load } = useTournament()
-const { favoriteIds, toggle } = useFavorites()
+const { favoriteIds, toggle } = useDemoFavorites()
 const id = ref(''), profileEpoch = ref(0)
 const realId = computed(() => /^t_[a-f0-9]{64}$/.test(id.value))
 onShow(() => { profileEpoch.value++ })

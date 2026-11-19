@@ -1,0 +1,664 @@
+{
+  "date": "2026-11-19",
+  "generatedAt": "2026-11-19T08:11:11.412Z",
+  "feature": "D11 per-match text and photo live feed",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "appid": "wx3230f06c755cef3a",
+  "status": "Customer-cloud nonempty business acceptance passed across staged runs; native preview, device/lifecycle and 24-hour final deletion remain separate.",
+  "scope": "Real customer HTTPS API, normal admin and H5 browsers, trusted WeChat cloud calls, and actual native simulator nonempty rendering. No intercepted backend or changed production timestamps.",
+  "deployment": {
+    "function": "adminAuth",
+    "method": "Full registered WeChat IDE cloud_fn_deploy with remote npm install",
+    "confirmedSuccess": true,
+    "files": 27,
+    "packSize": "64.3 KB",
+    "frozenPackageBytes": 172950,
+    "downloadedFilesCompared": 27,
+    "sha256Mismatches": [],
+    "runtime": "Nodejs16.13",
+    "status": "Active",
+    "timeoutSeconds": 20,
+    "previousSourceBackedUp": true,
+    "existingEnvironmentVariablesActivelyChanged": false,
+    "rawEnvironmentValuesCompared": false,
+    "packageReadmeUpdatedAfterSourceComparison": true
+  },
+  "collectionProvisioning": [
+    {
+      "collection": "matchLiveEntries",
+      "created": true,
+      "taskConfirmedSuccess": true
+    },
+    {
+      "collection": "matchLiveImages",
+      "created": true,
+      "taskConfirmedSuccess": true
+    }
+  ],
+  "configuration": {
+    "directClientPermissions": [
+      {
+        "collection": "matchLiveEntries",
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "matchLiveEntries",
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "matchLiveImages",
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "matchLiveImages",
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      }
+    ],
+    "privateRulesPassed": true,
+    "uploadFlagEnabledVerified": true,
+    "requiredUploadFlag": "LIVE_IMAGE_UPLOADS_ENABLED=true",
+    "uploadConfig": {
+      "status": 200,
+      "ok": true,
+      "enabled": true,
+      "maxBytes": 2097152,
+      "chunkSize": 65536,
+      "maxEdge": 4096,
+      "maxPixels": 8000000
+    },
+    "nonemptyQueryAndPaginationVerified": true,
+    "compositeIndexVerified": false,
+    "observedIndexes": [
+      "_id_",
+      "_openid_1"
+    ],
+    "largeScalePerformanceVerified": false
+  },
+  "baseline": {
+    "competitionId": "c_9f5427d27b4acc8ecac2aad615d663a9",
+    "matchId": "m_3bbdd8550df012cf8ca9ea91f9e67e5b",
+    "existingEntries": 0,
+    "matchVersion": 6,
+    "standingsRevision": 18,
+    "settingsVersion": 2
+  },
+  "checks": [
+    {
+      "run": "run-6",
+      "name": "普通后台真实登录、赛事比赛选择可达，10项匿名管理请求均拒绝",
+      "at": "2026-11-19T03:41:49.796Z"
+    },
+    {
+      "run": "run-6",
+      "name": "两个客户集合均拒绝可信微信客户端直接读写",
+      "at": "2026-11-19T03:42:07.655Z"
+    },
+    {
+      "run": "run-6",
+      "name": "客户云端直播图片开关与64KiB分片配置生效",
+      "at": "2026-11-19T03:42:07.655Z"
+    },
+    {
+      "run": "run-6",
+      "name": "两个客户集合均拒绝可信微信客户端直接读写",
+      "at": "2026-11-19T03:42:58.481Z"
+    },
+    {
+      "run": "run-6",
+      "name": "客户云端直播图片开关与64KiB分片配置生效",
+      "at": "2026-11-19T03:42:58.481Z"
+    },
+    {
+      "run": "run-6",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T03:43:05.101Z",
+      "entryId": "l_1a415cc9293dfbab19896a304462769c"
+    },
+    {
+      "run": "run-6",
+      "name": "普通后台文字发布、换行和标签安全显示，重复请求只创建一次",
+      "at": "2026-11-19T03:43:05.102Z"
+    },
+    {
+      "run": "run-6",
+      "name": "d11-field.png",
+      "at": "2026-11-19T03:43:24.844Z"
+    },
+    {
+      "run": "run-6",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T03:43:29.341Z",
+      "entryId": "l_cc6fa826f89d7872dfd41547314383be"
+    },
+    {
+      "run": "run-6",
+      "name": "PNG多片上传支持重复片、续传、提前结束拒绝与幂等结束，已发布图片在H5可见",
+      "at": "2026-11-19T03:43:29.909Z"
+    },
+    {
+      "run": "run-6",
+      "name": "验收直播全部软删除，原比赛赛果、榜单、平台设置和原直播均保持一致",
+      "at": "2026-11-19T03:44:23.851Z"
+    },
+    {
+      "run": "run-6",
+      "name": "管理员验收会话已撤销",
+      "at": "2026-11-19T06:40:30.498Z"
+    },
+    {
+      "run": "run-7",
+      "name": "普通后台真实登录、赛事比赛选择可达，10项匿名管理请求均拒绝",
+      "at": "2026-11-19T06:44:28.496Z"
+    },
+    {
+      "run": "run-7",
+      "name": "两个客户集合均拒绝可信微信客户端直接读写",
+      "at": "2026-11-19T06:46:54.103Z"
+    },
+    {
+      "run": "run-7",
+      "name": "客户云端直播图片开关与64KiB分片配置生效",
+      "at": "2026-11-19T06:46:54.103Z"
+    },
+    {
+      "run": "run-7",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T06:47:04.125Z",
+      "entryId": "l_e88d844b6a7918d4fbfb59ce6a0bcd35"
+    },
+    {
+      "run": "run-7",
+      "name": "普通后台文字发布、换行和标签安全显示，重复请求只创建一次",
+      "at": "2026-11-19T06:47:04.125Z"
+    },
+    {
+      "run": "run-7",
+      "name": "d11-field.png",
+      "at": "2026-11-19T06:47:16.834Z"
+    },
+    {
+      "run": "run-7",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T06:47:21.044Z",
+      "entryId": "l_00dec066cbc51b249d174ca945fc19ac"
+    },
+    {
+      "run": "run-7",
+      "name": "PNG多片上传支持重复片、续传、提前结束拒绝与幂等结束，已发布图片在H5可见",
+      "at": "2026-11-19T06:47:21.609Z"
+    },
+    {
+      "run": "run-7",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T06:47:40.252Z",
+      "entryId": "l_0dd978eff49add16366b4d79273601f0"
+    },
+    {
+      "run": "run-7",
+      "name": "普通后台本地PNG/JPG上传、双图排序及字节校验，H5与微信公开读取一致",
+      "at": "2026-11-19T06:47:41.072Z"
+    },
+    {
+      "run": "run-7",
+      "name": "客户云端非空图文在1440/390/320px无横向溢出，已留截图",
+      "at": "2026-11-19T06:47:41.731Z"
+    },
+    {
+      "run": "run-7",
+      "name": "普通后台更正、首次发布时间保留、更正幂等及旧版本拒绝覆盖",
+      "at": "2026-11-19T06:47:46.252Z"
+    },
+    {
+      "run": "run-7",
+      "name": "d11-replacement.jpg",
+      "at": "2026-11-19T06:47:49.861Z"
+    },
+    {
+      "run": "run-7",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T06:47:58.403Z",
+      "entryId": "l_00dec066cbc51b249d174ca945fc19ac"
+    },
+    {
+      "run": "run-7",
+      "name": "真实图片替换成功，跨直播图片引用拒绝，原图进入保留期",
+      "at": "2026-11-19T06:47:59.341Z"
+    },
+    {
+      "run": "run-7",
+      "name": "真实H5前台15秒自动更新读到后台新动态",
+      "at": "2026-11-19T06:48:11.263Z"
+    },
+    {
+      "run": "run-7",
+      "name": "真实H5 visibilitychange生命周期触发暂停与回前台同步；非物理切后台",
+      "at": "2026-11-19T06:48:29.277Z"
+    },
+    {
+      "run": "run-7",
+      "name": "真实非空20条分页与更早内容，无重复遗漏",
+      "at": "2026-11-19T06:48:43.444Z",
+      "total": 25
+    },
+    {
+      "run": "run-7",
+      "name": "客户云端图片维护dryRun保护已发布图片",
+      "at": "2026-11-19T06:48:44.264Z"
+    },
+    {
+      "run": "run-7",
+      "name": "专用验收赛事隐藏/公开/再隐藏联动，H5移除旧直播，可信微信拒绝隐藏内容",
+      "at": "2026-11-19T06:48:52.313Z"
+    },
+    {
+      "run": "run-7",
+      "name": "验收直播全部软删除，原比赛赛果、榜单、平台设置和原直播均保持一致",
+      "at": "2026-11-19T06:49:55.141Z"
+    },
+    {
+      "run": "run-7",
+      "name": "管理员验收会话已撤销",
+      "at": "2026-11-19T06:52:09.637Z"
+    },
+    {
+      "run": "run-8",
+      "name": "普通后台真实登录、赛事比赛选择可达，10项匿名管理请求均拒绝",
+      "at": "2026-11-19T06:59:13.713Z"
+    },
+    {
+      "run": "run-8",
+      "name": "两个客户集合均拒绝可信微信客户端直接读写",
+      "at": "2026-11-19T07:00:06.265Z"
+    },
+    {
+      "run": "run-8",
+      "name": "客户云端直播图片开关与64KiB分片配置生效",
+      "at": "2026-11-19T07:00:06.265Z"
+    },
+    {
+      "run": "run-8",
+      "name": "HTTPS与可信微信读取同一条非空直播，公开投影隐藏管理元数据",
+      "at": "2026-11-19T07:00:18.396Z",
+      "entryId": "l_5f8d64e3d847e6d28e1431889e6e3758"
+    },
+    {
+      "run": "run-8",
+      "name": "新动态在后台/H5/可信微信非空回读一致，保留供原生补验",
+      "at": "2026-11-19T07:00:19.291Z",
+      "entryId": "l_5f8d64e3d847e6d28e1431889e6e3758"
+    },
+    {
+      "run": "run-8",
+      "name": "验收直播全部软删除，原比赛赛果、榜单、平台设置和原直播均保持一致",
+      "at": "2026-11-19T07:35:17.024Z"
+    },
+    {
+      "run": "run-8",
+      "name": "图片维护预览/执行/重试仅清理到期临时分片，所有最终图片保留且字节一致",
+      "at": "2026-11-19T07:38:05.973Z"
+    },
+    {
+      "run": "run-8",
+      "name": "验收直播全部软删除，原比赛赛果、榜单、平台设置和原直播均保持一致",
+      "at": "2026-11-19T07:39:34.203Z"
+    },
+    {
+      "run": "run-8",
+      "name": "管理员验收会话已撤销",
+      "at": "2026-11-19T07:39:35.231Z"
+    },
+    {
+      "run": "run-9",
+      "name": "普通后台真实登录、赛事比赛选择可达，10项匿名管理请求均拒绝",
+      "at": "2026-11-19T07:40:24.801Z"
+    },
+    {
+      "run": "run-9",
+      "name": "两个客户集合均拒绝可信微信客户端直接读写",
+      "at": "2026-11-19T07:40:51.726Z"
+    },
+    {
+      "run": "run-9",
+      "name": "客户云端直播图片开关与64KiB分片配置生效",
+      "at": "2026-11-19T07:40:51.726Z"
+    },
+    {
+      "run": "run-9",
+      "name": "确认删除补验文字已发布并在H5可见",
+      "at": "2026-11-19T07:40:54.669Z",
+      "entryId": "l_5257ed2f2dfc97ce8b73f362c2c6c713"
+    },
+    {
+      "run": "run-9",
+      "name": "验收直播全部软删除，原比赛赛果、榜单、平台设置和原直播均保持一致",
+      "at": "2026-11-19T07:50:08.030Z"
+    },
+    {
+      "run": "run-9",
+      "name": "验收直播全部软删除，原比赛赛果、榜单、平台设置和原直播均保持一致",
+      "at": "2026-11-19T08:09:08.761Z"
+    },
+    {
+      "run": "run-9",
+      "name": "管理员验收会话已撤销",
+      "at": "2026-11-19T08:09:09.159Z"
+    },
+    {
+      "run": "run-9",
+      "name": "普通后台输入删除确认及H5移除已执行；额外回读网络中断后，官方云端独立复核软删除通过",
+      "entryId": "l_5257ed2f2dfc97ce8b73f362c2c6c713",
+      "cloudReadRequestId": "de6b7d38-419a-4b7e-af4d-a724bb967745"
+    }
+  ],
+  "anonymousManagement": {
+    "testedActions": [
+      "live.listAdmin",
+      "live.publish",
+      "live.correct",
+      "live.delete",
+      "live.images.config",
+      "live.images.start",
+      "live.images.chunk",
+      "live.images.finish",
+      "live.images.get",
+      "live.images.cleanup"
+    ],
+    "allReturned401": true
+  },
+  "businessWrites": {
+    "liveEntriesPublished": 31,
+    "liveEntriesSoftDeleted": 31,
+    "liveImagesUploaded": 8,
+    "permissionProbesRemoved": true,
+    "customerMatchResultsStandingsSettingsChanged": false,
+    "dedicatedVisibilityCompetition": {
+      "id": "c_6d34b434c2a54880e0295c3b429646ef",
+      "displayEnabled": false
+    },
+    "dedicatedPlaceholderMatchRetainedHidden": true,
+    "softDeletedAuditRecordsRetained": true
+  },
+  "imageUploads": [
+    {
+      "id": "li_fffed110787b0905af42a8aec32c81e8",
+      "entryId": "l_cc6fa826f89d7872dfd41547314383be",
+      "name": "d11-field.png",
+      "mime": "image/png",
+      "width": 220,
+      "height": 180,
+      "bytes": 135800,
+      "chunks": 3,
+      "sha256": "d2bc42e9306760b7da13c93aa631a2e71790bebdbe5360746921c96a90dbb9c4",
+      "source": "API upload",
+      "readyAt": "2026-11-19T03:43:24.844Z"
+    },
+    {
+      "id": "li_d64ac06a290308890f58bc257d49cd86",
+      "entryId": "l_45cc29ab3322a57c2d33e1e90c1f7eaa",
+      "name": "d11-admin.jpg",
+      "mime": "image/jpeg",
+      "bytes": 16383,
+      "sha256": "0eea18a57447921ae03ea3981086349246090d2fdfbe646df0be4327de04dbf1",
+      "source": "Normal admin local file upload",
+      "readyAt": "2026-11-19T03:43:55.180Z"
+    },
+    {
+      "id": "li_e080a6c56a06365116b3c483887b6bf2",
+      "entryId": "l_45cc29ab3322a57c2d33e1e90c1f7eaa",
+      "name": "d11-admin.png",
+      "mime": "image/png",
+      "bytes": 135800,
+      "sha256": "d2bc42e9306760b7da13c93aa631a2e71790bebdbe5360746921c96a90dbb9c4",
+      "source": "Normal admin local file upload",
+      "readyAt": "2026-11-19T03:43:55.555Z"
+    },
+    {
+      "id": "li_fffed11486e4321ccbcc0abe6644bcd8",
+      "entryId": "l_00dec066cbc51b249d174ca945fc19ac",
+      "name": "d11-field.png",
+      "mime": "image/png",
+      "width": 220,
+      "height": 180,
+      "bytes": 135809,
+      "chunks": 3,
+      "sha256": "df09acbbf670b3cc155a36774ea492712a2f20657b53fb388cea09389a807bfd",
+      "source": "API upload",
+      "readyAt": "2026-11-19T06:47:16.834Z"
+    },
+    {
+      "id": "li_b41a9b9f16f9e452640dc82748a94ac6",
+      "entryId": "l_0dd978eff49add16366b4d79273601f0",
+      "name": "d11-admin.jpg",
+      "mime": "image/jpeg",
+      "bytes": 16342,
+      "sha256": "0d69c057c3084f2d2b89ee5d5506d8a6e924627e80f45696dc2bee58a0e792a6",
+      "source": "Normal admin local file upload",
+      "readyAt": "2026-11-19T06:47:35.863Z"
+    },
+    {
+      "id": "li_602bbcb86fd547052297a662836dd8a5",
+      "entryId": "l_0dd978eff49add16366b4d79273601f0",
+      "name": "d11-admin.png",
+      "mime": "image/png",
+      "bytes": 135809,
+      "sha256": "df09acbbf670b3cc155a36774ea492712a2f20657b53fb388cea09389a807bfd",
+      "source": "Normal admin local file upload",
+      "readyAt": "2026-11-19T06:47:36.432Z"
+    },
+    {
+      "id": "li_fffed1145981a64c90453b82929dfef7",
+      "entryId": "l_00dec066cbc51b249d174ca945fc19ac",
+      "name": "d11-replacement.jpg",
+      "mime": "image/jpeg",
+      "width": 120,
+      "height": 90,
+      "bytes": 16342,
+      "chunks": 1,
+      "sha256": "0d69c057c3084f2d2b89ee5d5506d8a6e924627e80f45696dc2bee58a0e792a6",
+      "source": "API upload",
+      "readyAt": "2026-11-19T06:47:49.861Z"
+    },
+    {
+      "id": "li_d560fe617698c961435b1a932addd258",
+      "entryId": "l_5f8d64e3d847e6d28e1431889e6e3758",
+      "name": "d11-native.png",
+      "mime": "image/png",
+      "bytes": 54932,
+      "sha256": "47f66237b807cd8755004feb4a6ac2c76964eb87fbe281e1af91a81d277f8982",
+      "readyAt": "2026-11-19T07:00:14.701Z",
+      "source": "Normal admin local file upload"
+    }
+  ],
+  "cleanup": {
+    "preview": {
+      "status": 200,
+      "ok": true,
+      "dryRun": true,
+      "scanned": 8,
+      "eligibleObjects": 16,
+      "removedObjects": 0,
+      "protectedImages": 0,
+      "deferredImages": 0,
+      "nextCursor": null
+    },
+    "execute": {
+      "status": 200,
+      "ok": true,
+      "dryRun": false,
+      "scanned": 8,
+      "eligibleObjects": 16,
+      "removedObjects": 16,
+      "protectedImages": 0,
+      "deferredImages": 0,
+      "nextCursor": null
+    },
+    "retry": {
+      "status": 200,
+      "ok": true,
+      "dryRun": false,
+      "scanned": 8,
+      "eligibleObjects": 0,
+      "removedObjects": 0,
+      "protectedImages": 0,
+      "deferredImages": 0,
+      "nextCursor": null
+    },
+    "finalImagesRetained": 8,
+    "removedOnlyExpiredStaging": true,
+    "finalImageHashesVerified": true
+  },
+  "finalBusinessState": {
+    "at": "2026-11-19T08:09:08.761Z",
+    "testEntriesSoftDeleted": 1,
+    "originalLiveEntries": 0,
+    "matchUnchanged": true,
+    "standingsUnchanged": true,
+    "platformSettingsUnchanged": true,
+    "visibilityTestCompetitionHidden": true
+  },
+  "normalAdminDeletionVerification": {
+    "recordedAt": "2026-11-19T08:10:31.939Z",
+    "entryId": "l_5257ed2f2dfc97ce8b73f362c2c6c713",
+    "source": "Same acceptance session: normal admin UI execution in followup.mjs removeBrowser, owned state and H5 assertion; subsequent official cloud_db_read_doc independent result.",
+    "adminConfirmation": {
+      "disabledBeforeTyping": true,
+      "typedConfirmation": "删除",
+      "responseStatus": 200,
+      "responseOk": true
+    },
+    "h5EntryCountAfterRefresh": 0,
+    "interruption": {
+      "stage": "additional list() read after successful delete and H5 assertion",
+      "message": "fetch failed",
+      "originalFailureRetained": true
+    },
+    "cloudRecord": {
+      "version": 2,
+      "deletedAt": 1795074173252,
+      "requestId": "de6b7d38-419a-4b7e-af4d-a724bb967745"
+    },
+    "finalBaseline": {
+      "at": "2026-11-19T08:09:08.761Z",
+      "testEntriesSoftDeleted": 1,
+      "originalLiveEntries": 0,
+      "matchUnchanged": true,
+      "standingsUnchanged": true,
+      "platformSettingsUnchanged": true,
+      "visibilityTestCompetitionHidden": false
+    },
+    "sessionRevoked": true
+  },
+  "allAcceptanceSessionsRevoked": true,
+  "nativeSimulator": {
+    "at": "2026-11-19T07:30:06.075Z",
+    "project": "/Users/limingnuo/Documents/code/community-football",
+    "page": "pages/match/detail",
+    "matchId": "m_3bbdd8550df012cf8ca9ea91f9e67e5b",
+    "entryId": "l_5f8d64e3d847e6d28e1431889e6e3758",
+    "realEntryCount": 1,
+    "renderedImages": 1,
+    "errorCleared": true,
+    "liveTabActualTap": true,
+    "nonemptyScreenshot": "run-8/mini-live-nonempty.jpg",
+    "beforeFixScreenshot": "run-8/mini-live-before-fix.jpg",
+    "nativeImagePreviewVerified": false,
+    "physicalDevice": false,
+    "fix": "Shared content image URL validation reuses native-compatible safeBadgeUrl; browserless regression reproduced then passed.",
+    "nonemptyFeedVerified": true,
+    "actualNativeBackgroundLifecycleVerified": false,
+    "afterDeletionEmptyFeedVerified": true,
+    "restoredEmptyFeed": {
+      "recordedAt": "2026-11-19T08:10:31.945Z",
+      "source": "Official automation_evaluate and simulator screenshot observed in same acceptance session; screenshot visually reviewed after restore.",
+      "route": "pages/match/detail",
+      "entryCount": 0,
+      "error": "",
+      "empty": true,
+      "loading": false,
+      "screenshot": "run-9/mini-live-restored.jpg",
+      "physicalDevice": false
+    }
+  },
+  "localValidation": {
+    "fullSuite": {
+      "total": 339,
+      "passed": 339,
+      "failed": 0
+    },
+    "regression": "Signed live image response parsed in a browserless VM: reproduced INVALID_RESPONSE before fix, passed after using shared native-compatible image URL validation.",
+    "liveBrowserGroups": 17,
+    "newsSearchImageBrowserGroups": 28,
+    "browserGroupsRerunAfterFix": true,
+    "typecheckClient": true,
+    "typecheckAdmin": true,
+    "sharedModelCheck": true,
+    "builds": [
+      "admin",
+      "H5",
+      "mp-weixin"
+    ],
+    "gitDiffWhitespaceCheck": true
+  },
+  "resolvedAcceptanceInterruptions": [
+    {
+      "run": "run-6",
+      "stage": "run",
+      "message": "Command failed: /usr/local/bin/wechatide -c Codex automation_evaluate --project /Users/limingnuo/Documents/code/community-football --fn-source function(){return (async function(env,data){wx.cloud.init({env});return(await wx.cloud.callFunction({name:\"adminAuth\",config:{env},data})).result})(...[\"cloud1-d6gzg20x709d7f6c1\",{\"action\":\"live.listPublic\",\"matchId\":\"m_3bbdd8550df012cf8ca9ea91f9e67e5b\"}])}\n[wechatide] skill-call: client=Codex tool=automation_evaluate\n",
+      "at": "2026-11-19T03:44:23.852Z",
+      "resolution": "Later sequential trusted-cloud calls passed in run-7/run-8."
+    },
+    {
+      "run": "run-7",
+      "stage": "run",
+      "message": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-live-id=\"l_0dd978eff49add16366b4d79273601f0\"]').getByRole('button', { name: '删除直播', exact: true })\u001b[22m\n",
+      "at": "2026-11-19T06:49:55.144Z",
+      "resolution": "Selected deletion row was beyond the first 20-item admin page; normal confirmation deletion independently passed in run-9."
+    },
+    {
+      "run": "run-8",
+      "stage": "delete",
+      "message": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '重新读取直播', exact: true })\u001b[22m\n",
+      "at": "2026-11-19T07:30:34.822Z",
+      "resolution": "Editing shared source reloaded admin to overview; reopened live workspace and confirmation deletion passed in run-9."
+    },
+    {
+      "run": "run-9",
+      "stage": "delete",
+      "message": "fetch failed",
+      "at": "2026-11-19T07:43:05.350Z",
+      "resolution": "Normal admin confirmed deletion returned 200/ok and H5 removal passed before an additional list read failed; official cloud read independently confirmed version 2 and deletedAt, then baseline restore passed."
+    },
+    {
+      "run": "run-9",
+      "stage": "exit",
+      "message": "fetch failed",
+      "at": "2026-11-19T08:08:14.139Z",
+      "resolution": "First exit restore encountered fetch failed; retry restored baseline, logout returned 200/ok and session revocation was recorded before process exit."
+    }
+  ],
+  "limits": [
+    "Native actual image-preview button click, native physical background/foreground lifecycle, iPhone/Android and actual multiple administrators remain unverified.",
+    "H5 visibilitychange was dispatched through browser evaluation; physical application switching was not verified.",
+    "All eight final images remain within their genuine 24-hour retention; only expired staging fragments were deleted.",
+    "Nonempty paging/query succeeded at 25 public entries; no composite index, high-scale query or throughput acceptance claimed.",
+    "Dedicated hidden acceptance competition/match and soft-deleted audit records remain; original results, standings, platform settings and public feed baseline were restored.",
+    "Mini-program local rebuild and simulator passed; no experience-version upload, review submission or public admin hosting performed."
+  ],
+  "d12": {
+    "status": "not started",
+    "next": "Start D12 scoring and selection development after this D11 cloud acceptance handoff; scoring/eligibility/time-window rules are still to be defined."
+  },
+  "markdownVersion": "2.29",
+  "workbookSnapshotVersion": "2.26",
+  "workbookUpdatedThisIncrement": false,
+  "gitCommitted": false,
+  "gitPushed": false
+}

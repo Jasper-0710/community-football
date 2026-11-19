@@ -40,10 +40,25 @@ export async function prepareNewsImage(file: Pick<File,'name'|'size'|'type'|'arr
 }
 function base64(bytes: Uint8Array) { let raw = ''; for (let i=0;i<bytes.length;i+=4096) raw += String.fromCharCode(...bytes.subarray(i,i+4096)); return btoa(raw) }
 export async function uploadNewsImage(draft: NewsImageDraft, articleId: string, authorized: <T>(fn:(api:AdminApi,token:string)=>Promise<T>)=>Promise<T>, current:()=>boolean = ()=>true) {
+  return uploadPreparedImage(draft, {
+    prefix: 'ni',
+    start: fields => authorized((api, token) => api.startNewsImage(token, { ...fields, articleId })),
+    chunk: (id, index, data) => authorized((api, token) => api.newsImageChunk(token, id, index, data)),
+    finish: id => authorized((api, token) => api.finishNewsImage(token, id)),
+    matches: image => image.articleId === articleId,
+  }, current)
+}
+export async function uploadPreparedImage<T extends { id: string; size: number; mime: string }>(draft: NewsImageDraft, transport: {
+  prefix: string
+  start(fields: {requestId: string; name: string; size: number; mime: 'image/png' | 'image/jpeg'; sha256: string}): Promise<{id: string; chunkSize: number; uploaded: number[]}>
+  chunk(id: string, index: number, data: string): Promise<void>
+  finish(id: string): Promise<T>
+  matches(image: T): boolean
+}, current: () => boolean = () => true): Promise<T> {
   const check = () => { if (!current()) throw new ContentClientError('CANCELLED','图片上传已取消。') }
   check()
   const {name,size,mime,sha256} = draft
-  const startUpload = () => authorized((api,token)=>api.startNewsImage(token,{articleId,requestId:draft.requestId,name,size,mime,sha256}))
+  const startUpload = () => transport.start({requestId:draft.requestId,name,size,mime,sha256})
   let start
   try { start = await startUpload() }
   catch (e) {
@@ -51,19 +66,19 @@ export async function uploadNewsImage(draft: NewsImageDraft, articleId: string, 
     check(); draft.requestId = requestId(); draft.progress = 0; start = await startUpload()
   }
   const count = Math.ceil(size/start.chunkSize)
-  if (start.id !== `ni_${draft.requestId}` || start.uploaded.some(i=>i>=count)) throw new ContentClientError('INVALID_RESPONSE','图片上传状态异常，请重新选择。')
+  if (start.id !== `${transport.prefix}_${draft.requestId}` || start.uploaded.some(i=>i>=count)) throw new ContentClientError('INVALID_RESPONSE','图片上传状态异常，请重新选择。')
   let done = start.uploaded.length
   draft.progress = Math.floor(done/count*90)
   for (let index=0;index<count;index++) {
     check()
     if (start.uploaded.includes(index)) continue
-    await authorized((api,token)=>api.newsImageChunk(token,start.id,index,base64(draft.bytes.subarray(index*start.chunkSize,Math.min(size,(index+1)*start.chunkSize)))))
+    await transport.chunk(start.id,index,base64(draft.bytes.subarray(index*start.chunkSize,Math.min(size,(index+1)*start.chunkSize))))
     check(); done++; draft.progress = Math.floor(done/count*90)
   }
   check()
-  const image = await authorized((api,token)=>api.finishNewsImage(token,start.id))
+  const image = await transport.finish(start.id)
   check()
-  if (image.articleId !== articleId || image.id !== start.id || image.size !== size || image.mime !== mime) throw new ContentClientError('INVALID_RESPONSE','返回图片与本次上传不匹配。')
+  if (!transport.matches(image) || image.id !== start.id || image.size !== size || image.mime !== mime) throw new ContentClientError('INVALID_RESPONSE','返回图片与本次上传不匹配。')
   draft.progress = 100
   return image
 }

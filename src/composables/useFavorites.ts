@@ -1,14 +1,22 @@
-import { ref } from 'vue'
-const favoriteIds = ref<string[]>([])
+import { effectScope, watch } from 'vue'
+import { currentUserId } from './useUserProfile'
+import { createFavoritesState } from './favorites-state'
+import { getCloudFavorites, setCloudFavorite, mergeCloudFavorites } from '@/services/favorites'
+import { getPublicTeam } from '@/services/content'
+import { favoriteTeam } from '@/domain/favorites'
+
+const state = createFavoritesState({
+  environment: import.meta.env.VITE_WECHAT_CLOUD_ENV_ID || '',
+  endpoint: import.meta.env.VITE_COMPETITION_API_URL?.trim() || '',
+  read: key => uni.getStorageSync(key), write: (key, value) => uni.setStorageSync(key, value),
+  load: getCloudFavorites, set: setCloudFavorite, merge: mergeCloudFavorites,
+  publicTeam: async id => favoriteTeam(await getPublicTeam(id)),
+})
 let initialized = false
 export function useFavorites() {
   if (!initialized) {
-    try { const stored = uni.getStorageSync('community-football:favorites'); favoriteIds.value = Array.isArray(stored) ? stored.filter(v => typeof v === 'string') : [] } catch { favoriteIds.value = [] }
     initialized = true
+    effectScope(true).run(() => watch(currentUserId, id => state.selectAccount(id), { immediate: true, flush: 'sync' }))
   }
-  function toggle(id: string) {
-    const next = favoriteIds.value.includes(id) ? favoriteIds.value.filter(v => v !== id) : [...favoriteIds.value, id]
-    try { uni.setStorageSync('community-football:favorites', next); favoriteIds.value = next } catch { uni.showToast({ title: '本地保存失败，请重试', icon: 'none' }) }
-  }
-  return { favoriteIds, toggle }
+  return state
 }

@@ -1,0 +1,116 @@
+{
+  "date": "2026-11-18",
+  "timezone": "Asia/Shanghai",
+  "feature": "D04-2 客户队徽非空业务闭环",
+  "status": "real upload/save/replace/default/public-scope loop passed; retention expiry cleanup and physical devices remain pending",
+  "target": {
+    "appid": "wx3230f06c755cef3a",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "gatewayPath": "/admin-suth"
+  },
+  "transport": "Real WeChat simulator trusted identity plus customer HTTPS gateway and Chrome; no in-memory business service",
+  "configuration": {
+    "enabled": true,
+    "maxBytes": 262144,
+    "chunkSize": 65536,
+    "clientDirectReadDenied": true,
+    "clientDirectWriteDenied": true,
+    "permissionErrorCode": -502003,
+    "writeProbeCreated": false
+  },
+  "checksPassed": [
+    "anonymous admin team/cleanup denied HTTP 401",
+    "real isolated registration/material/review enabled public team visibility",
+    "PNG two-chunk upload, duplicate chunk, incomplete finish rejection, repeated finish, SHA-256 signed-download equality",
+    "finished upload leaves default unchanged before explicit save",
+    "first save/retry binds once; owner/admin/public projections agree",
+    "JPG replacement remains staged until save; same three projections and signed bytes agree",
+    "old version, foreign team, oversize payload and malformed PNG rejected with no saved team change",
+    "hiding/showing dedicated competition removes/restores public destination while owner/admin badge remains",
+    "390px real admin browser loads saved image and cleanup preview; pageerror empty",
+    "restore default retry idempotent; original team fields and two-player roster preserved",
+    "cancel test registration and release capacity; close and hide dedicated competition",
+    "real cleanup preview/execute/retry respects retention; referenced replacement protected before restore",
+    "administrator session closed"
+  ],
+  "images": [
+    {
+      "id": "tb_fffd04206eb3c6d2a57077136bde98f4",
+      "mime": "image/png",
+      "size": 87904,
+      "width": 160,
+      "height": 160,
+      "sha256": "bdeb4e9a50f358d19f13459b0c532d7a87ccb339d4bd1438c3a536aeb0ea730c",
+      "chunks": 2
+    },
+    {
+      "id": "tb_fffd042064cbf03d094868a2a80e3268",
+      "mime": "image/jpeg",
+      "size": 32696,
+      "width": 160,
+      "height": 160,
+      "sha256": "5b1b4941a1f72b8e94419377681c58a45003acba00d7a1051b9c891098beb122",
+      "chunks": 1
+    }
+  ],
+  "testScope": {
+    "teamId": "t_7bb4fa553fdf7145565d70d6bd12480e3747e7fdefc585d5b91a8202b70cacfb",
+    "initialVersion": 4,
+    "initialPlayerCount": 2,
+    "finalDefaultBadge": true,
+    "rosterUnchanged": true,
+    "competitionId": "c_e7fb690fc1face1a8905d8f1daa478ed",
+    "registrationCancelled": true,
+    "competitionHidden": true,
+    "registrationClosed": true,
+    "occupied": 0
+  },
+  "cleanup": {
+    "preview": {
+      "status": 200,
+      "ok": true,
+      "dryRun": true,
+      "scanned": 3,
+      "eligibleObjects": 0,
+      "removedObjects": 0,
+      "protectedBadges": 0,
+      "deferredBadges": 2,
+      "nextCursor": null
+    },
+    "execution": {
+      "status": 200,
+      "ok": true,
+      "dryRun": false,
+      "scanned": 3,
+      "eligibleObjects": 0,
+      "removedObjects": 0,
+      "protectedBadges": 0,
+      "deferredBadges": 2,
+      "nextCursor": null
+    },
+    "retry": {
+      "status": 200,
+      "ok": true,
+      "dryRun": false,
+      "scanned": 3,
+      "eligibleObjects": 0,
+      "removedObjects": 0,
+      "protectedBadges": 0,
+      "deferredBadges": 2,
+      "nextCursor": null
+    },
+    "protectedWhileReferenced": 1,
+    "deferredBadgeCount": 2,
+    "retentionHours": 24,
+    "removedObjects": 0,
+    "expiryDeletionVerified": false,
+    "note": "Newly unreferenced images remain within normal retention. No timestamp manipulation or claimed deletion."
+  },
+  "failures": [],
+  "remaining": [
+    "24-hour expired-object deletion against these real uploads",
+    "iPhone/Android native picker/camera/compression/cancel",
+    "second account/device and dissolved archive badge protection cloud samples",
+    "formal customer signoff"
+  ]
+}

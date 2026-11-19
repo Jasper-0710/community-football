@@ -1,0 +1,137 @@
+{
+  "date": "2026-11-18",
+  "feature": "D10 favorites cloud synchronization",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "Trusted current WeChat account invoking deployed customer functions plus native simulator profile re-entry and visual review; no cloud/identity mocks, no element taps or physical devices",
+  "deployment": {
+    "function": "userProfile",
+    "success": true,
+    "files": 7,
+    "packSize": "27.3 KB",
+    "state": "Active",
+    "timeoutSeconds": 20,
+    "runtime": "Nodejs16.13",
+    "downloadedRuntimeFilesMatched": [
+      {
+        "file": "index.js",
+        "sha256": "21595188bb34a7c7d14b5a33327619093dd6c204ceebee2120c024af2fcbe90c",
+        "equal": true
+      },
+      {
+        "file": "service.js",
+        "sha256": "2e5156fba945814907145d7fcd9b24d2dfcdc9ef4f85ac4f4bda3637f5468598",
+        "equal": true
+      },
+      {
+        "file": "favorites.js",
+        "sha256": "f04cb316d5f4ff5f23573273aa27244f45a3020f1145b62d5e58e8f6bd2d22b4",
+        "equal": true
+      },
+      {
+        "file": "favorites-store.js",
+        "sha256": "a1bc9b89a6d2c2c2890fffe00ddb751cd5479b5f9d462c8fe72adb6f119b4cf2",
+        "equal": true
+      },
+      {
+        "file": "package.json",
+        "sha256": "36ab089f49145d048e19f91d18635e0a28e8a002f15acac8a37aed91a537dd92",
+        "equal": true
+      },
+      {
+        "file": "package-lock.json",
+        "sha256": "cb3ce320f157dace22b15a7fa9cbe0d5e292409e189f32cc441e3e0de2cf8838",
+        "equal": true
+      }
+    ],
+    "rawEnvironmentValuesCompared": false
+  },
+  "checks": [
+    {
+      "name": "deployed userProfile runtime and dependency files match local source",
+      "files": 6
+    },
+    {
+      "name": "legacy favorites read without mutating current user",
+      "version": 0,
+      "count": 0
+    },
+    {
+      "name": "real public team followed and read back",
+      "version": 1
+    },
+    {
+      "name": "desired-state retry after a lost acknowledgement is idempotent",
+      "version": 1
+    },
+    {
+      "name": "explicit nonempty merge adds only missing public teams",
+      "version": 2
+    },
+    {
+      "name": "merge retry does not duplicate teams or increment version"
+    },
+    {
+      "name": "stale-device version cannot overwrite newer favorites"
+    },
+    {
+      "name": "wrong owner precondition and unsupported identity fields rejected"
+    },
+    {
+      "name": "real unfollow persists after a fresh read"
+    },
+    {
+      "name": "nickname, avatar, role and avatar upload capability preserved"
+    },
+    {
+      "name": "original favorites restored and reread through normal versioned cloud operations",
+      "count": 0
+    }
+  ],
+  "privacy": {
+    "directUsersAccess": [
+      {
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      }
+    ],
+    "nicknameAvatarRolePreserved": true,
+    "avatarUploadCapabilityEnabled": true,
+    "otherBusinessRecordsChanged": false
+  },
+  "nativePageReadback": {
+    "realFavoriteCount": 1,
+    "followedVersion": 5,
+    "restoredCount": 0,
+    "restoredVersion": 6,
+    "screenshotsVisuallyReviewed": [
+      "profile-nonempty.png",
+      "profile-restored.png"
+    ],
+    "evidenceDirectory": ".tools/customer-favorites-20261118/",
+    "elementInteractionsTested": false,
+    "reloginTested": false,
+    "guestMergeUiTested": false,
+    "limitation": "Automation page selectors did not resolve buttons inside custom components; API merge and page re-entry do not prove these native click flows"
+  },
+  "restoration": {
+    "originalTeamIdsRestored": true,
+    "finalCount": 0,
+    "finalVersion": 6,
+    "normalVersionedApiUsed": true
+  },
+  "errors": [],
+  "pending": [
+    "native sign-out/relogin and guest merge click flows",
+    "actual second WeChat account",
+    "two physical devices",
+    "WeChat iPhone and Android"
+  ],
+  "workbookUpdatedThisIncrement": false,
+  "gitCommitted": false
+}

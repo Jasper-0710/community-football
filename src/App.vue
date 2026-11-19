@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { onLaunch } from '@dcloudio/uni-app'
+import { onLaunch,onShow } from '@dcloudio/uni-app'
 import { initializeWechatCloud } from '@/services/wechat-cloud'
+import {usePlatformSettings} from '@/composables/usePlatformSettings'
+import {useFavorites} from '@/composables/useFavorites'
+function refreshSharedState() { void usePlatformSettings().refresh(); const favorites = useFavorites(); if (favorites.owner.value) void favorites.refresh() }
+onShow(refreshSharedState)
 onLaunch(() => {
   initializeWechatCloud()
   // #ifdef H5
@@ -12,6 +16,7 @@ onLaunch(() => {
       target.click()
     }
   })
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSharedState()})
   // #endif
 })
 </script>

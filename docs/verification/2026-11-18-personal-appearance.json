@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-18",
+  "feature": "D10 客户端个人外观设置",
+  "entry": "我的 → 外观设置 → 设置个人外观",
+  "persistence": "本机保存，环境/接口/云端确认的账号/游客各自隔离",
+  "automaticTests": {
+    "passed": 291,
+    "failed": 0,
+    "personalAppearanceCases": 10
+  },
+  "browser": {
+    "date": "2026-11-18",
+    "generatedAt": "2026-11-18T03:11:31.383Z",
+    "checks": [
+      "管理员设置入口、匿名写入拒绝和无配置默认外观正常",
+      "未保存修改只更新后台预览，名称图标和排序不提前影响客户端",
+      "真实HTTPS保存后客户端回到前台及重新加载同步，同一保存无重复提交",
+      "六个可配置入口保留真实站内目标，搜索仍打开现有搜索面板",
+      "深色/自选白色/圆角同步，白底选中图标保留深色，320/390/1440px无横向溢出",
+      "网络失败保留经过校验的已保存设置，并可手动重试恢复",
+      "服务端已提交但响应中断时重试复用请求，版本只增加一次",
+      "并发版本冲突阻止覆盖，重新读取后恢复正确内容",
+      "最长名称/副标题/六个四字导航和未填完整颜色安全预览，两端窄屏与桌面无溢出",
+      "恢复默认先预览再保存，客户端与后台回读一致",
+      "我的外观入口可达，游客说明准确，个人未保存仅预览，保存才全局应用",
+      "本机个人选择在刷新、返回个人中心及进入赛事详情后保持",
+      "无效自选色保存被拒绝，放弃修改及未保存离页不改变已保存外观",
+      "三项独立优先级正确：平台更新只改变跟随项，名称与六导航始终同步",
+      "个人自选白色/深色/圆角在320/390/1440px无溢出，全部跟随先预览再保存",
+      "真实页面存储写入失败不改变当前外观，恢复存储后可重试保存",
+      "损坏或身份不匹配的本机记录安全回退，可重新保存修复"
+    ],
+    "errors": [],
+    "scope": "Real Vue clients and HTTPS handler with real services, isolated transactional memory stores; not customer cloud or physical device acceptance."
+  },
+  "relatedRegression": {
+    "teamBadgeBrowserFlows": 23,
+    "result": "passed"
+  },
+  "simulator": {
+    "date": "2026-11-18",
+    "scope": "Local WeChat developer-tools simulator using the customer public settings and current confirmed account; personal preferences only, no platform/cloud business writes; not physical-device acceptance.",
+    "checks": [
+      "native theme/dark/radius controls select a draft without writing storage",
+      "save writes one validated record scoped to the confirmed WeChat account",
+      "saved preferences survive native page re-entry; rendered screenshot captured",
+      "original simulator personal preferences restored and page re-entered"
+    ],
+    "errors": [],
+    "saved": {
+      "schemaVersion": 1,
+      "ownerKind": "confirmed-wechat-account",
+      "form": {
+        "theme": "ocean",
+        "customColor": "#1e6b48",
+        "mode": "dark",
+        "radius": "round"
+      }
+    },
+    "visualReview": [
+      "海湾蓝/深色/圆润真实渲染，深色状态栏文字和图标变白",
+      "原本机记录已恢复，页面重新进入后显示跟随平台的浅色外观"
+    ],
+    "restoredOriginalLocalPreferences": true
+  },
+  "validation": [
+    "客户端/后台类型",
+    "共享模型一致性",
+    "后台/H5/微信小程序构建",
+    "git diff --check"
+  ],
+  "cloudBusinessWritesThisIncrement": false,
+  "cloudDeploymentRequired": false,
+  "limitations": [
+    "iPhone/Android真机待验",
+    "第二真实微信账号未验；两个账号隔离由依赖注入自动测试验证",
+    "个人偏好无跨设备同步",
+    "未发布小程序体验版或正式版"
+  ]
+}

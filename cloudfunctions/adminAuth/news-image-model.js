@@ -26,4 +26,26 @@ function scopedObject(file, object, storage) {
   return new RegExp(`^news-images/staging/${file._id}/\\d{1,2}-[a-f0-9]{64}$`).test(path) || new RegExp(`^news-images/files/${file._id}/[a-f0-9]{48}\\.(png|jpg)$`).test(path)
 }
 function inventory(file) { const removed = new Set(file.removedFileIDs || []); return (file.objects || []).filter(o => !removed.has(o.fileID)) }
-module.exports = { IMAGE_ID, ARTICLE_ID, MAX_BYTES, CHUNK, TTL, LEASE, NewsImageError, fail, imageIds, syncImageReferences, scopedObject, inventory }
+// Live updates share the proven upload lifecycle, with their own IDs, owners,
+// collection and storage scope. News defaults and existing records stay intact.
+function createImageModel({ imagePattern, ownerPattern, ownerKey, collection, pathPrefix, ids }) {
+  return {
+    IMAGE_ID: imagePattern, ARTICLE_ID: ownerPattern, MAX_BYTES, CHUNK, TTL, LEASE, NewsImageError, fail, inventory, imageIds: ids,
+    scopedObject(file, object, storage) {
+      if (!imagePattern.test(file?._id) || !ownerPattern.test(file[ownerKey]) || typeof object?.fileID !== 'string') return false
+      const path = storage.path(object.fileID)
+      if (!path || path !== object.cloudPath) return false
+      return new RegExp(`^${pathPrefix}/staging/${file._id}/\\d{1,2}-[a-f0-9]{64}$`).test(path) || new RegExp(`^${pathPrefix}/files/${file._id}/[a-f0-9]{48}\\.(png|jpg)$`).test(path)
+    },
+    async syncImageReferences(tx, owner, previous, next, now) {
+      const before = ids(previous), after = next?.deletedAt ? [] : ids(next)
+      for (const id of new Set([...before, ...after])) {
+        const file = await tx.get(collection, id), referenced = after.includes(id)
+        if (referenced && (!file || file[ownerKey] !== owner || file.status !== 'ready' || !file.referenced && file.expiresAt <= now)) fail('INVALID_ARGUMENT', '图片不存在、已过期或不属于这条直播，请重新上传。')
+        if (!file || file[ownerKey] !== owner) continue
+        await tx.set(collection, id, { ...file, referenced, expiresAt: referenced ? null : now + TTL, updatedAt: now })
+      }
+    },
+  }
+}
+module.exports = { IMAGE_ID, ARTICLE_ID, MAX_BYTES, CHUNK, TTL, LEASE, NewsImageError, fail, imageIds, syncImageReferences, scopedObject, inventory, createImageModel }

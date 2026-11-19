@@ -8,6 +8,13 @@
       }
     },
     {
+      "path": "pages/profile/appearance",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "外观设置"
+      }
+    },
+    {
       "path": "pages/match/detail",
       "style": {
         "navigationStyle": "custom",

@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-18",
+  "generatedAt": "2026-11-18T07:42:33.686Z",
+  "checks": [
+    "个人中心发现入口可达，真实球队游客关注仅保存本机并可刷新恢复",
+    "登录不自动搬运游客记录，显式合并云端成功后才清理游客收藏",
+    "独立浏览器上下文以同一身份重新登录可恢复云端收藏",
+    "真实球队主页云端关注、保存中禁用和另一设备回前台同步正常",
+    "多设备版本冲突阻止覆盖，重新同步后可正常取消关注",
+    "保存响应中断不显示虚假成功，重新读取可确认已提交的真实结果",
+    "同步失败保留上次确认的列表并显示失败，重试恢复",
+    "赛事隐藏后收藏不泄露原球队资料，不可用记录仍可取消",
+    "退出立即隐藏账号列表，第二身份为空，重新登录原身份恢复收藏",
+    "个人中心与球队关注入口在1440/390/320px布局无横向溢出"
+  ],
+  "errors": [],
+  "scope": "Real Vue UI and cloud handlers, test-only SDK identity bridge and isolated transactional stores; not customer-cloud, native WeChat, physical-device or actual second-account acceptance.",
+  "feature": "D10 favorites cloud synchronization",
+  "unitTests": {
+    "total": 320,
+    "passed": 320,
+    "newFavoritesTests": 29
+  },
+  "browser": {
+    "favorites": 10,
+    "settingsAndAppearance": 17,
+    "content": 28
+  },
+  "checksPassed": [
+    "client typecheck",
+    "admin typecheck",
+    "shared model contract",
+    "H5 build",
+    "WeChat build",
+    "git diff --check"
+  ],
+  "deployment": {
+    "customerFunction": "userProfile",
+    "performed": false,
+    "customerBusinessWrites": false
+  },
+  "pending": [
+    "customer userProfile deployment and nonempty acceptance",
+    "actual second WeChat account",
+    "two physical devices",
+    "iPhone and Android"
+  ],
+  "workbookUpdated": false,
+  "gitCommitted": false,
+  "snapshotStage": "Initial local delivery before customer deployment; historical 320-test snapshot",
+  "currentCloudEvidence": "2026-11-18-favorites-cloud.json"
+}

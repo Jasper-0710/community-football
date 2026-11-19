@@ -65,3 +65,17 @@ D03已完成云端部署、集合私有权限验证、真实HTTPS网页4组与�
 ## D05扩展
 
 registrations.*报名查询/审核/下载全部复用管理员会话，不是公开接口。新增赛事报名配置与事务计数。材料临时链接默认关闭，启用条件见../../docs/REGISTRATIONS_DEVELOPMENT.md。
+
+## D10 平台设置
+
+新增私有集合 `platformSettings`（客户端规则 `{"read":false,"write":false}`），固定文档 `primary`。`settings.getPublic` 是明确允许的匿名公开读；仅返回版本、时间及校验后的外观表单。`settings.getAdmin` 和 `settings.update` 必须使用有效后台会话。
+
+更新接受 `expectedVersion`、32位小写十六进制 `requestId` 和完整 `form`，单文档事务比较版本并整体保存；相同请求/内容重试不重复写入，冲突返回CONFLICT。表单限定标题副标题、8主题/自选色、明暗圆角及六个站内导航名称/图标/顺序，不接受任意CSS、URL或站外目标。新增两份设置文件与入口必须一并部署；既有网关和20秒超时保留。详见[设置开发与验收](../../docs/PLATFORM_SETTINGS_DEVELOPMENT.md)。
+
+## D11 比赛图文直播（客户云端非空闭环技术通过）
+
+新增 `match-live.js`、`match-live-images.js`，共用 `content-store.js`、`news-images.js` 和 `news-image-model.js` 的独立图片实例。`live.listPublic` 是唯一匿名直播读；`live.listAdmin/publish/correct/delete` 与 `live.images.*` 均要求管理员会话，沿用现有HTTP网关和20秒超时。
+
+2026-11-19已部署完整27文件包，下载源码与冻结包SHA-256全部一致，Active／20秒／Nodejs16.13；两个直播集合已创建。用户保存配置后，matchLiveEntries、matchLiveImages客户端直接读写4项均拒绝-502003，LIVE_IMAGE_UPLOADS_ENABLED=true及64KiB分片已回读，10类匿名管理401。真实文字/PNG/JPG发布、更正、25条分页、可见性、确认删除及引用保护通过；16个到期临时分片已清理，8张最终图仍在24小时保留期。31条验收直播软删除、原业务基线一致、全部会话撤销。推荐matchId升序＋_id升序索引尚未核验，25条查询成功不扩大为规模验收。本段README为部署后说明；27文件一致指冻结部署包。原生图片URL校验仅客户端修复，无需云函数重部署；真机/原生预览点击、物理生命周期及最终图到期删除继续单列。
+
+文本最多1000字，每条最多4图，分钟可空或0–150；稳定请求ID、事务版本及图片归属防止重复/跨内容引用。公开图片动态签名，独立存储路径 `match-live/`；脱离引用保留24小时，后台按页预览/确认清理。每页20条、每场扫描上限2000（含软删除），超限拒绝。详见[开发、部署与验收清单](../../docs/MATCH_LIVE_DEVELOPMENT.md)。

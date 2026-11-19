@@ -4,16 +4,13 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { Tournament, Tab } from '@/domain/types'
 import type { AvatarUpload } from '@/domain/user'
 import { MAX_NICKNAME_LENGTH } from '@/domain/user'
-import { useFavorites } from '@/composables/useFavorites'
 import { useUserProfile } from '@/composables/useUserProfile'
 import { prepareAvatarUpload, profileErrorMessage } from '@/services/user-profile'
 import AppIcon from '@/components/AppIcon.vue'
-import TeamBadge from '@/components/TeamBadge.vue'
+import FavoritesPanel from '@/components/FavoritesPanel.vue'
 
 const props = defineProps<{ data: Tournament }>()
 const emit = defineEmits<{ navigate: [tab: Tab, view?: string] }>()
-const { favoriteIds, toggle } = useFavorites()
-const favorites = computed(() => props.data.teams.filter(t => favoriteIds.value.includes(t.id)))
 const { profile, loading, saving, refreshingAvatar, refreshAvatar, error, supported, login, save, logout } = useUserProfile()
 const nickname = ref('')
 const draftAvatar = ref<AvatarUpload>()
@@ -66,7 +63,7 @@ function avatarFailed(target: 'header' | 'editor') {
 
 function openMyTeam() { uni.navigateTo({ url: '/pages/team/manage' }) }
 function openRegistrations() { uni.navigateTo({ url: '/pages/registration/mine' }) }
-function open(id: string) { uni.navigateTo({ url: `/pages/team/detail?id=${id}` }) }
+function openAppearance() { uni.navigateTo({ url: '/pages/profile/appearance' }) }
 async function startLogin() { notice.value = ''; await login() }
 function signOut() {
   ++avatarGeneration
@@ -137,6 +134,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
       <button class="ui-button primary-button" @click="openMyTeam">{{ profile ? '进入我的球队' : '登录并管理球队' }}<AppIcon name="arrow" tone="white" :size="18"/></button>
     </view>
     <view class="panel my-team-entry"><view><view class="my-team-entry-title"><AppIcon name="calendar" tone="green" :size="26"/><text class="section-title">我的报名</text></view><text class="section-subtitle">查看报名材料、审核结果与参赛进度</text></view><button class="ui-button outline-button" @click="openRegistrations">查看我的报名<AppIcon name="arrow" tone="green" :size="18"/></button></view>
+    <view class="panel my-team-entry appearance-entry"><view><view class="my-team-entry-title"><AppIcon name="user" tone="green" :size="26"/><text class="section-title">外观设置</text></view><text class="section-subtitle">选择主题、明暗与圆角，也可跟随平台设置</text></view><button role="button" tabindex="0" hover-class="none" class="ui-button outline-button" @click="openAppearance">设置个人外观<AppIcon name="arrow" tone="green" :size="18"/></button></view>
     <view class="profile-panels">
     <view v-if="!profile" class="panel account-panel login-panel">
       <view class="login-caption"><AppIcon name="check" tone="green" :size="18" /><text>微信身份登录 · 无需账号密码</text></view>
@@ -200,26 +198,11 @@ onBeforeUnmount(() => { ++avatarGeneration })
       <text class="account-field-hint account-footnote">退出只清除此设备的登录状态，不会删除云端资料。</text>
     </view>
 
-    <view class="panel favorites-panel">
-      <view class="section-heading">
-        <view><text class="section-title">我的主队</text><text class="section-subtitle">关注 {{ favorites.length }} 支球队 · 仅保存在本机</text></view>
-        <button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'tournament', 'teams')">发现球队<AppIcon name="arrow" :size="17" /></button>
-      </view>
-      <view v-if="!favorites.length" class="empty-state">
-        <AppIcon name="heart" :size="40" tone="muted" /><text class="h3">你的主场，等你入座</text><text class="muted">关注一支社区球队，把热爱留在这里。</text>
-        <button hover-class="none" role="button" tabindex="0" class="ui-button primary-button" @click="emit('navigate', 'tournament', 'teams')">认识参赛球队</button>
-      </view>
-      <view v-else>
-        <view v-for="team in favorites" :key="team.id" class="favorite-row">
-          <button hover-class="none" role="button" tabindex="0" class="ui-button" @click="open(team.id)"><TeamBadge :team="team" :size="40" /><view><text class="h3">{{ team.name }}</text><text class="muted small-text">{{ team.district }}</text></view></button>
-          <button hover-class="none" role="button" tabindex="0" class="ui-button follow-button followed" @click="toggle(team.id)">取消关注</button>
-        </view>
-      </view>
-    </view>
+    <FavoritesPanel :demo-teams="data.teams" @discover="emit('navigate', 'tournament', 'real-teams')"/>
     </view>
     <view class="prototype-note">
       <AppIcon name="info" tone="green" :size="24" />
-      <view><text class="h3">当前开放的功能</text><text class="prototype-note-description">赛事信息、微信登录与昵称已开放；赛程、球队与新闻仍为示例内容。建队与球员管理已开放，赛事报名将后续开放。关注记录仅保存在本机。</text></view>
+      <view><text class="h3">当前开放的功能</text><text class="prototype-note-description">赛事、真实赛程、榜单、新闻搜索与报名已开放。真实球队支持账号云端收藏；游客收藏和演示球队记录保存在本机，个人外观也仅在本机生效。</text></view>
     </view>
   </view>
 </template>
