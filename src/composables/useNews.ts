@@ -1,5 +1,6 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { listPublicNews } from '@/services/content'
+import { useRecoveryRefresh } from '@/services/public-data'
 import type { ContentCategory, NewsArticle } from '@/domain/content'
 
 export function useNews(initialCategory?: ContentCategory) {
@@ -16,6 +17,7 @@ export function useNews(initialCategory?: ContentCategory) {
     } catch (e) { if (serial === generation) { articles.value = []; cursor.value = null; error.value = e instanceof Error ? e.message : '内容暂不可用。' } }
     finally { if (serial === generation) busy.value = false }
   }
+  useRecoveryRefresh(()=>load())
   onMounted(() => { void load() }); onUnmounted(() => { generation++ })
   return { articles, cursor, category, busy, error, load }
 }

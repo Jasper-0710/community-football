@@ -1,3 +1,4 @@
+import {parseBackup,parseBackupStatus,parseRestorePlan,BackupClientError} from '../../src/domain/recovery'
 import {parseBadgeCleanup} from '../../src/domain/team-badge'
 import {parsePlatformSettings,type PlatformForm} from '../../src/domain/platform-settings'
 import {parseCleanupResult} from './registration-maintenance'
@@ -7,6 +8,7 @@ import type { GroupQualification } from '../../src/domain/match'
 import { parseNewsArticle, parseNewsPage, parseSearchPage, parseContentOverview, type NewsForm, type ContentCategory, type SearchKind } from '../../src/domain/content'
 import { parseNewsImage, parseNewsImageConfig, parseNewsImageUpload, parseNewsImageCleanup } from '../../src/domain/news-image'
 import { parseLiveEntry, parseLivePage, parseLiveUploadedImage, parseLiveImageUpload, parseLiveImageCleanup, type LiveForm } from '../../src/domain/match-live'
+import { parseEvaluationAdmin, parseEvaluationConfig, type EvaluationAdmin, type EvaluationConfig } from '../../src/domain/evaluation'
 export interface AdminSession {
   admin: { username: string; displayName: string; role: 'admin' }
   expiresAt: string
@@ -56,6 +58,13 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     } finally { clearTimeout(timer) }
   }
   return {
+    async backupStatus(token:string){return parseBackupStatus(await request('backup.status',{},token))},
+    async backups(token:string){const r=await request('backup.list',{},token);if(!Array.isArray(r.backups)||r.backups.length>30)throw new BackupClientError();return r.backups.map(parseBackup)},
+    async createBackup(token:string,requestId:string){return parseBackup((await request('backup.create',{requestId},token)).backup)},
+    async backupChunk(token:string,id:string,digest:string,index:number):Promise<{index:number;total:number;data:string}>{return request('backup.chunk',{id,digest,index},token)},
+    async previewBackup(token:string,id:string,digest:string){return parseRestorePlan((await request('backup.preview',{id,digest},token)).plan)},
+    async applyBackup(token:string,planId:string,confirmation:string):Promise<{applied:boolean;rollbackId:string;completedAt:string}>{const r=await request('backup.apply',{planId,confirmation},token);if(typeof r.applied!=='boolean'||!/^b_[a-f0-9]{32}$/.test(r.rollbackId)||typeof r.completedAt!=='string'||!Number.isFinite(Date.parse(r.completedAt)))throw new BackupClientError();return r},
+    async backupResult(token:string,planId:string):Promise<{status:'preview'|'completed';rollbackId:string|null;completedAt:string|null}>{const r=await request('backup.result',{planId},token);if(!['preview','completed'].includes(r.status)||r.status==='completed'&&(!/^b_[a-f0-9]{32}$/.test(r.rollbackId)||typeof r.completedAt!=='string'||!Number.isFinite(Date.parse(r.completedAt))))throw new BackupClientError();return r},
     async liveEntries(token: string, matchId: string, cursor?: string) { return parseLivePage(await request('live.listAdmin', { matchId, ...(cursor ? { cursor } : {}) }, token), true, matchId) },
     async publishLive(token: string, matchId: string, requestId: string, form: LiveForm) { return parseLiveEntry((await request('live.publish', { matchId, requestId, form }, token)).entry, true) },
     async correctLive(token: string, matchId: string, id: string, expectedVersion: number, requestId: string, form: LiveForm) { return parseLiveEntry((await request('live.correct', { matchId, id, expectedVersion, requestId, form }, token)).entry, true) },
@@ -109,6 +118,14 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async updateMatch(token: string, id: string, expectedVersion: number, form: MatchScheduleForm) {
       return parseMatch((await request('matches.update', { id, expectedVersion, form }, token)).match, true)
     },
+    async evaluation(token: string, matchId: string): Promise<EvaluationAdmin> { return parseEvaluationAdmin(await request('evaluation.getAdmin', { matchId }, token)) },
+    async configureEvaluation(token: string, competitionId: string, expectedVersion: number, requestId: string, config: Omit<EvaluationConfig, 'competitionId' | 'version' | 'updatedAt'>) {
+      return parseEvaluationConfig((await request('evaluation.configure', { competitionId, expectedVersion, requestId, config }, token)).config)
+    },
+    async publishEvaluationAwards(token: string, matchId: string, expectedVersion: number, requestId: string, awards: { type: 'mvp' | 'lineup'; playerId: string; position: string | null; rank: number }[]) {
+      return request('evaluation.publishAwards', { matchId, expectedVersion, requestId, awards }, token)
+    },
+    async moderateEvaluationComment(token: string, id: string, hidden: boolean, expectedVersion: number) { return request('evaluation.moderateComment', { id, hidden, expectedVersion }, token) },
     async login(username: string, password: string): Promise<AdminSession & { token: string }> {
       const value = await request('login', { username, password })
       const session = checkSession(value)

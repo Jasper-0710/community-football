@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import {useRecoveryRefresh} from '@/services/public-data'
+useRecoveryRefresh(()=>loadRealMatch())
+import { computed, ref, onUnmounted } from 'vue'
 import { onLoad, onShow, onHide } from '@dcloudio/uni-app'
 import { useTournament } from '@/composables/useTournament'
 import { getPublicMatch } from '@/services/matches'
@@ -10,6 +12,7 @@ import AppShell from '@/components/AppShell.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import TeamBadge from '@/components/TeamBadge.vue'
 import MatchLiveFeed from '@/components/MatchLiveFeed.vue'
+import MatchEvaluationPanel from '@/components/MatchEvaluationPanel.vue'
 
 const { data, matches, error, load } = useTournament()
 const pageActive = ref(true)
@@ -18,10 +21,13 @@ onHide(() => { pageActive.value = false })
 const id = ref(''), tab = ref('overview'), realMatch = ref<MatchSchedule | null>(null), realError = ref('')
 onLoad(query => { id.value = query?.id || ''; void loadRealMatch() })
 
+let realGeneration=0
+onUnmounted(()=>{realGeneration++})
 async function loadRealMatch() {
   if (!id.value) return
-  try { realMatch.value = await getPublicMatch(id.value); realError.value = '' }
-  catch (value) { realMatch.value = null; realError.value = value instanceof Error ? value.message : '暂时无法读取真实比赛详情。' }
+  const generation=++realGeneration
+  try { const value=await getPublicMatch(id.value);if(generation===realGeneration){realMatch.value=value;realError.value=''} }
+  catch (value) { if(generation===realGeneration){realMatch.value = null; realError.value = value instanceof Error ? value.message : '暂时无法读取真实比赛详情。'} }
 }
 function realTeam(id: string, name: string | null | undefined): Team {
   return { id, name: name || '参赛球队', shortName: name || '球队', district: '', group: 'A', color: '#2c7a56', badge: '', founded: 0, description: '' }
@@ -81,8 +87,9 @@ function back() { uni.navigateBack({ fail: () => uni.reLaunch({ url: '/pages/ind
         </view>
         <view class="detail-match-bottom"><view><AppIcon name="calendar" :size="15" tone="white"/>{{ dateLabel(match.date) }} {{ match.time }}</view><view><AppIcon name="pin" :size="15" tone="white"/>{{ match.venue }}</view></view>
       </view>
-      <view class="page-tabs"><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'overview' }" @click="tab = 'overview'">比赛概况</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'stats' }" @click="tab = 'stats'">技术统计</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'events' }" @click="tab = 'events'">赛场事件</button><button v-if="isReal" id="match-live-tab" hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'live' }" @click="tab = 'live'">图文直播</button></view>
+      <view class="page-tabs"><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'overview' }" @click="tab = 'overview'">比赛概况</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'stats' }" @click="tab = 'stats'">技术统计</button><button hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'events' }" @click="tab = 'events'">赛场事件</button><button v-if="isReal" id="match-live-tab" hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'live' }" @click="tab = 'live'">图文直播</button><button v-if="isReal && match.status === 'finished'" id="match-evaluation-tab" hover-class="none" role="button" tabindex="0" class="ui-button" :class="{ active: tab === 'evaluation' }" @click="tab = 'evaluation'">评分与评论</button></view>
       <MatchLiveFeed v-if="isReal && tab === 'live'" :match-id="id" :page-active="pageActive"/>
+      <MatchEvaluationPanel v-else-if="isReal && tab === 'evaluation'" :match-id="id" :match-status="match.status" />
       <view v-else class="match-detail-grid">
         <view v-if="tab !== 'events'" class="panel detail-stat-panel"><view class="section-heading"><text class="h2">技术统计</text><text class="muted small-text">{{ isReal ? '官方赛果数据' : '演示统计' }}</text></view><view v-if="statRows.length" class="stat-bars"><view v-for="row in statRows" :key="row.label" class="stat-bar-row"><view><text>{{ row.values[0] }}{{ row.suffix }}</text><text class="muted">{{ row.label }}</text><text>{{ row.values[1] }}{{ row.suffix }}</text></view><view class="stat-track"><view :style="{ width: `${row.values[0] / (row.values[0] + row.values[1] || 1) * 100}%` }"/><view :style="{ width: `${row.values[1] / (row.values[0] + row.values[1] || 1) * 100}%` }"/></view></view></view><view v-else class="empty-state"><AppIcon name="clock" :size="35" tone="muted"/><text>{{ ["live", "finished"].includes(match.status) ? "暂无技术统计" : "比赛尚未开始" }}</text><text class="muted small-text">{{ ["live", "finished"].includes(match.status) ? "技术统计发布后会显示在这里" : "开赛后，技术统计会出现在这里" }}</text></view></view>
         <view v-if="tab !== 'stats'" class="panel timeline-panel"><view class="section-heading"><text class="h2">赛场时间轴</text><text class="muted small-text">{{ match.events.length }} 条事件</text></view><view v-if="match.events.length" class="event-timeline"><view v-for="event in match.events" :key="event.id" class="timeline-event"><text class="event-minute">{{ event.minute }}′</text><view class="event-marker"><AppIcon :name="event.kind === 'goal' ? 'ball' : 'flag'" :tone="event.kind === 'red' ? 'gold' : 'green'" :size="19"/></view><view class="event-copy"><text class="h3">{{ eventTitle(event) }}<text class="event-kind">{{ eventLabels[event.kind] }}</text></text><text class="muted small-text">{{ findTeam(pageData, event.teamId)?.name }}<text v-if="event.kind === 'goal' && event.assistPlayerId"> · {{ playerName(event.assistPlayerId) }} 助攻</text><text v-if="event.kind === 'substitution' && event.playerOutId"> · {{ playerName(event.playerOutId) }} 换下</text></text></view></view></view><view v-else class="empty-state"><AppIcon name="ball" :size="35" tone="muted"/><text>{{ ["live", "finished"].includes(match.status) ? "暂无比赛事件" : "精彩，等待开场" }}</text><text class="muted small-text">暂无已记录的比赛事件</text></view></view>

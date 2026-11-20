@@ -5,6 +5,7 @@ const { createUserProfileHandler, DEFAULT_APP_ID } = require('./service')
 const { createFavoritesHandler } = require('./favorites')
 const { createFavoritesStore } = require('./favorites-store')
 
+const {createRecoveryControl,createRecoveryGuard}=require('./recovery-guard')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const profile = createUserProfileHandler({
@@ -17,4 +18,7 @@ const favorites = createFavoritesHandler({
   context: () => cloud.getWXContext(),
   expectedAppId: process.env.WECHAT_APP_ID || DEFAULT_APP_ID,
 })
-exports.main = event => typeof event?.action === 'string' && event.action.startsWith('favorites.') ? favorites(event) : profile(event)
+const router = event => typeof event?.action === 'string' && event.action.startsWith('favorites.') ? favorites(event) : profile(event)
+
+const recoveryGuard=createRecoveryGuard({control:createRecoveryControl(cloud.database({throwOnNotFound:false}))})
+exports.main=event=>recoveryGuard(event,router,event?.action==='favorites.get')

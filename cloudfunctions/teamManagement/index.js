@@ -7,6 +7,7 @@ const {createTeamBadgeService}=require('./team-badges')
 const {createReferenceChecker}=require('./references')
 const {createRegistrationService}=require('./registrations')
 const {createRegistrationFileService}=require('./registration-files')
+const {createRecoveryControl,createRecoveryGuard}=require('./recovery-guard')
 cloud.init({env:cloud.DYNAMIC_CURRENT_ENV})
 const db=cloud.database({throwOnNotFound:false})
 const store={transaction:fn=>db.runTransaction(async transaction=>fn({
@@ -27,4 +28,7 @@ const teams=createTeamService({store,context,expectedAppId,storage,badgeUploadEn
 const badges=createTeamBadgeService({store,context,expectedAppId,storage,enabled:badgeUploadEnabled})
 const registrations=createRegistrationService({store:registrationStore,context,storage,uploadsEnabled,expectedAppId})
 const files=createRegistrationFileService({store,context,storage,enabled:uploadsEnabled,expectedAppId})
-exports.main=event=>typeof event?.action==='string'&&event.action.startsWith('badges.')?badges(event):typeof event?.action==='string'&&event.action.startsWith('registrations.')?registrations(event):typeof event?.action==='string'&&event.action.startsWith('files.')?files(event):teams(event)
+const router=event=>typeof event?.action==='string'&&event.action.startsWith('badges.')?badges(event):typeof event?.action==='string'&&event.action.startsWith('registrations.')?registrations(event):typeof event?.action==='string'&&event.action.startsWith('files.')?files(event):teams(event)
+
+const recoveryGuard=createRecoveryGuard({control:createRecoveryControl(db)})
+exports.main=event=>recoveryGuard(event,router,['mine','checkDissolution','registrations.prepare','registrations.listMine','registrations.getMine','registrations.fileLink','badges.config','badges.get'].includes(event?.action))

@@ -22,9 +22,18 @@ export function validateCloudEnvironment(values, target = cloudEnvironment) {
     if (target.adminApiUrl && !loopback && endpoint !== target.adminApiUrl) throw new Error(`${label}接口与 config/cloud-environment.json 中确认的客户地址不一致。`)
     if (!target.adminApiUrl && !loopback && !(url.hostname.endsWith('.app.tcloudbase.com') && url.hostname.startsWith(`${target.envId}-`))) throw new Error(`${label}接口尚未确认为客户环境地址，请先运行 cloud:setup 配置客户HTTP网关。`)
   }
+  if(target.publicFallbackFunction && target.publicFallbackFunction!=='publicRead')throw new Error('备用云函数名称必须为已实现的publicRead。')
+  const publicFallbackApiUrl = values.VITE_PUBLIC_FALLBACK_API_URL?.trim() || target.publicFallbackApiUrl || ''
+  if (publicFallbackApiUrl) {
+    let url
+    try { url = new URL(publicFallbackApiUrl) } catch { throw new Error('备用公开接口地址无效。') }
+    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) throw new Error('备用公开接口须使用不含凭据、参数或片段的HTTPS地址。')
+    if (publicFallbackApiUrl !== target.publicFallbackApiUrl) throw new Error('备用公开接口必须先登记到config/cloud-environment.json，不能使用未确认的备用数据源。')
+    if (publicFallbackApiUrl === competitionApiUrl) throw new Error('备用公开接口必须与主服务分开配置。')
+  }
   const manifest = JSON.parse(fs.readFileSync(new URL('../src/manifest.json', import.meta.url), 'utf8'))
   if (manifest['mp-weixin']?.appid !== target.appid) throw new Error(`小程序AppID必须为 ${target.appid}。`)
-  return { ...target, envId, adminApiUrl, competitionApiUrl }
+  return { ...target, envId, adminApiUrl, competitionApiUrl, ...(publicFallbackApiUrl ? {publicFallbackApiUrl} : {}) }
 }
 
 export function loadCloudEnvironment(mode = 'development') {
@@ -37,6 +46,8 @@ export function cloudBuildDefines(mode) {
     'import.meta.env.VITE_WECHAT_CLOUD_ENV_ID': JSON.stringify(target.envId),
     'import.meta.env.VITE_ADMIN_API_URL': JSON.stringify(target.adminApiUrl),
     'import.meta.env.VITE_COMPETITION_API_URL': JSON.stringify(target.competitionApiUrl),
+    'import.meta.env.VITE_PUBLIC_FALLBACK_FUNCTION': JSON.stringify(target.publicFallbackFunction || ''),
+    'import.meta.env.VITE_PUBLIC_FALLBACK_API_URL': JSON.stringify(target.publicFallbackApiUrl || ''),
     'import.meta.env.VITE_CLOUD_ENVIRONMENT_NAME': JSON.stringify(target.name),
   }
 }

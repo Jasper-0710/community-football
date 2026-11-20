@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {useRecoveryRefresh} from '@/services/public-data'
+useRecoveryRefresh(()=>loadCompetitions())
 defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } })
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { listPublicCompetitions } from '@/services/competitions'

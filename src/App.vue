@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onLaunch,onShow } from '@dcloudio/uni-app'
 import { initializeWechatCloud } from '@/services/wechat-cloud'
+import {initializePublicRecovery,publicRecovery} from '@/services/public-data'
 import {usePlatformSettings} from '@/composables/usePlatformSettings'
 import {useFavorites} from '@/composables/useFavorites'
-function refreshSharedState() { void usePlatformSettings().refresh(); const favorites = useFavorites(); if (favorites.owner.value) void favorites.refresh() }
+function refreshSharedState() { void publicRecovery.retry(); void usePlatformSettings().refresh(); const favorites = useFavorites(); if (favorites.owner.value) void favorites.refresh() }
 onShow(refreshSharedState)
 onLaunch(() => {
   initializeWechatCloud()
+  initializePublicRecovery()
   // #ifdef H5
   // uni-button renders a custom element in H5. Restore native-button keyboard behavior.
   document.addEventListener('keydown', event => {

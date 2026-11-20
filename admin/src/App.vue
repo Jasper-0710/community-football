@@ -12,6 +12,8 @@ import News from './News.vue'
 import Overview from './Overview.vue'
 import GlobalSearch from './GlobalSearch.vue'
 import PlatformSettings from './PlatformSettings.vue'
+import Evaluations from './Evaluations.vue'
+import Backups from './Backups.vue'
 import type { SearchItem } from '../../src/domain/content'
 let storage: Storage | undefined
 try { storage = window.sessionStorage } catch { /* Private browsing may disallow storage. */ }
@@ -23,7 +25,7 @@ const api = createAdminApi(apiUrl)
 const auth = createAdminAuth(api, storage)
 const { status, account, message, busy } = auth
 const username = ref(''), password = ref(''), showPassword = ref(false)
-const activeView = ref<'account' | 'competitions' | 'teams' | 'registrations' | 'matches' | 'standings' | 'news' | 'overview' | 'search'|'settings'|'live'>('account')
+const activeView = ref<'account' | 'competitions' | 'teams' | 'registrations' | 'matches' | 'standings' | 'news' | 'overview' | 'search'|'settings'|'live'|'evaluations'|'backups'>('account')
 const target = ref<SearchItem | null>(null)
 function openSearch(item: SearchItem) { target.value = item; activeView.value = item.kind === 'news' ? 'news' : item.kind === 'match' ? 'standings' : 'teams' }
 function navigateContent(view: 'teams' | 'matches' | 'news', id?: string) { target.value = id ? { kind: 'news', id, title: '', detail: '', rank: 0 } : null; activeView.value = view }
@@ -90,7 +92,9 @@ onUnmounted(() => { clearInterval(interval); document.removeEventListener('visib
         <button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'matches' }" :aria-current="activeView === 'matches' ? 'page' : undefined" @click="target = null; activeView = 'matches'">赛程与对阵</button>
         <button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'standings' }" :aria-current="activeView === 'standings' ? 'page' : undefined" @click="target = null; activeView = 'standings'">榜单与晋级</button>
         <button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'live' }" :aria-current="activeView === 'live' ? 'page' : undefined" @click="target = null; activeView = 'live'">图文直播</button>
+        <button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'evaluations' }" :aria-current="activeView === 'evaluations' ? 'page' : undefined" @click="target = null; activeView = 'evaluations'">评分与评选</button>
         <button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'settings' }" :aria-current="activeView === 'settings' ? 'page' : undefined" @click="target = null; activeView = 'settings'">平台设置</button>
+        <button class="sidebar-link" :class="{ 'sidebar-active': activeView === 'backups' }" :aria-current="activeView === 'backups' ? 'page' : undefined" @click="target = null; activeView = 'backups'">备份与恢复</button>
       </aside>
       <section class="workspace-main">
         <nav class="content-workspace-nav" aria-label="内容与检索"><button class="secondary-button" :aria-pressed="activeView === 'overview'" @click="target = null; activeView = 'overview'">运营概览</button><button class="secondary-button" :aria-pressed="activeView === 'news'" @click="target = null; activeView = 'news'">新闻与公告</button><button class="secondary-button" :aria-pressed="activeView === 'search'" @click="target = null; activeView = 'search'">全局搜索</button></nav>
@@ -104,6 +108,8 @@ onUnmounted(() => { clearInterval(interval); document.removeEventListener('visib
         <GlobalSearch v-else-if="activeView === 'search'" :auth="auth" @open="openSearch" />
         <MatchLive v-else-if="activeView === 'live'" :auth="auth" />
         <PlatformSettings v-else-if="activeView==='settings'" :auth="auth" />
+        <Evaluations v-else-if="activeView==='evaluations'" :auth="auth" />
+        <Backups v-else-if="activeView==='backups'" :auth="auth" />
         <template v-else>
         <div class="workspace-heading"><div><span class="eyebrow">赛事运营</span><h1>欢迎，{{ account?.admin.displayName }}</h1><p class="muted">管理员账号已通过验证。</p></div><button class="secondary-button logout-button" :disabled="busy" @click="auth.logout">{{ busy ? '处理中…' : '退出登录' }}</button></div>
         <p v-if="message" class="notice" role="status">{{ message }}</p>

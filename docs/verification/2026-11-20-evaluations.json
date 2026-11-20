@@ -1,0 +1,506 @@
+{
+  "date": "2026-11-20",
+  "markdownVersion": "2.33",
+  "status": "customer_cloud_nonempty_technical_acceptance_passed",
+  "local": {
+    "tests": {
+      "passed": 352,
+      "failed": 0
+    },
+    "evaluationBusinessTests": 12,
+    "contentStoreTests": 3,
+    "browser": {
+      "date": "2026-11-20",
+      "scope": "Actual Vue UI and HTTP handlers with isolated database/auth/native-context fixtures; not customer-cloud or physical-device acceptance",
+      "checks": [
+        "后台及真实比赛详情入口可达，默认关闭且H5明确微信参与限制",
+        "真实表单开启赛事窗口并同步前台，北京时间保存及重读无8小时漂移",
+        "隔离原生业务服务提交评分后前后台汇总一致，新评论等待审核",
+        "后台审核、隐藏、恢复联动客户端，换行和HTML标签安全显示",
+        "本场MVP及阵容位置发布可见，同赛事另一比赛不受影响",
+        "清空并发布可撤下本场评选",
+        "过期窗口版本拒绝覆盖，重读云端结果后解除写入锁定",
+        "写入回执中断后要求重读，不显示未经确认的成功",
+        "清空比赛选择后移除上一场数据，重新选择正常恢复",
+        "前后台读取失败有提示，刷新恢复且不残留旧数据",
+        "赛事隐藏后移除旧评论与评选，重新公开可恢复",
+        "后台和客户端1440/390/320px无横向溢出"
+      ],
+      "errors": [],
+      "requestCount": 64
+    },
+    "typecheck": [
+      "client",
+      "admin"
+    ],
+    "builds": [
+      "h5",
+      "admin",
+      "mp-weixin"
+    ],
+    "registrationContract": true,
+    "screenshotsReviewed": [
+      "admin-320",
+      "public-390"
+    ],
+    "browserRerunAfterH5WaitFix": true,
+    "fullTestsAndBuildsRerunDuringCloudClosure": false
+  },
+  "corrections": [
+    "match_scoped_awards",
+    "pre_moderation_and_edit_resets_visibility",
+    "beijing_datetime_roundtrip",
+    "transactional_version_and_request_retries",
+    "anonymous_http_viewer_context",
+    "late_response_and_failure_recovery"
+  ],
+  "customer": {
+    "appid": "wx3230f06c755cef3a",
+    "envId": "cloud1-d6gzg20x709d7f6c1",
+    "existingFunction": {
+      "name": "adminAuth",
+      "status": "Active",
+      "timeout": 20,
+      "runtime": "Nodejs16.13"
+    },
+    "package": {
+      "files": 28,
+      "sha256ManifestPrivatePath": ".tools/customer-d12-20261120/deploy-manifest.json",
+      "deployed": true,
+      "downloadedHashMatches": 28,
+      "downloadedHashManifestPrivatePath": ".tools/customer-d12-20261120/cloud-after-manifest.json"
+    },
+    "collections": [
+      {
+        "name": "evaluationConfigs",
+        "structureCheckReportedExists": true,
+        "actualDocumentRead": "success",
+        "nativeReadCode": -502003,
+        "privateRulesVerified": true,
+        "creationStatus": "success",
+        "preCreationObservation": {
+          "actualDocumentRead": "ResourceNotFound",
+          "nativeReadCode": -502005
+        },
+        "actualTotal": 0,
+        "nativeReadAllowed": false,
+        "nativeWriteAllowed": false,
+        "actualDocumentReadPhase": "after_creation_before_business"
+      },
+      {
+        "name": "playerRatings",
+        "structureCheckReportedExists": true,
+        "actualDocumentRead": "success",
+        "nativeReadCode": -502003,
+        "privateRulesVerified": true,
+        "creationStatus": "success",
+        "preCreationObservation": {
+          "actualDocumentRead": "ResourceNotFound",
+          "nativeReadCode": -502005
+        },
+        "actualTotal": 0,
+        "nativeReadAllowed": false,
+        "nativeWriteAllowed": false,
+        "actualDocumentReadPhase": "after_creation_before_business"
+      },
+      {
+        "name": "playerComments",
+        "structureCheckReportedExists": true,
+        "actualDocumentRead": "success",
+        "nativeReadCode": -502003,
+        "privateRulesVerified": true,
+        "creationStatus": "success",
+        "preCreationObservation": {
+          "actualDocumentRead": "ResourceNotFound",
+          "nativeReadCode": -502005
+        },
+        "actualTotal": 0,
+        "nativeReadAllowed": false,
+        "nativeWriteAllowed": false,
+        "actualDocumentReadPhase": "after_creation_before_business"
+      },
+      {
+        "name": "playerAwards",
+        "structureCheckReportedExists": true,
+        "actualDocumentRead": "success",
+        "nativeReadCode": -502003,
+        "privateRulesVerified": true,
+        "creationStatus": "success",
+        "preCreationObservation": {
+          "actualDocumentRead": "ResourceNotFound",
+          "nativeReadCode": -502005
+        },
+        "actualTotal": 0,
+        "nativeReadAllowed": false,
+        "nativeWriteAllowed": false,
+        "actualDocumentReadPhase": "after_creation_before_business"
+      }
+    ],
+    "pendingTask": null,
+    "customerBusinessWrites": {
+      "executed": true,
+      "ownedRatingRecords": 1,
+      "ownedCommentRecords": 1,
+      "configurationModerationAndAwardsUpdates": true
+    },
+    "newEnvironmentVariables": 0,
+    "nativeWriteProbesRun": true,
+    "nonEmptyAcceptancePassed": true,
+    "taskHistory": [
+      {
+        "tool": "cloud_db_write_struct",
+        "summary": "create-evaluationConfigs",
+        "status": "success",
+        "taskId": "confirmation_cloud_db_write_struct_c915e3ad-4bb3-485b-9e43-882ed6d764b2",
+        "detail": "execution_success",
+        "requestId": "432e74b8-04dc-4028-ae40-cb0ae8eaeb41"
+      },
+      {
+        "tool": "cloud_db_write_struct",
+        "summary": "create-playerRatings",
+        "status": "failed",
+        "taskId": "confirmation_cloud_db_write_struct_c1b2c7ea-0364-44f7-9527-0ef4366692ea",
+        "detail": "execution_failed",
+        "error": "[CreateTable] CloudBase CAPI 请求失败 [CreateTable]: Client network socket disconnected before secure TLS connection was established"
+      },
+      {
+        "tool": "cloud_db_write_struct",
+        "summary": "create-playerRatings",
+        "status": "success",
+        "taskId": "confirmation_cloud_db_write_struct_8c82b3ed-5dd9-4722-8df8-a6f7e286af41",
+        "detail": "execution_success",
+        "requestId": "962487d3-0bd0-4472-8dec-f3a50b97a40f"
+      },
+      {
+        "tool": "cloud_db_write_struct",
+        "summary": "create-playerComments",
+        "status": "success",
+        "taskId": "confirmation_cloud_db_write_struct_aff1ac2c-b6ef-4e86-b35c-9df6cfc2c13d",
+        "detail": "execution_success",
+        "requestId": "dde70f82-280a-44b8-a9d5-f0b0faf5e969"
+      },
+      {
+        "tool": "cloud_db_write_struct",
+        "summary": "create-playerAwards",
+        "status": "success",
+        "taskId": "confirmation_cloud_db_write_struct_26edafd4-2f8a-4118-9f89-8186c4b16ed7",
+        "detail": "execution_success",
+        "requestId": "3532617d-c8a5-4df1-ba27-2f9c8175558a"
+      },
+      {
+        "tool": "cloud_fn_deploy",
+        "summary": "deploy-adminAuth",
+        "status": "success",
+        "taskId": "confirmation_cloud_fn_deploy_65c9c6dd-3864-41c1-b678-fd63d89f7a10",
+        "detail": "execution_success",
+        "deploymentResult": {
+          "adminAuth": {
+            "filesCount": 28,
+            "packSize": "69.9 KB"
+          }
+        }
+      },
+      {
+        "tool": "cloud_db_write_doc",
+        "summary": "cleanup-playerRatings-run-2",
+        "status": "success",
+        "taskId": "confirmation_cloud_db_write_doc_edba2c34-1aed-4639-b864-1c9eca5ec305",
+        "detail": "execution_success",
+        "requestId": "6ec0a026-536b-4a58-a7d4-a21fb393fe34",
+        "deleted": 1
+      },
+      {
+        "tool": "cloud_db_write_doc",
+        "summary": "cleanup-playerComments-run-2",
+        "status": "success",
+        "taskId": "confirmation_cloud_db_write_doc_ab7e6ff6-c008-4bc1-8a35-ccbf84df3a05",
+        "detail": "execution_success",
+        "requestId": "cddad24f-982a-4578-aa89-70c22872fedf",
+        "deleted": 1
+      }
+    ],
+    "currentStage": {
+      "evaluationConfigsCreate": "success",
+      "playerRatingsCreate": "success",
+      "playerCommentsCreate": "success",
+      "playerAwardsCreate": "success",
+      "functionDeployment": "success",
+      "businessWrites": "real_rating_comment_configuration_review_awards_completed",
+      "downloadedFileHashes": "28/28_match",
+      "privateRules": "passed_8_of_8_denied_minus502003",
+      "restoration": "original_public_baseline_restored_and_sessions_logged_out",
+      "ownedRatingDeletion": "success_and_official_match_readback_zero",
+      "ownedCommentDeletion": "success_and_official_match_readback_zero",
+      "finalUI": "passed",
+      "sessionLogout": "passed_401"
+    },
+    "sourceBackup": {
+      "downloaded": true,
+      "nonDependencyFiles": 27,
+      "privatePath": ".tools/customer-d12-20261120/cloud-before",
+      "sha256ManifestPrivatePath": ".tools/customer-d12-20261120/cloud-before-manifest.json"
+    },
+    "creationFailure": {
+      "collection": "playerRatings",
+      "originalTaskId": "confirmation_cloud_db_write_struct_c1b2c7ea-0364-44f7-9527-0ef4366692ea",
+      "status": "failed/execution_failed",
+      "reason": "Client network socket disconnected before secure TLS connection was established",
+      "actualReadAfterFailure": "ResourceNotFound",
+      "readRequestId": "4bdb1a12-d805-415e-9d93-8da284192cfa",
+      "retriedOnlyAfterTerminalFailureAndMissingState": true
+    },
+    "desktopFallback": {
+      "attempted": true,
+      "outcome": "getApp timeoutReached -10005",
+      "cloudMutations": 0
+    },
+    "deployedFunction": {
+      "name": "adminAuth",
+      "status": "Active",
+      "timeout": 20,
+      "runtime": "Nodejs16.13"
+    },
+    "permissions": [
+      {
+        "collection": "evaluationConfigs",
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "evaluationConfigs",
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "playerRatings",
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "playerRatings",
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "playerComments",
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "playerComments",
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "playerAwards",
+        "mode": "read",
+        "allowed": false,
+        "code": -502003
+      },
+      {
+        "collection": "playerAwards",
+        "mode": "write",
+        "allowed": false,
+        "code": -502003
+      }
+    ],
+    "permissionProbeCleanup": {
+      "deleted": 4,
+      "officialReadbackTotals": {
+        "evaluationConfigs": 0,
+        "playerRatings": 0,
+        "playerComments": 0,
+        "playerAwards": 0
+      },
+      "requestIds": [
+        "6d10ebec-becb-4e8e-8abb-d2d4d0f3cb5a",
+        "7bd12db0-0ab0-4ca0-abb0-868b5d2f10b2",
+        "23841b05-64c7-49fe-b533-24dbd69810ca",
+        "cd7a118c-3488-40a6-98a0-4d35648be14f"
+      ]
+    },
+    "readOnlyAcceptance": {
+      "checks": [
+        {
+          "name": "真实后台登录与双端入口可达，6项匿名写入/管理请求401，保存空基线",
+          "at": "2026-11-20T02:47:41.806Z",
+          "competitionId": "c_9f5427d27b4acc8ecac2aad615d663a9",
+          "matchId": "m_2bff5ca2cc3ed7ce932c1996cd2cdcdf",
+          "otherMatchId": "m_3bbdd8550df012cf8ca9ea91f9e67e5b",
+          "candidates": 13
+        },
+        {
+          "name": "管理员验收会话退出并确认失效",
+          "at": "2026-11-20T02:51:38.226Z"
+        }
+      ],
+      "errors": [],
+      "reportPrivatePath": ".tools/customer-d12-20261120/run-1/report.json",
+      "sessionLoggedOut": true
+    },
+    "permissionHistory": [
+      {
+        "phase": "before_user_saved_rules",
+        "reportPrivatePath": ".tools/customer-d12-20261120/run-1/report.json",
+        "allowedOperations": 8,
+        "probeCleanupVerified": true
+      },
+      {
+        "phase": "after_user_saved_rules",
+        "reportPrivatePath": ".tools/customer-d12-20261120/run-2/report.json",
+        "deniedOperations": 8,
+        "code": -502003
+      }
+    ],
+    "nonEmptyBusinessChecksPassed": true,
+    "businessAcceptance": {
+      "passedAt": "2026-11-20T02:57:22.275Z",
+      "checks": [
+        {
+          "name": "真实后台登录与双端入口可达，6项匿名写入/管理请求401，保存空基线",
+          "at": "2026-11-20T02:55:29.782Z",
+          "competitionId": "c_9f5427d27b4acc8ecac2aad615d663a9",
+          "matchId": "m_2bff5ca2cc3ed7ce932c1996cd2cdcdf",
+          "otherMatchId": "m_3bbdd8550df012cf8ca9ea91f9e67e5b",
+          "candidates": 13
+        },
+        {
+          "name": "四个客户集合可信微信直接读写8/8拒绝-502003",
+          "at": "2026-11-20T02:56:13.241Z"
+        },
+        {
+          "name": "真实后台配置赛事窗口、北京时间保存回填与H5同步",
+          "at": "2026-11-20T02:56:17.556Z"
+        },
+        {
+          "name": "可信微信评分/改分及旧请求重试不重复，HTTPS匿名不带本人分，前后台汇总一致，新评论待审",
+          "at": "2026-11-20T02:56:40.204Z"
+        },
+        {
+          "name": "真实后台审核公开/隐藏/恢复，H5同步且标签安全显示",
+          "at": "2026-11-20T02:56:50.756Z"
+        },
+        {
+          "name": "用户修改后重新待审，旧审核版本拒绝误公开",
+          "at": "2026-11-20T02:57:00.921Z"
+        },
+        {
+          "name": "本场MVP/阵容双端公开，同赛事另一场隔离，旧评选版本拒绝",
+          "at": "2026-11-20T02:57:13.971Z"
+        },
+        {
+          "name": "真实服务端未来开始/已截止窗口均拒绝微信新写入",
+          "at": "2026-11-20T02:57:21.682Z"
+        },
+        {
+          "name": "真实客户非空前后台1440/390/320px无横向溢出并保存截图",
+          "at": "2026-11-20T02:57:22.273Z"
+        },
+        {
+          "name": "窗口/评选恢复，验收评论隐藏，原赛果榜单与设置不变；已准备两条自有记录精确删除条件",
+          "at": "2026-11-20T02:58:17.674Z"
+        },
+        {
+          "name": "自有评分与评论删除后原公开评价基线恢复；配置/评选保留版本审计",
+          "at": "2026-11-20T03:22:13.994Z"
+        },
+        {
+          "name": "管理员验收会话退出并确认失效",
+          "at": "2026-11-20T03:41:36.682Z"
+        }
+      ],
+      "errors": [],
+      "failures": [],
+      "scope": "Real customer gateway, ordinary admin/H5 browsers and trusted WeChat simulator cloud calls. No API interception, backend mocks or forged identities.",
+      "cleanupVerified": true,
+      "finalSessionLogoutVerified": true,
+      "reportPrivatePath": ".tools/customer-d12-20261120/run-2/report.json",
+      "screenshotsReviewed": [
+        "run-2/admin-320.png",
+        "run-2/h5-390.png",
+        "run-2/final-h5-390.png"
+      ],
+      "completedAt": "2026-11-20T03:22:13.992Z",
+      "logicalRestorationBeforeDeletion": {
+        "window": true,
+        "awards": true,
+        "commentHidden": true,
+        "matchUnchanged": true,
+        "standingsUnchanged": true,
+        "settingsUnchanged": true,
+        "exactOwnedRatingCommentDeletionRequired": true
+      },
+      "finalRestoration": {
+        "ratingCount": 0,
+        "commentCount": 0,
+        "publicBaselineHttpsAndTrustedWechatEqual": true,
+        "originalWindowAndAwardsRestored": true,
+        "matchStandingsSettingsUnchanged": true,
+        "configurationAndAwardsVersionAuditRetained": true
+      },
+      "finalUI": {
+        "scope": "Fresh ordinary admin and H5 browsers using the real customer gateway after exact test-record cleanup; no interception or mocks.",
+        "checks": [
+          "清理后真实后台重入：原窗口、13名球员无评分、无评论与空评选",
+          "清理后真实H5重入：原关闭提示、无评分、无评论与无评选",
+          "补验后台会话通过界面退出，原会话401失效"
+        ],
+        "errors": [],
+        "completedAt": "2026-11-20T03:29:17.695Z"
+      },
+      "finalUIReportPrivatePath": ".tools/customer-d12-20261120/run-2/final-ui-report.json"
+    },
+    "ownedRatingDeletion": {
+      "deleted": 1,
+      "requestId": "6ec0a026-536b-4a58-a7d4-a21fb393fe34",
+      "officialReadbackTotal": 0,
+      "readbackRequestId": "c272e574-99ff-4c69-8aa4-9d62518df774"
+    },
+    "ownedCommentDeletion": {
+      "deleted": 1,
+      "requestId": "cddad24f-982a-4578-aa89-70c22872fedf",
+      "officialMatchReadbackTotal": 0,
+      "readbackSource": ".tools/customer-d12-20261120/run-2/report.json"
+    },
+    "finalUIWaitCorrection": {
+      "cause": "UNI-BUTTON rendered in H5; querying an absent button incorrectly ended the loading wait before evaluation data arrived.",
+      "failedAttemptsPreserved": [
+        ".tools/customer-d12-20261120/run-2/final-ui-attempt-1-report.json",
+        ".tools/customer-d12-20261120/run-2/final-ui-attempt-2-report.json"
+      ],
+      "fix": "Wait for the real evaluation.getPublic response and the accessible refresh button, then assert rendered data.",
+      "passedAfterCorrection": true,
+      "trackedBrowserRegressionPassed": 12,
+      "businessCodeChanges": false,
+      "redeployed": false
+    }
+  },
+  "remaining": [
+    "physical_devices_and_native_rating_comment_submit_controls",
+    "second_real_wechat_account_multiple_admins_and_cross_device",
+    "scale_and_indexes",
+    "customer_final_business_rules_and_whole_scope_signoff"
+  ],
+  "limits": [
+    "Local browser uses isolated transactional/auth/native-context fixtures.",
+    "checkCollection existence response contradicted actual document and WeChat reads; actual reads govern status.",
+    "Excel remains v2.26; no Git commit or push.",
+    "Cloud acceptance used real customer data and trusted WeChat simulator cloud calls; physical-device and native rating/comment submit controls were not operated.",
+    "Configuration and awards version audit documents are intentionally retained after restoring original business values.",
+    "The 352-test/typecheck/build results predate final cloud cleanup; only the 12-group browser suite was rerun after correcting the loading wait."
+  ],
+  "preparedAcceptance": {
+    "script": ".tools/customer-d12-20261120/accept.mjs",
+    "syntaxCheckPassed": true,
+    "executed": true,
+    "restoration": "Version and identity scoped queries for only owned rating/comment records; normal API restoration of window and awards; session logout.",
+    "result": "Real nonempty customer business, exact owned record cleanup, original public baseline, final ordinary admin/H5 reentry and session invalidation passed."
+  },
+  "closedAt": "2026-11-20T03:44:37.183Z"
+}

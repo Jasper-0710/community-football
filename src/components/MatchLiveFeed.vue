@@ -4,6 +4,8 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { listPublicLive } from '@/services/match-live'
 import { createLiveFeedState } from '@/composables/match-live-state'
 import AppIcon from './AppIcon.vue'
+import {useRecoveryRefresh} from '@/services/public-data'
+useRecoveryRefresh(()=>props.pageActive===false?undefined:refresh())
 const props = defineProps<{ matchId: string; pageActive?: boolean }>()
 const state = createLiveFeedState(listPublicLive)
 const { entries, nextCursor, loading, error, ready, updatedAt, unavailable, historyMode } = state
@@ -51,6 +53,6 @@ onUnmounted(() => { pause(); state.reset('');
       <view v-if="entry.images.length" class="live-entry-images" :class="{ single: entry.images.length === 1 }"><view v-for="(image, index) in entry.images" :key="`${entry.id}-${index}-${image.url}`" class="live-entry-image"><button v-if="!broken[`${entry.id}-${index}`]" class="ui-button live-image-button" hover-class="none" role="button" :aria-label="image.caption || '查看直播图片'" @click="preview(image.url)"><image :src="image.url" mode="aspectFill" :alt="image.caption || '赛场图片'" @error="broken[`${entry.id}-${index}`] = true" /></button><view v-else class="live-image-failed"><text>图片暂不可用</text><text class="muted small-text">刷新直播后重试</text></view><text v-if="image.caption" class="muted small-text live-image-caption">{{ image.caption }}</text></view></view>
     </view>
     <button v-if="nextCursor" class="ui-button secondary-button live-load-more" hover-class="none" role="button" :disabled="loading" @click="state.load(true)">{{ loading ? '加载中…' : '加载更早动态' }}</button>
-    <text v-if="updatedAt && !error" class="muted small-text live-feed-updated">更新于 {{ time(updatedAt) }} · 图文内容由赛事运营发布</text>
+    <text v-if="updatedAt && !error" class="muted small-text live-feed-updated">本机读取于 {{ time(updatedAt) }} · 图文内容由赛事运营发布</text>
   </view>
 </template>

@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import type { PublicCompetition } from '@/domain/competition'
 import { listPublicCompetitions } from '@/services/competitions'
+import {publicRecovery} from '@/services/public-data'
 const competitions = ref<PublicCompetition[]>([]), error = ref(''), loading = ref(false), cursor = ref<string | null>(null)
 let pending: Promise<void> | null = null
 async function load(more = false) {
@@ -18,4 +19,5 @@ async function load(more = false) {
   }).finally(() => { loading.value = false; pending = null })
   return pending
 }
+publicRecovery.subscribe(()=>load())
 export function useCompetitions() { return { competitions, error, loading, cursor, load } }

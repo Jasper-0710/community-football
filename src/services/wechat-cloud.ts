@@ -13,6 +13,8 @@ export class WechatCloudError extends Error {
 }
 
 let initializedEnv = ''
+let recoveryWriteGuard: (name: string, data: Record<string, unknown>) => void = () => {}
+export function setWechatRecoveryGuard(check: typeof recoveryWriteGuard) { recoveryWriteGuard = check }
 
 function requireWechatCloud(): WechatCloud {
   // #ifdef MP-WEIXIN
@@ -47,6 +49,7 @@ export function initializeWechatCloud(): void {
 }
 
 export async function callWechatCloudFunction<T>(name: string, data: Record<string, unknown>, timeoutMs = 20_000): Promise<T> {
+  recoveryWriteGuard(name, data)
   const cloud = requireWechatCloud()
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => reject(new WechatCloudError('TIMEOUT', '请求超时。若正在保存，请重新登录读取资料，确认保存结果后再重试。')), timeoutMs)

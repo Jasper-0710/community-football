@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {useRecoveryRefresh} from '@/services/public-data'
+useRecoveryRefresh(()=>query.value.trim()?search():suggestions())
 defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } })
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { searchPublic, searchSuggestions } from '@/services/content'

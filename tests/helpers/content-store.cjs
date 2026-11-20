@@ -1,10 +1,11 @@
 'use strict'
 function createContentMemoryStore() {
-  const collections = Object.fromEntries(['newsArticles', 'newsImages', 'competitions', 'teams', 'matches', 'registrations', 'platformSettings', 'matchLiveEntries', 'matchLiveImages'].map(name => [name, new Map()]))
+  const collections = Object.fromEntries(['newsArticles', 'newsImages', 'competitions', 'teams', 'matches', 'registrations', 'platformSettings', 'matchLiveEntries', 'matchLiveImages', 'evaluationConfigs', 'playerRatings', 'playerComments', 'playerAwards'].map(name => [name, new Map()]))
   const failures = { scan: false, read: false, write: false }
   const copy = value => value == null ? value : structuredClone(value)
   let queue = Promise.resolve()
   const store = {
+    async evaluationRows(name, matchId) { if (failures.scan) throw new Error('Unavailable'); return [...collections[name].values()].filter(r => r.matchId === matchId).map(copy) },
     async liveEntries(matchId) { if (failures.scan) throw new Error('Unavailable'); return [...collections.matchLiveEntries.values()].filter(r => r.matchId === matchId).map(copy) },
     async scan(name) { if (failures.scan) throw new Error('Unavailable'); return [...collections[name].values()].map(copy) },
     async read(name, id) { if (failures.read) throw new Error('Unavailable'); return copy(collections[name].get(id)) },

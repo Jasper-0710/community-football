@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import {assertRecoveryWritable,setRecoveryWriteCheck} from '../src/services/recovery-write'
 import fs from 'node:fs'
 import vm from 'node:vm'
 import { transformSync } from 'esbuild'
@@ -33,6 +34,7 @@ function fixture(callFunction: (request: any) => any, init: () => void = () => {
     clearTimeout: (id: number) => { timers.delete(id) },
   }, { filename: 'wechat-cloud.test-module.cjs' })
   return {
+    setRecoveryGuard: module.exports.setWechatRecoveryGuard as (check: (name:string,data:Record<string,unknown>)=>void)=>void,
     call: module.exports.callWechatCloudFunction as (name: string, data: Record<string, unknown>) => Promise<any>,
     timers, requests, initCalls: () => initCalls,
     timeout: () => {
@@ -121,4 +123,16 @@ test('cloud initialization failure never starts a request or leaves a pending ti
   await assert.rejects(f.call('userProfile', {}), hasCode('INIT_FAILED'))
   assert.equal(f.requests.length, 0)
   assert.equal(f.timers.size, 0)
+})
+
+
+test('offline write guard rejects before SDK initialization, invocation or timeout allocation', async () => {
+  const f=fixture(async()=>({result:{ok:true}}))
+  setRecoveryWriteCheck(()=>{const error=new Error('当前只读');Object.assign(error,{code:'OFFLINE_READ_ONLY'});throw error})
+  f.setRecoveryGuard(assertRecoveryWritable)
+  try {
+    for(const [name,action] of [['adminAuth','evaluation.rate'],['teamManagement','registrations.submit'],['teamManagement','files.chunk'],['userProfile','favorites.set']])await assert.rejects(f.call(name,{action}),(e:any)=>e.code==='OFFLINE_READ_ONLY')
+    assert.equal(f.requests.length,0);assert.equal(f.initCalls(),0);assert.equal(f.timers.size,0)
+    for(const [name,action] of [['adminAuth','matches.getPublic'],['teamManagement','registrations.listMine'],['teamManagement','registrations.getMine'],['teamManagement','registrations.fileLink'],['userProfile','favorites.get']])assert.deepEqual(await f.call(name,{action}),{ok:true})
+  } finally {setRecoveryWriteCheck(()=>{})}
 })

@@ -1,0 +1,205 @@
+{
+  "date": "2026-11-20",
+  "timezone": "Asia/Shanghai",
+  "module": "D13",
+  "markdownVersion": "2.34",
+  "status": "local_technical_verification_passed_customer_deployment_pending",
+  "scope": "Actual Vue admin/H5 UI and HTTPS business handlers with isolated transactional database, private storage and identity fixtures. Not customer-cloud, physical-device or final customer acceptance.",
+  "customerEnvironmentModified": false,
+  "customerBusinessWrites": false,
+  "customerDeploymentPerformed": false,
+  "automaticTests": {
+    "passed": 375,
+    "failed": 0,
+    "command": "npm test",
+    "newCoverage": {
+      "recovery": 9,
+      "publicRecovery": 10,
+      "publicCache": 3,
+      "wechatWriteGuard": 1
+    }
+  },
+  "checks": {
+    "frontendTypecheck": true,
+    "adminTypecheck": true,
+    "registrationContract": true,
+    "recoveryContract": true,
+    "adminBuild": true,
+    "h5Build": true,
+    "wechatBuild": true,
+    "diffWhitespace": true
+  },
+  "browser": [
+    {
+      "module": "recovery",
+      "passed": 14,
+      "checks": [
+        "侧栏入口、部署能力与管理员权限正确",
+        "真实表单导出19类业务JSON，分片下载及校验成功",
+        "上传JSON后预览替换和删除，确认文字未填写时不能执行",
+        "原子恢复、自动回退备份及版本递增通过",
+        "错误环境备份在本机校验阶段拒绝",
+        "预览后有新提交时拒绝覆盖，保留业务状态",
+        "恢复成功但响应丢失时，先检查回执再解除执行锁定",
+        "恢复后真实客户端赛程与后台使用同一份业务数据",
+        "主服务故障后独立只读云函数回退，明确显示备用来源",
+        "主备均失败后展示带原始时间的本机公开快照",
+        "备份页面与快照提示1440/390/320px无横向溢出",
+        "重新连接主动刷新当前页面，主服务恢复后撤下快照提示",
+        "首次离线且没有快照时显示失败，不回退为演示赛程",
+        "退出后备份接口拒绝原会话"
+      ],
+      "pageErrors": [],
+      "sourceReport": "artifacts/recovery/report.json"
+    },
+    {
+      "module": "content",
+      "passed": 28,
+      "checks": [
+        "后台保存草稿，公开列表、直达和未登录管理接口正确隔离",
+        "发布和置顶后前台读取同一条记录，五类筛选可用",
+        "图文详情保留段落与图片，正文标签作为文字显示",
+        "首页公告和新闻摘要接入已发布内容",
+        "四类公开搜索返回真实数据，球员与所属球队详情可跳转",
+        "搜索历史跨页面保存、复用和清空",
+        "慢响应不能覆盖较新的搜索结果",
+        "运营概览读取球队、比赛、完赛进球和新闻数量",
+        "后台全局搜索进入对应新闻编辑记录",
+        "后台球员搜索进入球队名单，比赛搜索定位对应赛事历史",
+        "公开请求暂时失败显示已确认快照与来源，刷新成功后恢复实时内容",
+        "新闻分页加载超过20条且无重复",
+        "后台更正新闻标题保留原发布记录",
+        "390px后台图文编辑、文章与搜索无横向溢出",
+        "320px后台图文编辑、文章与搜索无横向溢出",
+        "删除后的文章直达与搜索同步不可见",
+        "超大尺寸选图显示实际宽高和限制，在上传前拒绝且保留表单",
+        "新建文章保存前上传封面，丢失分片回执后重试复用已传分片，未完成时禁止保存",
+        "JPG正文上传期间移动段落，完成后图片和说明仍绑定原段落",
+        "保存只持久化图片标识，前台经真实HTTPS接口获取并加载封面和正文图片",
+        "编辑回读保留图片标识，可手动刷新临时访问链接",
+        "云网关413显示明确提示，取消候选后保留原图和保存入口",
+        "替换上传失败可取消选择，保存后原图及引用保持有效",
+        "成功替换后保存新图引用，旧图解除引用并进入24小时保留期",
+        "公开图片加载失败显示重试入口，重读文章恢复图片",
+        "后台清理先预览再执行，移除过期候选和临时分片，保护文章封面与正文最终图片",
+        "390px封面与正文图片上传控件无横向溢出",
+        "320px封面与正文图片上传控件无横向溢出"
+      ],
+      "pageErrors": [],
+      "sourceReport": "artifacts/content/report.json"
+    },
+    {
+      "module": "live",
+      "passed": 17,
+      "checks": [
+        "后台直播入口与客户端比赛详情入口可达，空态和匿名管理隔离正确",
+        "后台文字发布后客户端刷新可见，换行和标签安全显示，比分事件不被改写",
+        "直播更正保持发布顺序，客户端显示更正标记",
+        "多管理员版本冲突阻止覆盖，重新读取后可继续维护",
+        "发布响应中断不显示虚假成功，重新读取确认已提交且不重复发布",
+        "删除需明确确认，软删除后客户端刷新移除",
+        "本地图片分片中断可续传，上传未结束禁止发布和切换，双图顺序正确且不持久化签名链接",
+        "图文发布后客户端读取真实上传图片，公开投影隐藏管理信息和图片关联ID",
+        "图片加载失败有占位，刷新签名链接后可恢复",
+        "直播暂时失败保留已确认快照并标明来源，手动刷新恢复实时读取",
+        "前台每15秒自动读取最新直播",
+        "页面进入后台停止轮询，回到前台立即同步",
+        "时间排序分页无重复，查看更早动态时暂停自动刷新以保留阅读位置",
+        "切换比赛清空上一场内容，两场直播相互隔离",
+        "赛事隐藏后公开直播拒绝并移除旧内容，重新公开可恢复",
+        "图片维护真实检查已发布引用保护，未到期图片不误删",
+        "后台与客户端直播在1440/390/320px布局无横向溢出"
+      ],
+      "pageErrors": [],
+      "sourceReport": "artifacts/match-live/report.json"
+    },
+    {
+      "module": "settings",
+      "passed": 17,
+      "checks": [
+        "管理员设置入口、匿名写入拒绝和无配置默认外观正常",
+        "未保存修改只更新后台预览，名称图标和排序不提前影响客户端",
+        "真实HTTPS保存后客户端回到前台及重新加载同步，同一保存无重复提交",
+        "六个可配置入口保留真实站内目标，搜索仍打开现有搜索面板",
+        "深色/自选白色/圆角同步，白底选中图标保留深色，320/390/1440px无横向溢出",
+        "网络失败保留已确认的平台设置快照与来源，重新连接后恢复实时同步",
+        "服务端已提交但响应中断时重试复用请求，版本只增加一次",
+        "并发版本冲突阻止覆盖，重新读取后恢复正确内容",
+        "最长名称/副标题/六个四字导航和未填完整颜色安全预览，两端窄屏与桌面无溢出",
+        "恢复默认先预览再保存，客户端与后台回读一致",
+        "我的外观入口可达，游客说明准确，个人未保存仅预览，保存才全局应用",
+        "本机个人选择在刷新、返回个人中心及进入赛事详情后保持",
+        "无效自选色保存被拒绝，放弃修改及未保存离页不改变已保存外观",
+        "三项独立优先级正确：平台更新只改变跟随项，名称与六导航始终同步",
+        "个人自选白色/深色/圆角在320/390/1440px无溢出，全部跟随先预览再保存",
+        "真实页面存储写入失败不改变当前外观，恢复存储后可重试保存",
+        "损坏或身份不匹配的本机记录安全回退，可重新保存修复"
+      ],
+      "pageErrors": [],
+      "sourceReport": "artifacts/settings/report.json"
+    },
+    {
+      "module": "evaluations",
+      "passed": 12,
+      "checks": [
+        "后台及真实比赛详情入口可达，默认关闭且H5明确微信参与限制",
+        "真实表单开启赛事窗口并同步前台，北京时间保存及重读无8小时漂移",
+        "隔离原生业务服务提交评分后前后台汇总一致，新评论等待审核",
+        "后台审核、隐藏、恢复联动客户端，换行和HTML标签安全显示",
+        "本场MVP及阵容位置发布可见，同赛事另一比赛不受影响",
+        "清空并发布可撤下本场评选",
+        "过期窗口版本拒绝覆盖，重读云端结果后解除写入锁定",
+        "写入回执中断后要求重读，不显示未经确认的成功",
+        "清空比赛选择后移除上一场数据，重新选择正常恢复",
+        "前后台读取失败有提示，刷新恢复且不残留旧数据",
+        "赛事隐藏后移除旧评论与评选，重新公开可恢复",
+        "后台和客户端1440/390/320px无横向溢出"
+      ],
+      "pageErrors": [],
+      "sourceReport": "artifacts/evaluations/report.json"
+    }
+  ],
+  "visualInspection": {
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "adminAndClientScreenshotsInspected": true,
+    "horizontalOverflow": false
+  },
+  "limits": {
+    "businessCollections": 19,
+    "totalRecords": 2000,
+    "jsonBytes": 2097152,
+    "finalFiles": 32,
+    "finalFileBytes": 33554432,
+    "atomicRestoreChanges": 80,
+    "previewMinutes": 10,
+    "publicFallbackSeconds": 120,
+    "localSnapshotMinutes": 30
+  },
+  "restoreScope": "Same-environment registered backups with intact cloud manifest and private asset archive. Auth accounts/sessions and recovery metadata excluded.",
+  "deploymentPending": [
+    "adminAuth, teamManagement and userProfile matching recovery guards; new publicRead function",
+    "adminAuth BACKUP_RECOVERY_ENABLED=true and PUBLIC_READ_CACHE_ENABLED=true after readiness and permission verification",
+    "Private platformSettings and recovery-backups/recovery-public storage permission checks",
+    "platformSettings recoveryKind ascending / createdAt descending composite index",
+    "Independent publicRead HTTPS gateway/allowed origins and approved client fallback configuration"
+  ],
+  "acceptancePending": [
+    "Customer nonempty export/preview/restore/automatic rollback and uncertain-result receipt verification",
+    "Actual cloud timeouts, transaction/asset limits, permissions and index performance",
+    "Trusted WeChat native transport and iPhone/Android lifecycle/network tests",
+    "Real multiple-admin concurrency and customer final acceptance"
+  ],
+  "notImplemented": [
+    "Cross-environment or offsite/whole-environment loss recovery from local JSON alone",
+    "Scheduled backups, archive retention cleanup and over-limit batched restoration"
+  ],
+  "existingD12CloudAcceptancePreserved": true,
+  "excelUpdated": false,
+  "excelVersion": "2.26",
+  "gitCommitted": false,
+  "gitPushed": false
+}

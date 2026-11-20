@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {useRecoveryRefresh} from '@/services/public-data'
+useRecoveryRefresh(()=>load())
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import AppShell from '@/components/AppShell.vue'

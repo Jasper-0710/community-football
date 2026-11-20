@@ -4,6 +4,17 @@
 // the default _id index; no unbounded SDK query or default 20-row truncation.
 function createContentStore(database) {
   const store = {
+    async evaluationRows(collection, matchId) {
+      if (!['playerRatings', 'playerComments'].includes(collection)) throw new Error('Invalid evaluation collection')
+      const rows = []; let cursor
+      for (;;) {
+        const page = (await database.collection(collection).where({ matchId, ...(cursor ? { _id: database.command.gt(cursor) } : {}) }).orderBy('_id', 'asc').limit(100).get()).data
+        rows.push(...page)
+        if (rows.length > 2000) throw new Error('Evaluation limit exceeded')
+        if (page.length < 100) return rows
+        cursor = page[page.length - 1]._id
+      }
+    },
     async liveEntries(matchId) {
       const rows = []; let cursor
       for (;;) {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {useRecoveryRefresh} from '@/services/public-data'
+useRecoveryRefresh(()=>load())
 defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } })
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getPublicTeam } from '@/services/content'
