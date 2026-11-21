@@ -123,9 +123,9 @@ test('D13 partial database failure rolls back every business write and leaves re
  const f=fixture(),b=await f.create();f.collections.teams.get(tid).name='修改';f.collections.users.get(uid).nickname='新领队';const plan=await f.preview(b),before=await f.store.snapshot()
  // lock write, rollback manifest write, then the second business write fails.
  f.failAfterWrites(4)
- const result=await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation});assert.equal(result.ok,false);assert.deepEqual(await f.store.snapshot(),before);assert.equal((await f.call('backup.result',{planId:plan.id})).status,'preview')
+ const result=await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation});assert.equal(result.ok,false);assert.deepEqual(await f.store.snapshot(),before);assert.equal((await f.call('backup.result',{planId:plan.id})).status,'cancelled')
  assert.equal((await f.control.read()).lock,null)
- f.failures.writeAt=0;assert.equal((await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})).ok,true)
+ f.failures.writeAt=0;assert.equal((await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})).error.code,'CONFLICT');const retry=await f.preview(b);assert.equal((await f.call('backup.apply',{planId:retry.id,confirmation:retry.confirmation})).ok,true)
 })
 test('D13 invocation guard covers storage operations, waits for in-flight calls and releases on business errors',async()=>{
  const f=fixture(),guard=createRecoveryGuard({control:f.control,now:f.now,logger:{error(){}}});let complete!:(value:any)=>void,entered!:()=>void
@@ -144,4 +144,35 @@ test('D13 stale lock expires after bounded function invocation; all deployed gua
  f.put('platformSettings',{_id:'recovery_control',lock:{owner:'abandoned',until:f.now()+1000},leases:[]})
  assert.equal((await guard({},async()=>({ok:true}),true)).ok,false);f.advance(1001);assert.equal((await guard({},async()=>({ok:true}),true)).ok,true)
  const source=fs.readFileSync('cloudfunctions/adminAuth/recovery-guard.js','utf8');for(const name of ['teamManagement','userProfile'])assert.equal(fs.readFileSync(`cloudfunctions/${name}/recovery-guard.js`,'utf8'),source)
+})
+
+test('D13 checking a running restore keeps its receipt active until atomic completion',async()=>{
+ const f=fixture(),b=await f.create();f.collections.teams.get(tid).name='待恢复修改'
+ const plan=await f.preview(b),upload=f.storage.upload
+ let release!:()=>void,entered!:()=>void
+ const paused=new Promise<void>(resolve=>entered=resolve),gate=new Promise<void>(resolve=>release=resolve)
+ f.storage.upload=async(path:string,bytes:Buffer)=>{if(path.endsWith('/snapshot.json')){entered();await gate}return upload(path,bytes)}
+ const pending=f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})
+ await paused
+ try {
+  assert.deepEqual(await f.call('backup.result',{planId:plan.id}),{ok:true,status:'running',rollbackId:null,completedAt:null})
+  assert.equal((await f.call('backup.result',{planId:plan.id},'b'.repeat(64))).error.code,'NOT_FOUND')
+  assert.equal((await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})).error.code,'CONFLICT')
+ } finally {release()}
+ const done=await pending;assert.equal(done.ok,true,JSON.stringify(done));assert.equal(f.collections.teams.get(tid).name,'社区球队')
+ assert.equal((await f.call('backup.result',{planId:plan.id})).status,'completed')
+ const writes=f.writes;assert.equal((await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})).applied,false);assert.equal(f.writes,writes)
+})
+test('D13 checking an idle receipt cancels a delayed apply before it can change business data',async()=>{
+ const f=fixture(),b=await f.create();f.collections.teams.get(tid).name='必须保留当前数据'
+ const plan=await f.preview(b),before=await f.store.snapshot(),read=f.store.read
+ let release!:()=>void,entered!:()=>void,held=false
+ const paused=new Promise<void>(resolve=>entered=resolve),gate=new Promise<void>(resolve=>release=resolve)
+ f.store.read=async(id:string)=>{const row=await read(id);if(!held&&id===M.planKey(plan.id)){held=true;entered();await gate}return row}
+ const pending=f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})
+ await paused
+ try {assert.equal((await f.call('backup.result',{planId:plan.id})).status,'cancelled')} finally {release()}
+ assert.equal((await pending).error.code,'CONFLICT');assert.deepEqual(await f.store.snapshot(),before)
+ assert.equal((await f.call('backup.result',{planId:plan.id})).status,'cancelled')
+ assert.equal((await f.call('backup.apply',{planId:plan.id,confirmation:plan.confirmation})).error.code,'CONFLICT')
 })

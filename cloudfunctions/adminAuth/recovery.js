@@ -89,9 +89,20 @@ function createRecoveryService({ store, control, storage, authorize, environment
       if (event.action === 'backup.list') return { ok: true, backups: (await store.history()).filter(row => row.status === 'ready').map(publicBackup) }
       if (event.action === 'backup.result') {
         if (!planValid(event.planId)) M.fail('INVALID_ARGUMENT', '恢复任务标识无效。')
-        const plan = await store.read(M.planKey(event.planId))
-        if (!plan || plan.owner !== M.digest(event.token)) M.fail('NOT_FOUND', '恢复任务不存在或属于其他会话。')
-        return { ok: true, status: plan.status, rollbackId: plan.rollbackId || null, completedAt: plan.completedAt || null }
+        // Read the receipt and lease from one transaction so completion cannot
+        // race a stale 'preview' reply while the client is checking a lost ACK.
+        return await store.atomic(async tx => {
+          const plan = await tx.get('platformSettings', M.planKey(event.planId))
+          if (!plan || plan.owner !== M.digest(event.token)) M.fail('NOT_FOUND', '恢复任务不存在或属于其他会话。')
+          const state = await tx.get('platformSettings', CONTROL_ID)
+          const running = plan.status === 'preview' && state?.lock?.purpose === `restore:${event.planId}` && state.lock.until > now()
+          if (plan.status === 'preview' && !running) {
+            // Checking an idle/expired attempt revokes its preview. A delayed
+            // apply request can no longer commit after we report no completion.
+            await tx.set('platformSettings', M.planKey(event.planId), {...plan,status:'cancelled'})
+          }
+          return { ok: true, status: running ? 'running' : plan.status === 'preview' ? 'cancelled' : plan.status, rollbackId: plan.rollbackId || null, completedAt: plan.completedAt || null }
+        })
       }
       if (event.action === 'backup.chunk') {
         if (!idValid(event.id) || !hashValid(event.digest) || !Number.isInteger(event.index) || event.index < 0) M.fail('INVALID_ARGUMENT', '备份下载参数无效。')
@@ -125,9 +136,11 @@ function createRecoveryService({ store, control, storage, authorize, environment
       if (!plan || plan.owner !== M.digest(event.token)) M.fail('NOT_FOUND', '恢复任务不存在或属于其他会话。')
       if (event.confirmation !== `恢复 ${plan.backupId}`) M.fail('INVALID_ARGUMENT', '请完整输入预览中的恢复确认文字。')
       if (plan.status === 'completed') return { ok:true, applied:false, rollbackId:plan.rollbackId, completedAt:plan.completedAt }
-      if (plan.expiresAt <= now()) M.fail('CONFLICT', '恢复预览已过期，请重新校验。')
-      const { payload } = await loadBackup(plan.backupId,plan.digest)
-      return await withRecoveryLock(control,'restore',async owner => {
+      if (plan.status !== 'preview' || plan.expiresAt <= now()) M.fail('CONFLICT', '恢复预览已失效，请重新校验。')
+      return await withRecoveryLock(control,`restore:${event.planId}`,async owner => {
+        const latest = await store.read(M.planKey(event.planId))
+        if (latest?.status !== 'preview' || latest.expiresAt <= now()) M.fail('CONFLICT', '恢复预览已失效，请重新校验。')
+        const { payload } = await loadBackup(plan.backupId,plan.digest)
         const current = M.normalize(await store.snapshot())
         if (M.digest(current) !== plan.currentDigest) M.fail('CONFLICT', '预览后业务数据已发生变化，请重新校验并确认差异。')
         const target = M.materialize(payload.collections,current), diff = M.changes(current,target)

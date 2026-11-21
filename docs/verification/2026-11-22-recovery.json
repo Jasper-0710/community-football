@@ -1,0 +1,348 @@
+{
+  "date": "2026-11-22",
+  "timezone": "Asia/Shanghai",
+  "markdownVersion": "v2.37",
+  "sourceBaseline": "3913b66",
+  "status": "implemented_locally_verified_and_customer_deployment_verified; live_restore_h5_fallback_and_device_acceptance_pending",
+  "target": {
+    "appid": "wx3230f06c755cef3a",
+    "environment": "cloud1-d6gzg20x709d7f6c1"
+  },
+  "codeChanges": [
+    "Transactional running/completed/cancelled recovery receipts",
+    "Checking an idle or expired attempt revokes its preview; delayed old apply cannot commit",
+    "Session/environment-scoped pending plan survives admin reload and navigation",
+    "Legacy preview-only replies keep the unresolved task locked",
+    "Offline data-backed rehearsal script with sanitized report"
+  ],
+  "localVerification": {
+    "unitTests": {
+      "passed": 384,
+      "failed": 0
+    },
+    "targetedRecoveryTests": {
+      "passed": 18,
+      "recovery": 13,
+      "receiptAndParser": 5
+    },
+    "actualVueHttpsBrowser": {
+      "passed": 18,
+      "errors": [],
+      "isolatedDatabaseStorageAuth": true,
+      "checks": [
+        "侧栏入口、部署能力与管理员权限正确",
+        "真实表单导出19类业务JSON，分片下载及校验成功",
+        "上传JSON后预览替换和删除，确认文字未填写时不能执行",
+        "原子恢复、自动回退备份及版本递增通过",
+        "错误环境备份在本机校验阶段拒绝",
+        "旧云端仅返回预览时保留待确认任务，等待匹配版本部署",
+        "预览后有新提交时拒绝覆盖，保留业务状态",
+        "恢复成功但响应丢失时，先检查回执再解除执行锁定",
+        "响应丢失时能区分执行中任务，保持恢复和文件选择锁定",
+        "刷新后台后仍保留当前会话的待确认任务，不允许重复恢复",
+        "执行中任务完成后回读同一回执并清除待确认状态",
+        "恢复后真实客户端赛程与后台使用同一份业务数据",
+        "主服务故障后独立只读云函数回退，明确显示备用来源",
+        "主备均失败后展示带原始时间的本机公开快照",
+        "备份页面与快照提示1440/390/320px无横向溢出",
+        "重新连接主动刷新当前页面，主服务恢复后撤下快照提示",
+        "首次离线且没有快照时显示失败，不回退为演示赛程",
+        "退出后备份接口拒绝原会话"
+      ]
+    },
+    "customerDataInIsolation": {
+      "date": "2026-11-22",
+      "scope": "Current customer snapshot and original final file bytes; all backup, restore, failure injection and rollback operations use isolated in-memory database/storage/auth. No customer cloud writes or physical-device acceptance.",
+      "environment": "cloud1-d6gzg20x709d7f6c1",
+      "collections": 19,
+      "records": 140,
+      "originalJsonBytes": 172644,
+      "assets": 28,
+      "assetBytes": 1389247,
+      "assetHashesVerified": 28,
+      "archiveJsonBytes": 186611,
+      "checks": [
+        "Nonempty current business snapshot and all final files can be archived in isolation",
+        "Chunk export, canonical JSON SHA-256 and every archived file hash match the private input",
+        "Only the explicit in-memory team sample appears in the restore diff",
+        "Injected database failure leaves all business records intact and cancels a checked stale attempt",
+        "Restore commits a completed receipt, advances the version and ignores duplicate apply requests",
+        "Automatic rollback and final restore preserve every unrelated business record and all original file bytes"
+      ],
+      "errors": []
+    },
+    "typecheckClient": true,
+    "typecheckAdmin": true,
+    "recoveryContract": true,
+    "registrationContract": true,
+    "buildAdmin": true,
+    "buildH5": true,
+    "buildWeixin": true
+  },
+  "customerCloud": {
+    "functionStatusBeforeDeployment": {
+      "adminAuth": {
+        "status": "Active",
+        "timeout": 20
+      },
+      "teamManagement": {
+        "status": "Active",
+        "timeout": 60
+      },
+      "userProfile": {
+        "status": "Active",
+        "timeout": 20
+      },
+      "publicRead": {
+        "status": "Active",
+        "timeout": 3
+      }
+    },
+    "recoveryGuardVersion": {
+      "adminAuth": 1,
+      "teamManagement": 1,
+      "userProfile": 1
+    },
+    "downloadedAdminAuthFilesMatchingBaseline": 33,
+    "databasePermissions": {
+      "verifiedCollections": 19,
+      "readDenials": 19,
+      "createDenials": 19,
+      "code": -502003,
+      "testRecordsCreated": 0
+    },
+    "storagePermissions": [
+      {
+        "prefix": "recovery-backups/",
+        "downloadCode": -403003,
+        "temporaryUrlStatus": 1,
+        "uploadCode": -503002,
+        "uploadReason": "Have no access right to the storage"
+      },
+      {
+        "prefix": "recovery-public/",
+        "downloadCode": -403003,
+        "temporaryUrlStatus": 1,
+        "uploadCode": -503002,
+        "uploadReason": "Have no access right to the storage"
+      }
+    ],
+    "historyIndex": {
+      "exists": true,
+      "name": "recovery_history_createdAt_desc",
+      "keys": [
+        {
+          "name": "recoveryKind",
+          "direction": 1
+        },
+        {
+          "name": "createdAt",
+          "direction": -1
+        }
+      ]
+    },
+    "publicRead": {
+      "primaryOk": true,
+      "fallbackOk": true,
+      "samePrimary": true,
+      "sameFallback": true,
+      "fallbackSource": "fallback",
+      "privateActionCode": "INVALID_ARGUMENT"
+    },
+    "anonymousBackupEndpoints": [
+      {
+        "action": "backup.status",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "backup.list",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "backup.create",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "backup.preview",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "backup.apply",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "backup.chunk",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "backup.result",
+        "http": 401,
+        "code": "UNAUTHORIZED"
+      }
+    ],
+    "adminSession": {
+      "localBootstrapLoginAttempts": 1,
+      "localBootstrapResult": "INVALID_CREDENTIALS",
+      "newAcceptanceSessions": 0,
+      "adminStatusRechecked": false,
+      "lastKnownEnabledAndGuardsReadyDate": "2026-11-21"
+    },
+    "baseline": {
+      "collections": 19,
+      "recordsBefore": 140,
+      "recordsAfter": 140,
+      "businessBaselineUnchanged": true,
+      "jsonBytes": 172644,
+      "finalAssets": 28,
+      "downloadedAndHashedFinalAssets": 28,
+      "assetBytes": 1389247
+    },
+    "registeredBackupsBeforeRehearsal": 0,
+    "unregisteredPartialArchivePreserved": true,
+    "liveCloudRestorePerformed": false,
+    "fallbackFunction": "publicRead",
+    "fallbackHttpsConfigured": false
+  },
+  "deployment": {
+    "function": "adminAuth",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "sourceBaseline": "3913b66",
+    "beforeMatched": 33,
+    "beforeDifferences": [],
+    "changes": [
+      {
+        "file": "recovery.js",
+        "beforeSha256": "36701cddf5d582e5370faa6543dba85d1884eae6e4a985b756ca82264c2d5efb",
+        "afterSha256": "5b995114e7aee027142fde2fa9c04e8c14d08e75c0ba35c07260a30f275bf3e2"
+      }
+    ],
+    "status": "success_and_postdeploy_source_verified",
+    "postDeployCodeDownloadVerified": true,
+    "duplicateSubmission": false,
+    "confirmationTask": {
+      "taskId": "confirmation_cloud_fn_inc_deploy_a67b9537-515d-4d0d-84f6-486c5f9a8e24",
+      "tool": "cloud_fn_inc_deploy",
+      "appid": "wx3230f06c755cef3a",
+      "environment": "cloud1-d6gzg20x709d7f6c1",
+      "function": "adminAuth",
+      "file": "recovery.js",
+      "confirmationMayBeLocalToOriginMachine": true,
+      "confirmationRequiredOnSubmission": true,
+      "userContinuationReceived": true,
+      "submissionStatus": "pending",
+      "status": "success",
+      "detail": "execution_success",
+      "result": {
+        "name": "adminAuth",
+        "filesCount": 1,
+        "packSize": "5.0 KB"
+      }
+    },
+    "postDeployMatched": 33,
+    "postDeployDifferences": [],
+    "postDeployRecoverySha256": "5b995114e7aee027142fde2fa9c04e8c14d08e75c0ba35c07260a30f275bf3e2",
+    "postDeployFunctionStatus": [
+      {
+        "name": "adminAuth",
+        "status": "Active",
+        "timeout": 20,
+        "runtime": "Nodejs16.13"
+      },
+      {
+        "name": "teamManagement",
+        "status": "Active",
+        "timeout": 60,
+        "runtime": "Nodejs16.13"
+      },
+      {
+        "name": "userProfile",
+        "status": "Active",
+        "timeout": 20,
+        "runtime": "Nodejs16.13"
+      },
+      {
+        "name": "publicRead",
+        "status": "Active",
+        "timeout": 3,
+        "runtime": "Nodejs16.13"
+      }
+    ],
+    "postDeploySmoke": [
+      {
+        "status": "passed",
+        "kind": "trustedWeChat",
+        "guards": [
+          {
+            "name": "adminAuth",
+            "ok": true,
+            "version": 1
+          },
+          {
+            "name": "teamManagement",
+            "ok": true,
+            "version": 1
+          },
+          {
+            "name": "userProfile",
+            "ok": true,
+            "version": 1
+          }
+        ],
+        "fallback": {
+          "ok": true,
+          "source": "fallback"
+        }
+      },
+      {
+        "status": "passed",
+        "kind": "https",
+        "action": "settings.getPublic",
+        "http": 200,
+        "ok": true,
+        "code": null
+      },
+      {
+        "status": "passed",
+        "kind": "https",
+        "action": "backup.status",
+        "http": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "status": "passed",
+        "kind": "https",
+        "action": "backup.result",
+        "http": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      }
+    ],
+    "verificationDate": "2026-11-22"
+  },
+  "remaining": [
+    "Valid current administrator login and live nonempty backup/restore/automatic rollback on an explicit text-draft sample",
+    "Verified independent publicRead HTTPS gateway and registered H5 fallback URL",
+    "WeChat physical devices, actual transport faults, real multiple admins and maximum-size/runtime-boundary acceptance",
+    "Customer cache, retention and resource policy acceptance"
+  ],
+  "privacy": {
+    "rawDataDirectory": ".tools/customer-d13-20261122/ (git-ignored; machine-local)",
+    "customerSnapshotAndFilesCommitted": false,
+    "credentialValuesIncluded": false,
+    "signedUrlsIncluded": false
+  },
+  "git": {
+    "delivery": "archived_with_the_commit_containing_this_record",
+    "commitReference": "git log --follow -- docs/verification/2026-11-22-recovery.json",
+    "remoteSyncReference": "Check whether the containing commit is reachable from origin/main",
+    "privateRawEvidenceCommitted": false
+  },
+  "miniProgramPublished": false
+}

@@ -38,15 +38,27 @@ const recovery=createRecoveryService({...memory,authorize,enabled:true,probe:asy
 const competitionStore={async read(id){return collections.competitions.get(id)},async list({publicOnly,cursor,limit}){return[...collections.competitions.values()].filter(c=>(!publicOnly||c.displayEnabled)&&(!cursor||c._id>cursor)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)}}
 const competitions=createCompetitionService({store:competitionStore,authorize}),matchMemory=createMatchMemoryStore({competitions:collections.competitions,teams:collections.teams,registrations:collections.registrations,records:collections.matches,revisions:collections.resultRevisions}),matches=createMatchService({store:matchMemory.store,authorize}),content=createContentService({store:readStore,authorize}),settings=createSettingsService({store:readStore,authorize}),standings=createStandingsService({store:matchMemory.standingsStore,authorize})
 const publicActions=[...new Set([...COMPETITION_PUBLIC,...MATCH_PUBLIC,...CONTENT_PUBLIC,...SETTINGS_PUBLIC,...STANDINGS_PUBLIC])]
-let failPrimary=false,failFallback=false,loseAck=false,token
+let failPrimary=false,failFallback=false,loseAck=false,loseEarlyAck=false,holdRestore=false,legacyReceipt=false,token,releaseRestore,restoreEntered
+let restoreGate
+const uploadStored=memory.storage.upload
+memory.storage.upload=async(path,bytes)=>{if(holdRestore&&path.endsWith('/snapshot.json')){holdRestore=false;restoreEntered();await restoreGate}return uploadStored(path,bytes)}
 const requests=[],cache=createPublicCache({storage:memory.storage,environment:memory.environment,enabled:true,logger:{error(){}}})
 const fallback=createPublicReadService({environment:memory.environment,storage:{download:path=>memory.storage.download(`cloud://${memory.environment}/${path}`)},logger:{error(){}}})
 const business=event=>event.action.startsWith('competitions.')?competitions(event):event.action.startsWith('matches.')?matches(event):event.action.startsWith('standings.')?standings(event):event.action.startsWith('settings.')?settings(event):/^(news|search|directory|content)\./.test(event.action)?content(event):auth(event)
-const router=async event=>{requests.push({action:event.action});if(failPrimary&&publicActions.includes(event.action))return{ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'隔离主服务故障'}};return event.action.startsWith('backup.')?recovery(event):cache(event,e=>['login','overview','session','logout'].includes(e.action)?business(e):guard(e,business,publicActions.includes(e.action)))}
+const router=async event=>{requests.push({action:event.action});if(legacyReceipt&&event.action==='backup.result')return{ok:true,status:'preview',rollbackId:null,completedAt:null};if(failPrimary&&publicActions.includes(event.action))return{ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'隔离主服务故障'}};return event.action.startsWith('backup.')?recovery(event):cache(event,e=>['login','overview','session','logout'].includes(e.action)?business(e):guard(e,business,publicActions.includes(e.action)))}
 const certDir=await fs.mkdtemp('/tmp/community-football-recovery-')
 execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',`${certDir}/key.pem`,'-out',`${certDir}/cert.pem`,'-days','1','-subj','/CN=127.0.0.1','-addext','subjectAltName=IP:127.0.0.1'],{stdio:'ignore'})
 const origins=[adminOrigin,publicOrigin],http=createHttpHandler(router,origins,publicActions),fallbackHttp=createHttpHandler(async event=>failFallback?{ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'隔离备用故障'}}:fallback(event),origins,PUBLIC_CACHE)
-const server=createServer({key:await fs.readFile(`${certDir}/key.pem`),cert:await fs.readFile(`${certDir}/cert.pem`)},async(req,res)=>{let body='';for await(const chunk of req)body+=chunk;const response=await(req.url==='/fallback'?fallbackHttp:http)({httpMethod:req.method,headers:req.headers,body});if(body&&failPrimary)console.log('RECOVERY_REQUEST',req.url,JSON.parse(body).action,response.statusCode);res.writeHead(response.statusCode,response.headers);if(loseAck&&body.includes('"action":"backup.apply"')&&response.statusCode===200){loseAck=false;res.end('{"ok":');return}res.end(response.body)})
+const server=createServer({key:await fs.readFile(`${certDir}/key.pem`),cert:await fs.readFile(`${certDir}/cert.pem`)},async(req,res)=>{
+ let body='';for await(const chunk of req)body+=chunk
+ const handling=(req.url==='/fallback'?fallbackHttp:http)({httpMethod:req.method,headers:req.headers,body})
+ if(loseEarlyAck&&body.includes('"action":"backup.apply"')){loseEarlyAck=false;res.writeHead(200,{'content-type':'application/json','access-control-allow-origin':adminOrigin});res.end('{"ok":');await handling;return}
+ const response=await handling
+ if(body&&failPrimary)console.log('RECOVERY_REQUEST',req.url,JSON.parse(body).action,response.statusCode)
+ res.writeHead(response.statusCode,response.headers)
+ if(loseAck&&body.includes('"action":"backup.apply"')&&response.statusCode===200){loseAck=false;res.end('{"ok":');return}
+ res.end(response.body)
+})
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const endpoint=`https://127.0.0.1:${server.address().port}/api`,fallbackEndpoint=endpoint.replace('/api','/fallback')
 process.env.VITE_ADMIN_API_URL=endpoint
 const publicConfig=resolve('.tools/recovery-public.vite.config.ts')
@@ -69,8 +81,29 @@ try{
  await apply();await notice().getByText(/恢复完成/).waitFor();assert.equal(collections.teams.get(home).name,'原始社区联队');assert.equal(collections.teams.get(home).version,8);assert.equal(collections.newsArticles.size,0);assert.equal((await store.history()).filter(row=>row.kind==='before_restore').length,1);check('原子恢复、自动回退备份及版本递增通过')
  const invalidPath=resolve(out,'wrong-environment.json');await fs.writeFile(invalidPath,JSON.stringify({...saved,environment:'other'}));await admin.locator('#backup-json').setInputFiles(invalidPath);await admin.getByRole('alert').getByText(/云环境不匹配/).waitFor();assert.equal(await admin.locator('.backup-preview').count(),0);check('错误环境备份在本机校验阶段拒绝')
  collections.teams.get(home).name='新业务';collections.teams.get(home).version++
- await upload(path);collections.users.get(uid).nickname='预览后新提交';await apply();await admin.getByRole('alert').getByText(/数据已发生变化/).waitFor();assert.equal(collections.teams.get(home).name,'新业务');await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText(/重新选择JSON/).waitFor();check('预览后有新提交时拒绝覆盖，保留业务状态')
+ await upload(path);collections.users.get(uid).nickname='预览后新提交';await apply();await admin.getByRole('alert').getByText(/数据已发生变化/).waitFor();assert.equal(collections.teams.get(home).name,'新业务');legacyReceipt=true;await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText('云端恢复回执需要更新，请完成云函数部署后再检查。',{exact:true}).waitFor();assert.equal(await admin.locator('#backup-json').isDisabled(),true);check('旧云端仅返回预览时保留待确认任务，等待匹配版本部署');legacyReceipt=false;await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText(/重新选择JSON/).waitFor();check('预览后有新提交时拒绝覆盖，保留业务状态')
  await upload(path);loseAck=true;await apply();await admin.getByText('本次执行结果尚未确认，请先检查恢复结果，再决定下一步。',{exact:true}).waitFor();assert.equal(await admin.getByRole('button',{name:'确认执行恢复',exact:true}).isEnabled(),false);await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText(/恢复已完成/).waitFor();assert.equal(collections.teams.get(home).name,'原始社区联队');check('恢复成功但响应丢失时，先检查回执再解除执行锁定')
+ collections.teams.get(home).name='执行中临时修改';collections.teams.get(home).version++
+ await upload(path)
+ const entered=new Promise(resolve=>restoreEntered=resolve);restoreGate=new Promise(resolve=>releaseRestore=resolve);holdRestore=true;loseEarlyAck=true
+ try{
+  await apply();await entered;await admin.getByText('本次执行结果尚未确认，请先检查恢复结果，再决定下一步。',{exact:true}).waitFor()
+  await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText('恢复仍在进行，请稍后再次检查恢复结果。',{exact:true}).waitFor()
+  assert.equal(await admin.locator('#backup-json').isDisabled(),true);assert.equal(await admin.getByRole('button',{name:'确认执行恢复',exact:true}).isDisabled(),true)
+  check('响应丢失时能区分执行中任务，保持恢复和文件选择锁定')
+  await admin.reload();await admin.locator('.workspace').waitFor();await admin.getByRole('button',{name:'备份与恢复',exact:true}).click()
+  await notice().getByText('上次恢复的结果尚未确认，请先检查恢复结果。',{exact:true}).waitFor();assert.equal(await admin.locator('#backup-json').isDisabled(),true)
+  await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText(/恢复仍在进行/).waitFor()
+  check('刷新后台后仍保留当前会话的待确认任务，不允许重复恢复')
+ }finally{releaseRestore()}
+ // The status check below is bounded by the browser assertion timeout and reads
+ // the original task until the server has atomically committed its receipt.
+ const pendingPlan=await admin.evaluate(()=>JSON.parse(Object.keys(sessionStorage).filter(k=>k.startsWith('community-football.pending-restore.v1:')).map(k=>sessionStorage.getItem(k)).find(Boolean)).plan.id)
+ await admin.waitForFunction(async({endpoint,token,planId})=>{const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action:'backup.result',planId})});const value=await r.json();return value.status==='completed'},{endpoint,token,planId:pendingPlan})
+ await admin.getByRole('button',{name:'检查恢复结果',exact:true}).click();await notice().getByText(/恢复已完成/).waitFor()
+ assert.equal(collections.teams.get(home).name,'原始社区联队');assert.equal(await admin.locator('#backup-json').isEnabled(),true)
+ assert.equal(await admin.evaluate(()=>Object.keys(sessionStorage).some(k=>k.startsWith('community-football.pending-restore.v1:'))),false)
+ check('执行中任务完成后回读同一回执并清除待确认状态')
  await user.goto(`${publicOrigin}/#/pages/index/index?tab=tournament`);await user.getByRole('button',{name:'真实赛程',exact:true}).click();await user.locator('.public-schedule-card').first().waitFor();await user.locator('.public-schedule-card').getByText('原始社区联队',{exact:true}).waitFor();await refreshSchedule();check('恢复后真实客户端赛程与后台使用同一份业务数据')
  failPrimary=true;await refreshSchedule();await user.locator('.recovery-notice-title').getByText('正在使用云端备用读取',{exact:true}).waitFor();await user.locator('.public-schedule-card').first().waitFor();check('主服务故障后独立只读云函数回退，明确显示备用来源')
  failFallback=true;await refreshSchedule();await user.locator('.recovery-notice-title').getByText('正在显示本机公开快照',{exact:true}).waitFor();await user.locator('.recovery-notice').getByText(/北京时间/).waitFor();await user.locator('.public-schedule-card').first().waitFor();check('主备均失败后展示带原始时间的本机公开快照')
@@ -78,6 +111,6 @@ try{
  failPrimary=false;failFallback=false;await user.getByRole('button',{name:'重新连接',exact:true}).click();await user.locator('.recovery-notice').waitFor({state:'hidden'});await user.locator('.public-schedule-card').first().waitFor();check('重新连接主动刷新当前页面，主服务恢复后撤下快照提示')
  failPrimary=true;failFallback=true;const cold=await browser.newContext({ignoreHTTPSErrors:true}),page=await cold.newPage();await page.goto(`${publicOrigin}/#/pages/index/index?tab=tournament`);await page.getByRole('button',{name:'真实赛程',exact:true}).click();await page.locator('.public-schedule [role="alert"]').waitFor();assert.equal(await page.locator('.public-schedule-card').count(),0);await cold.close();check('首次离线且没有快照时显示失败，不回退为演示赛程')
  failPrimary=false;failFallback=false;await admin.getByRole('button',{name:'账号与访问',exact:true}).click();await admin.getByRole('button',{name:'退出登录',exact:true}).click();await admin.getByRole('button',{name:'登录管理后台',exact:true}).waitFor();const old=await context.request.post(endpoint,{headers:{authorization:`Bearer ${token}`},data:{action:'backup.list'}});assert.equal(old.status(),401);check('退出后备份接口拒绝原会话')
- assert.deepEqual(errors,[]);await fs.writeFile(`${out}/report.json`,JSON.stringify({date:'2026-11-20',scope:'Actual Vue UI and HTTPS services with isolated database/storage/auth and two separate HTTP handlers; not customer-cloud or physical-device acceptance',checks,errors,requestCount:requests.length},null,2)+'\n');console.log(JSON.stringify({passed:checks.length,errors}))
+ assert.deepEqual(errors,[]);await fs.writeFile(`${out}/report.json`,JSON.stringify({date:new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),scope:'Actual Vue UI and HTTPS services with isolated database/storage/auth and two separate HTTP handlers; not customer-cloud or physical-device acceptance',checks,errors,requestCount:requests.length},null,2)+'\n');console.log(JSON.stringify({passed:checks.length,errors}))
 }catch(error){await fs.writeFile(`${out}/failure.txt`,error.stack+'\n'+publicLog.slice(-3000));await fs.writeFile(`${out}/report.json`,JSON.stringify({checks,errors,failure:error.message},null,2));await admin.screenshot({path:`${out}/admin-failure.png`,fullPage:true}).catch(()=>{});await user.screenshot({path:`${out}/public-failure.png`,fullPage:true}).catch(()=>{});throw error}
 finally{clearTimeout(watchdog);await browser.close();await adminVite.close();try{process.kill(-publicServer.pid,'SIGTERM')}catch{}server.closeAllConnections();await new Promise(resolve=>server.close(resolve))}

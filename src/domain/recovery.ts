@@ -1,5 +1,6 @@
 export interface BackupSummary { id:string; createdAt:string; kind:'manual'|'before_restore'; digest:string; bytes:number; records:number; assetCount:number; environment:string }
 export interface RestorePlan { id:string; backupId:string; expiresAt:string; totalChanges:number; assetCount:number; confirmation:string; summary:{collection:string;created:number;updated:number;removed:number;unchanged:number}[] }
+export interface RestoreResult { status:'preview'|'running'|'cancelled'|'completed'; rollbackId:string|null; completedAt:string|null }
 export interface BackupStatus { enabled:boolean; guardsReady:boolean; environment:string; limits:{records:number;jsonBytes:number;changes:number;assets:number;assetBytes:number} }
 const integer=(v:unknown,max=Number.MAX_SAFE_INTEGER)=>Number.isSafeInteger(v)&&Number(v)>=0&&Number(v)<=max
 const iso=(v:unknown)=>typeof v==='string'&&Number.isFinite(Date.parse(v))
@@ -19,3 +20,11 @@ export function parseRestorePlan(value:any):RestorePlan{
  return{id:value.id,backupId:value.backupId,expiresAt:value.expiresAt,totalChanges:value.totalChanges,assetCount:value.assetCount,confirmation:value.confirmation,summary}
 }
 export function canonicalBackup(value:any):string{if(Array.isArray(value))return'['+value.map(canonicalBackup).join(',')+']';if(value&&typeof value==='object')return'{'+Object.keys(value).sort().map(key=>JSON.stringify(key)+':'+canonicalBackup(value[key])).join(',')+'}';return JSON.stringify(value)}
+
+export function parseRestoreResult(value:any):RestoreResult {
+ if (value?.ok !== true || !['preview','running','cancelled','completed'].includes(value.status)) throw new BackupClientError()
+ if (value.status === 'completed') {
+  if (!/^b_[a-f0-9]{32}$/.test(value.rollbackId) || !iso(value.completedAt)) throw new BackupClientError()
+ } else if (value.rollbackId !== null || value.completedAt !== null) throw new BackupClientError()
+ return {status:value.status,rollbackId:value.rollbackId,completedAt:value.completedAt}
+}

@@ -1,4 +1,4 @@
-import {parseBackup,parseBackupStatus,parseRestorePlan,BackupClientError} from '../../src/domain/recovery'
+import {parseBackup,parseBackupStatus,parseRestorePlan,parseRestoreResult,BackupClientError} from '../../src/domain/recovery'
 import {parseBadgeCleanup} from '../../src/domain/team-badge'
 import {parsePlatformSettings,type PlatformForm} from '../../src/domain/platform-settings'
 import {parseCleanupResult} from './registration-maintenance'
@@ -64,7 +64,7 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async backupChunk(token:string,id:string,digest:string,index:number):Promise<{index:number;total:number;data:string}>{return request('backup.chunk',{id,digest,index},token)},
     async previewBackup(token:string,id:string,digest:string){return parseRestorePlan((await request('backup.preview',{id,digest},token)).plan)},
     async applyBackup(token:string,planId:string,confirmation:string):Promise<{applied:boolean;rollbackId:string;completedAt:string}>{const r=await request('backup.apply',{planId,confirmation},token);if(typeof r.applied!=='boolean'||!/^b_[a-f0-9]{32}$/.test(r.rollbackId)||typeof r.completedAt!=='string'||!Number.isFinite(Date.parse(r.completedAt)))throw new BackupClientError();return r},
-    async backupResult(token:string,planId:string):Promise<{status:'preview'|'completed';rollbackId:string|null;completedAt:string|null}>{const r=await request('backup.result',{planId},token);if(!['preview','completed'].includes(r.status)||r.status==='completed'&&(!/^b_[a-f0-9]{32}$/.test(r.rollbackId)||typeof r.completedAt!=='string'||!Number.isFinite(Date.parse(r.completedAt))))throw new BackupClientError();return r},
+    async backupResult(token:string,planId:string){return parseRestoreResult(await request('backup.result',{planId},token))},
     async liveEntries(token: string, matchId: string, cursor?: string) { return parseLivePage(await request('live.listAdmin', { matchId, ...(cursor ? { cursor } : {}) }, token), true, matchId) },
     async publishLive(token: string, matchId: string, requestId: string, form: LiveForm) { return parseLiveEntry((await request('live.publish', { matchId, requestId, form }, token)).entry, true) },
     async correctLive(token: string, matchId: string, id: string, expectedVersion: number, requestId: string, form: LiveForm) { return parseLiveEntry((await request('live.correct', { matchId, id, expectedVersion, requestId, form }, token)).entry, true) },

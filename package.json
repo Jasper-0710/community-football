@@ -35,6 +35,7 @@
     "test:evaluations:browser": "node scripts/verify-evaluations.mjs",
     "check:recovery-contract": "node scripts/sync-recovery-model.mjs --check",
     "test:recovery:browser": "node scripts/verify-recovery.mjs",
+    "test:recovery:baseline": "node scripts/verify-recovery-baseline.mjs",
     "check:registration-contract": "node scripts/sync-registration-model.mjs --check",
     "cloud:setup": "node scripts/setup-cloud-environment.mjs",
     "cloud:check": "node --input-type=module -e \"import {loadCloudEnvironment} from './scripts/cloud-environment.mjs'; for (const mode of ['development','production','admin']) console.log(mode, loadCloudEnvironment(mode));\""
