@@ -43,6 +43,30 @@ test('D13 permissions, readiness and explicit deployment flag reject before touc
  f.setReady(true)
  assert.equal((await f.call('backup.preview',{id:'b_'+'1'.repeat(32),digest:'x'})).error.code,'INVALID_ARGUMENT')
 })
+test('D13 archives files with bounded concurrency, preserves manifest order and drains failed work before unlocking',async()=>{
+ const f=fixture(),originals:string[]=[]
+ for(let i=0;i<8;i++){
+  const id=await f.storage.upload(`users/concurrent-${i}.png`,Buffer.from(`avatar-${i}`));originals.push(id)
+  f.put('users',{_id:String(i+3).repeat(64),avatarFileId:id})
+ }
+ const download=f.storage.download,gate=Promise.withResolvers<void>()
+ let active=0,peak=0,started=0
+ f.storage.download=async(id:string)=>{if(!originals.includes(id))return download(id);started++;active++;peak=Math.max(peak,active);await gate.promise;active--;return download(id)}
+ const pending=f.create()
+ while(started<6)await new Promise(resolve=>setImmediate(resolve))
+ assert.equal(started,6);assert.equal(peak,6);assert.ok((await f.control.read()).lock)
+ gate.resolve();const backup=await pending,record=await f.store.read(M.backupKey(backup.id)),payload=JSON.parse((await download(record.fileID)).toString())
+ assert.deepEqual(payload.assets.map((asset:any)=>asset.fileID),M.assetIds(payload.collections));assert.equal(active,0)
+ const g=fixture(),files:string[]=[]
+ for(let i=0;i<8;i++){const id=await g.storage.upload(`users/failure-${i}.png`,Buffer.from(`avatar-${i}`));files.push(id);g.put('users',{_id:String(i+3).repeat(64),avatarFileId:id})}
+ const release=Promise.withResolvers<void>(),read=g.storage.download,failed=Promise.withResolvers<void>();let admitted=0,finished=false
+ g.storage.download=async(id:string)=>{if(!files.includes(id))return read(id);admitted++;if(admitted===1){failed.resolve();throw new Error('Storage unavailable')}await release.promise;return read(id)}
+ const request=g.call('backup.create',{requestId:'4'.repeat(32)}).then((result:any)=>{finished=true;return result})
+ await failed.promise;await new Promise(resolve=>setImmediate(resolve))
+ assert.equal(admitted,6);assert.equal(finished,false);assert.ok((await g.control.read()).lock)
+ release.resolve();assert.equal((await request).ok,false);assert.equal(finished,true);assert.equal(admitted,6)
+ assert.equal((await g.control.read()).lock,null);assert.equal((await g.store.history()).length,0)
+})
 test('D13 preview reports creates/updates/deletes; atomic restore retains monotonic versions and a usable automatic rollback',async()=>{
  const f=fixture(),backup=await f.create()
  f.collections.teams.get(tid).name='新队名';f.collections.teams.get(tid).version=8
@@ -72,6 +96,20 @@ test('D13 damaged backup bytes, wrong digest, missing relations and restore quot
  const broken=structuredClone(before);broken.players=[];assert.throws(()=>M.validateData(broken),/关联/)
  const fresh=fixture(),saved=await fresh.create();for(let i=0;i<81;i++)fresh.put('newsArticles',{_id:'n_'+i.toString(16).padStart(32,'0'),body:[],version:1})
  const tooLarge=await fresh.call('backup.preview',{id:saved.id,digest:saved.digest});assert.equal(tooLarge.error.code,'LIMIT_EXCEEDED');assert.equal(fresh.collections.newsArticles.size,81)
+})
+test('D13 preserves explicitly synthetic unbound sample owners while ordinary and mismatched owner relations still fail',async()=>{
+ const f=fixture(),data=await f.store.snapshot(),team=data.teams[0],missing='2'.repeat(64)
+ team.leaderUserId=missing
+ assert.throws(()=>M.validateData(data),/球队领队关联/)
+ team.fixture={synthetic:true,batchId:'sample-batch',source:'developer-prepared; no real user submission or review'}
+ assert.doesNotThrow(()=>M.validateData(data))
+ data.registrations.push({_id:'r_sample',competitionId:cid,teamId:tid,ownerUserId:missing,attachments:[],fixture:{...team.fixture}})
+ assert.doesNotThrow(()=>M.validateData(data))
+ data.registrations[0].fixture.batchId='different-batch'
+ assert.throws(()=>M.validateData(data),/报名用户关联/)
+ data.registrations[0].fixture.batchId='sample-batch'
+ data.leaderTeamBindings.push({_id:missing,teamId:tid})
+ assert.throws(()=>M.validateData(data),/领队用户关联/)
 })
 test('D13 missing original final file is restored from private archive, while missing archive or ambiguous network failure stops restore',async()=>{
  const f=fixture(),asset=await f.storage.upload('users/avatar.png',Buffer.from('avatar'));f.collections.users.get(uid).avatarFileId=asset

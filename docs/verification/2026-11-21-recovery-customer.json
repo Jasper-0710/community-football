@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-21",
+  "timezone": "Asia/Shanghai",
+  "status": "deployment_and_readiness_verified_awaiting_backup_storage_probe_confirmation",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "Four function packages verified. Recovery readiness, 19 direct-client read denials, real public cache publication and independent native fallback equality, and cache storage download/signing denials passed. Nonempty backup/restore acceptance not yet executed.",
+  "baseline": {
+    "collections": 19,
+    "businessRecords": 140,
+    "canonicalBusinessBytes": 172644,
+    "finalAssets": 28,
+    "assetMetadataHttp200": 28,
+    "businessMutations": 0,
+    "syntheticUnboundOwnerTeams": 3,
+    "relationsValidAfterCompatibilityFix": true
+  },
+  "deployment": {
+    "teamManagement": {
+      "taskStatus": "success",
+      "timeoutSeconds": 60,
+      "downloadHashVerification": "passed"
+    },
+    "userProfile": {
+      "taskStatus": "success",
+      "timeoutSeconds": 20,
+      "downloadHashVerification": "passed"
+    },
+    "adminAuth": {
+      "taskStatus": "success",
+      "packageIncludesSyntheticFixtureFix": true,
+      "timeoutSeconds": 20,
+      "downloadFiles": 33,
+      "downloadHashVerification": "passed"
+    },
+    "publicRead": {
+      "taskStatus": "success",
+      "firstTaskEnvelopeStatus": "success",
+      "firstPayloadUpdateStatus": "failed",
+      "firstPayloadUpdateError": "FailedOperation.UpdateFunctionCode: function still Creating",
+      "downloadedFirstPayload": "default_example_only_preserved_as_failure_evidence",
+      "currentFunctionStatus": "Active",
+      "currentTimeoutSeconds": 3,
+      "downloadHashVerification": "passed",
+      "downloadFiles": 5,
+      "formalPayloadRuntimeLoaded": true
+    }
+  },
+  "localChecks": {
+    "recoveryTests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "recoverySharedContract": "passed",
+    "registrationSharedContract": "passed",
+    "cloudEnvironmentTests": {
+      "passed": 6,
+      "failed": 0
+    },
+    "clientBuilds": {
+      "mpWeixin": "passed after native fallback registration",
+      "h5": "passed after native fallback registration"
+    }
+  },
+  "configurationChanged": true,
+  "remaining": [
+    "Confirm original non-business backup-prefix probe upload task and verify client access denials",
+    "Verify direct write denials for private collections and backup/cache paths",
+    "Create backup history composite index",
+    "Configure and verify independent publicRead HTTPS endpoint and register H5 fallback",
+    "Nonempty export with asset SHA-256 verification through ordinary administrator browser",
+    "Real preview, restore, automatic rollback and duplicate-result verification on reversible samples",
+    "Native/H5 client injected transport-fault recovery tests",
+    "Restore exact business baseline and invalidate any future acceptance sessions"
+  ],
+  "limitations": [
+    "No full customer cloud acceptance claim",
+    "No physical-device acceptance",
+    "No real backup/restore/rollback has run",
+    "Maintained Excel workbook has not been updated",
+    "Backup-prefix storage privacy not yet verified; no business backup uploaded",
+    "Independent H5 endpoint and history index not configured",
+    "Desktop access temporarily recovered for read-only flag inspection, then returned noWindowsAvailable; no GUI configuration was changed by the agent",
+    "No native UI transport-fault acceptance despite successful native build and direct function read"
+  ],
+  "guardReadiness": {
+    "transport": "trusted_wechat_simulator",
+    "adminAuth": 1,
+    "teamManagement": 1,
+    "userProfile": 1
+  },
+  "readOnlyChecks": {
+    "mainPublicHttps": {
+      "httpStatus": 200,
+      "ok": true
+    },
+    "normalAdminBrowser": "login_and_backup_entry_passed",
+    "backupEnabled": true,
+    "unauthenticatedBackupEndpoints401": 7,
+    "directDatabaseReadDenied": 19,
+    "directDatabaseReadAllowed": [],
+    "directDatabaseWriteRules": "not_yet_probed",
+    "backupAndCacheStorageRules": "Cache object existence confirmed; direct download and signing denied. Backup prefix probe awaits tool confirmation; writes not tested.",
+    "acceptanceSessionLoggedOut": true,
+    "publicReadRuntime": {
+      "nonPublicActionRejected": "INVALID_ARGUMENT",
+      "settingsPublicProbe": "passed_real_nonempty_settings_cache",
+      "freshSnapshotAvailable": true,
+      "freshSnapshotAvailableAtVerification": true,
+      "resultMatchesMainHttps": true,
+      "source": "fallback",
+      "note": "Cache TTL remains 120s; availability was verified at probe time, not a permanent cache guarantee"
+    },
+    "previousAcceptanceSessionLoggedOut": true,
+    "previousSessionHttpStatus": 401,
+    "currentSessionExit": "Run 2 and run 3 exited; logout completed and former tokens returned 401",
+    "backupGuardsReady": true,
+    "oldSessionHttpStatus": 401,
+    "cacheStoragePermissions": {
+      "objectExistenceVerified": true,
+      "directDownloadAllowed": false,
+      "downloadErrorCode": -403003,
+      "temporaryLinkAllowed": false,
+      "signStatus": 1,
+      "signMessage": "STORAGE_EXCEED_AUTHORITY"
+    }
+  },
+  "configurationChanges": {
+    "adminAuthFlags": "User-saved BACKUP_RECOVERY_ENABLED and PUBLIC_READ_CACHE_ENABLED both observed true; existing variables and 20s timeout retained",
+    "databaseRules": "User-saved rules now deny direct reads on all 19 collections; write denials not yet tested",
+    "nativeClientFallback": "Registered deployed and verified publicRead in config/cloud-environment.json",
+    "independentHttpsFallback": "not configured",
+    "backupHistoryIndex": "not created; exact request schema prepared from Tencent official SDK"
+  },
+  "pendingConfirmation": {
+    "tool": "cloud_manage_storage",
+    "operation": "upload non-business text permission probe to recovery-backups/",
+    "status": "pending",
+    "containsBusinessData": false
+  }
+}

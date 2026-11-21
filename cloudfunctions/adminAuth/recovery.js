@@ -7,6 +7,20 @@ const idValid = id => typeof id === 'string' && /^b_[a-f0-9]{32}$/.test(id)
 const hashValid = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value)
 const planValid = id => typeof id === 'string' && /^rp_[a-f0-9]{32}$/.test(id)
 const publicBackup = row => ({ id: row.backupId, createdAt: row.createdAt, kind: row.kind, digest: row.digest, bytes: row.bytes, records: row.records, assetCount: row.assetCount, environment: row.environment })
+async function processAssets(items, operation) {
+  const results = new Array(items.length)
+  let next = 0, failed = false, firstError
+  await Promise.all(Array.from({ length: Math.min(6, items.length) }, async () => {
+    while (!failed && next < items.length) {
+      const index = next++
+      try { results[index] = await operation(items[index]) }
+      catch (error) { if (!failed) { failed = true; firstError = error } }
+    }
+  }))
+  // Drain admitted storage calls before releasing the exclusive recovery lock.
+  if (failed) throw firstError
+  return results
+}
 function createRecoveryService({ store, control, storage, authorize, environment, enabled = false, probe = async () => false, now = Date.now, logger = console }) {
   const fields = { 'backup.status': [], 'backup.list': [], 'backup.create': ['requestId'], 'backup.chunk': ['id','digest','index'], 'backup.preview': ['id','digest'], 'backup.apply': ['planId','confirmation'], 'backup.result': ['planId'] }
   const saveMeta = row => store.atomic(tx => tx.set('platformSettings', row._id, row))
@@ -14,8 +28,8 @@ function createRecoveryService({ store, control, storage, authorize, environment
     const existing = await store.read(M.backupKey(id))
     if (existing?.status === 'ready') return existing
     data = M.validateData(data)
-    const assets = []; let assetBytes = 0
-    for (const fileID of M.assetIds(data)) {
+    let assetBytes = 0
+    const assets = await processAssets(M.assetIds(data), async fileID => {
       if (!storage.path(fileID)) M.fail('INVALID_BACKUP', '备份包含其他云环境的文件。')
       let bytes
       try { bytes = await storage.download(fileID) } catch (error) {
@@ -28,8 +42,8 @@ function createRecoveryService({ store, control, storage, authorize, environment
       if (assetBytes > M.MAX_ASSET_BYTES) M.fail('LIMIT_EXCEEDED', '最终文件合计超出当前32MiB归档范围。')
       const sha256 = M.digest(bytes), backupFileID = await storage.upload(`recovery-backups/${id}/assets/${sha256}`, bytes)
       if (!storage.path(backupFileID)?.startsWith(`recovery-backups/${id}/assets/`)) throw new Error('Unexpected backup storage path')
-      assets.push({ fileID, backupFileID, sha256, size: bytes.length })
-    }
+      return { fileID, backupFileID, sha256, size: bytes.length }
+    })
     const payload = { format: FORMAT, schemaVersion: SCHEMA, id, environment, createdAt: new Date(now()).toISOString(), collections: data, assets }
     const text = M.canonical(payload), bytes = Buffer.byteLength(text)
     if (bytes > M.MAX_BYTES) M.fail('LIMIT_EXCEEDED', 'JSON备份超过2MiB，请安排分批归档。')
@@ -54,16 +68,16 @@ function createRecoveryService({ store, control, storage, authorize, environment
   }
   async function verifyAssets(payload, restore) {
     // Snapshot copies remain private and survive normal news/badge/live cleanup.
-    for (const asset of payload.assets) {
+    await processAssets(payload.assets, async asset => {
       let archived
       try { archived = await storage.download(asset.backupFileID) } catch { M.fail('MISSING_ASSET', '归档文件缺失，恢复未执行。') }
       if (archived.length !== asset.size || M.digest(archived) !== asset.sha256) M.fail('INVALID_BACKUP', '归档文件校验失败，恢复未执行。')
-      if (!restore) continue
+      if (!restore) return
       let original
       try { original = await storage.download(asset.fileID) } catch (error) { if (!storage.isMissing?.(error)) M.fail('SERVICE_UNAVAILABLE', '无法核实原文件状态，请稍后重试。') }
       if (original) { if (M.digest(original) !== asset.sha256) M.fail('CONFLICT', '原文件内容与备份不一致，禁止覆盖。') }
       else if (await storage.upload(storage.path(asset.fileID), archived) !== asset.fileID) throw new Error('Restored asset identifier changed')
-    }
+    })
   }
   return async event => {
     try {
