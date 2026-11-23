@@ -5,10 +5,10 @@ defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } }
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { listPublicCompetitions } from '@/services/competitions'
 import { getPublicStandings } from '@/services/standings'
-import { matchStageLabels, matchStatusLabels, matchTime, type MatchSchedule } from '@/domain/match'
 import type { StandingsSnapshot } from '@/domain/standings'
 import type { PublicCompetition } from '@/domain/competition'
 import AppIcon from './AppIcon.vue'
+import BracketTree from './BracketTree.vue'
 const props = defineProps<{ compact?: boolean; advancementOnly?: boolean }>()
 const competitions = ref<PublicCompetition[]>([]), competitionId = ref('')
 const snapshot = ref<StandingsSnapshot | null>(null)
@@ -20,18 +20,6 @@ const tabs = [{ id: 'standings', label: '积分榜' }, { id: 'goals', label: '�
 const title = computed(() => props.advancementOnly ? '晋级对阵' : props.compact ? '赛事积分榜' : '赛事榜单')
 const groups = computed(() => props.compact ? snapshot.value?.groups.filter(g => g.id === groupId.value) || [] : snapshot.value?.groups || [])
 const ranks = computed(() => active.value === 'assists' ? snapshot.value?.assists || [] : snapshot.value?.goals || [])
-const stages = computed(() => (['quarter', 'semi', 'final'] as const).map(stage => ({ stage, label: matchStageLabels[stage], matches: snapshot.value?.matches.filter(match => match.stage === stage).sort((a, b) => (a.slot || a.round) - (b.slot || b.round) || a.scheduledAt.localeCompare(b.scheduledAt)) || [] })).filter(item => item.matches.length))
-const champion = computed(() => {
-  const id = snapshot.value?.championTeamId
-  const match = snapshot.value?.matches.find(m => m.stage === 'final')
-  return id && match ? id === match.homeTeamId ? match.homeTeamName : match.awayTeamName : null
-})
-function source(match: MatchSchedule, side: 'home' | 'away') {
-  const q = match[`${side}Qualification`], from = match[`${side}From`]
-  if (q) return `${q.groupId} 第${q.rank}名`
-  const previous = snapshot.value?.matches.find(m => m.id === from)
-  return previous ? `${matchStageLabels[previous.stage]} 第${previous.slot || previous.round}场胜者` : from ? '前序比赛胜者' : ''
-}
 async function load(refresh = true) {
   const serial = ++request
   loading.value = true; error.value = ''; snapshot.value = null
@@ -57,15 +45,24 @@ async function load(refresh = true) {
   } catch (e) { if (serial === request) { snapshot.value = null; error.value = e instanceof Error ? e.message : '暂时无法读取榜单，请稍后重试。' } }
   finally { if (serial === request) loading.value = false }
 }
-function chooseCompetition(event: { detail: { value: string | number } }) { competitionId.value = competitions.value[Number(event.detail.value)]?.id || ''; groupId.value = ''; void load(false) }
+function choose(id: string) { competitionId.value = id; groupId.value = ''; void load(false) }
+function chooseCompetition(event: { detail: { value: string | number } }) { choose(competitions.value[Number(event.detail.value)]?.id || '') }
+function chooseNative(event: Event) { choose((event.target as HTMLSelectElement).value) }
 onMounted(() => { void load() })
 onUnmounted(() => { ++request })
 </script>
 
 <template>
   <view class="public-standings" :class="{ 'standings-compact': compact }">
-    <view class="section-heading section-heading-box"><view><text class="section-title">{{ title }}</text><text class="section-subtitle">仅统计正式录入的已完赛结果</text></view><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" :disabled="loading" @click="load()">刷新榜单</button></view>
-    <view v-if="competitions.length" class="ranking-competition panel"><text class="schedule-filter-label">选择赛事</text><picker class="ranking-competition-picker" :disabled="loading" :range="competitions.map(c => c.name)" :value="Math.max(0, competitions.findIndex(c => c.id === competitionId))" @change="chooseCompetition"><view class="schedule-picker"><text>{{ competitions.find(c => c.id === competitionId)?.name }}</text><AppIcon name="down" :size="16" /></view></picker></view>
+    <view class="section-heading section-heading-box"><view><text class="section-title">{{ title }}</text><text class="section-subtitle">{{ active === 'advancement' ? '实际签位与晋级来源 · 赛果更新后刷新同步' : '仅统计正式录入的已完赛结果' }}</text></view><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" :disabled="loading" @click="load()">刷新榜单</button></view>
+    <view v-if="competitions.length" class="ranking-competition panel"><text class="schedule-filter-label">选择赛事</text>
+      <!-- #ifdef H5 -->
+      <view class="schedule-picker ranking-native-wrap"><select class="ranking-native-select" aria-label="选择赛事" :value="competitionId" :disabled="loading" @change="chooseNative"><option v-for="competition in competitions" :key="competition.id" :value="competition.id">{{ competition.name }}</option></select><AppIcon name="down" :size="16" /></view>
+      <!-- #endif -->
+      <!-- #ifndef H5 -->
+      <picker class="ranking-competition-picker" :disabled="loading" :range="competitions.map(c => c.name)" :value="Math.max(0, competitions.findIndex(c => c.id === competitionId))" @change="chooseCompetition"><view class="schedule-picker"><text>{{ competitions.find(c => c.id === competitionId)?.name }}</text><AppIcon name="down" :size="16" /></view></picker>
+      <!-- #endif -->
+    </view>
     <view v-if="loading" class="panel competition-empty"><text>正在读取榜单与晋级对阵…</text></view>
     <view v-else-if="error" class="panel competition-empty" role="alert"><text>{{ error }}</text><button hover-class="none" role="button" tabindex="0" class="ui-button outline-button" @click="load()">重新加载榜单</button></view>
     <view v-else-if="!competitions.length" class="panel competition-empty"><text class="h3">暂无公开赛事</text><text class="muted">赛事公开后可在这里查看榜单。</text></view>
@@ -87,11 +84,16 @@ onUnmounted(() => { ++request })
         <view class="inline-note"><AppIcon name="info" :size="16" tone="muted" /><text>统计本赛事所有已完赛阶段的有效进球事件，数量相同则并列。乌龙球及点球大战不计个人进球与助攻；比赛内点球进球照常计入。</text></view>
       </template>
       <template v-else>
-        <view v-if="champion" class="panel live-champion"><AppIcon name="trophy" tone="gold" :size="34" /><view><text class="muted small-text">本届冠军</text><text class="h2">{{ champion }}</text></view></view>
-        <view v-if="!stages.length" class="panel competition-empty"><text class="h3">尚无淘汰赛对阵</text><text class="muted">循环赛可查看积分榜；淘汰赛排赛后在这里显示。</text></view>
-        <view class="live-bracket"><view v-for="stage in stages" :key="stage.stage" class="live-bracket-stage"><view class="section-heading"><text class="h2">{{ stage.label }}</text><text class="muted small-text">{{ stage.matches.length }} 场</text></view><view v-for="match in stage.matches" :key="match.id" class="panel live-bracket-match"><view class="public-schedule-card-top"><text class="muted small-text">第{{ match.slot || match.round }}场</text><text class="status-badge">{{ matchStatusLabels[match.status] }}</text></view><view class="live-bracket-side"><view><text>{{ match.homeTeamName || '待定' }}</text><text v-if="source(match, 'home')" class="muted small-text">{{ source(match, 'home') }}{{ !match.homeTeamId ? ' · 等待确定' : '' }}</text></view><text class="ranking-value">{{ match.homeScore ?? '—' }}</text></view><view class="live-bracket-side"><view><text>{{ match.awayTeamName || '待定' }}</text><text v-if="source(match, 'away')" class="muted small-text">{{ source(match, 'away') }}{{ !match.awayTeamId ? ' · 等待确定' : '' }}</text></view><text class="ranking-value">{{ match.awayScore ?? '—' }}</text></view><text v-if="match.penalties" class="small-text">点球 {{ match.penalties[0] }} : {{ match.penalties[1] }}</text><text class="muted small-text">{{ matchTime(match.scheduledAt) }} · {{ match.venue }}</text></view></view></view>
+        <BracketTree :key="snapshot.competitionId" :snapshot="snapshot" />
         <view class="inline-note"><AppIcon name="info" :size="16" tone="muted" /><text>对阵由分组名次或前序比赛胜者自动确定；小组未完赛或名次并列时保留待定。</text></view>
       </template>
     </template>
   </view>
 </template>
+
+<style scoped>
+.ranking-native-wrap { margin-top:8px; }
+.ranking-native-select { min-width:0; width:100%; flex:1; appearance:none; border:0; outline:0; background:transparent; color:var(--ink); font:inherit; cursor:pointer; }
+.ranking-native-select:focus-visible { outline:2px solid var(--green); outline-offset:4px; }
+.ranking-native-select option { color:var(--ink); background:var(--surface); }
+</style>

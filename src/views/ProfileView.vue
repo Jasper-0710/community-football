@@ -1,7 +1,8 @@
 <script setup lang="ts">
 defineOptions({ options: { virtualHost: true, styleIsolation: 'apply-shared' } })
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import type { Tournament, Tab } from '@/domain/types'
+import type { Tab } from '@/domain/types'
+import { useTournament } from '@/composables/useTournament'
 import type { AvatarUpload } from '@/domain/user'
 import { MAX_NICKNAME_LENGTH } from '@/domain/user'
 import { useUserProfile } from '@/composables/useUserProfile'
@@ -9,7 +10,7 @@ import { prepareAvatarUpload, profileErrorMessage } from '@/services/user-profil
 import AppIcon from '@/components/AppIcon.vue'
 import FavoritesPanel from '@/components/FavoritesPanel.vue'
 
-const props = defineProps<{ data: Tournament }>()
+const { data } = useTournament()
 const emit = defineEmits<{ navigate: [tab: Tab, view?: string] }>()
 const { profile, loading, saving, refreshingAvatar, refreshAvatar, error, supported, login, save, logout } = useUserProfile()
 const nickname = ref('')
@@ -198,7 +199,7 @@ onBeforeUnmount(() => { ++avatarGeneration })
       <text class="account-field-hint account-footnote">退出只清除此设备的登录状态，不会删除云端资料。</text>
     </view>
 
-    <FavoritesPanel :demo-teams="data.teams" @discover="emit('navigate', 'tournament', 'real-teams')"/>
+    <FavoritesPanel :demo-teams="data?.teams || []" @discover="emit('navigate', 'tournament', 'real-teams')"/>
     </view>
     <view class="prototype-note">
       <AppIcon name="info" tone="green" :size="24" />

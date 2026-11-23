@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "markdownVersion": "2.41",
+  "excelVersion": "2.26",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "Production H5 assets at an allowed local origin; actual customer HTTPS and browser CORS. Faults abort only this isolated browser context. No cloud service is stopped.",
+  "configuration": {
+    "fallbackHttpsRegistered": true,
+    "primaryApiUrl": "https://cloud1-d6gzg20x709d7f6c1-1526726605.ap-shanghai.app.tcloudbase.com/admin-suth",
+    "fallbackApiUrl": "https://cloud1-d6gzg20x709d7f6c1-1526726605.ap-shanghai.app.tcloudbase.com/public-read",
+    "fallbackFunction": "publicRead",
+    "routeSavedBy": "user in customer HTTP gateway console",
+    "consoleSettings": {
+      "enabled": true,
+      "cors": true,
+      "pathPassthrough": false,
+      "platformAuthentication": false,
+      "version": "$DEFAULT"
+    },
+    "localSharedConfigurationChanged": true,
+    "cloudFunctionsDeployed": false
+  },
+  "initialVerificationFailure": {
+    "reason": "Gateway-generated empty OPTIONS/204 omitted Cache-Control; the initial verifier incorrectly required no-store on preflight.",
+    "observedPreflight": {
+      "status": 204,
+      "allowedOrigin": "http://127.0.0.1:5173",
+      "allowedMethods": "POST",
+      "allowedHeaders": "Content-Type",
+      "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
+    },
+    "fix": "Retain exact-origin and Vary checks for preflight; require no-store on actual content responses. Added regression also proving cacheable content is still rejected.",
+    "finalRegistrationPassed": true
+  },
+  "gateway": {
+    "checkedAt": "2026-11-23T01:43:37.050Z",
+    "origin": "http://127.0.0.1:5173",
+    "checks": [
+      "primary-public-read",
+      "fallback-preflight",
+      "fallback-fresh-public-read-matches-primary",
+      "unlisted-origin-rejected",
+      "private-actions-rejected-anonymous-and-bearer",
+      "login-not-supported",
+      "get-rejected"
+    ],
+    "snapshotSavedAt": "2026-11-23T01:42:59.656Z",
+    "snapshotExpiresAt": "2026-11-23T01:44:59.656Z",
+    "businessWrites": 0,
+    "administratorLogin": false
+  },
+  "liveBrowser": {
+    "command": "npm run test:recovery:customer-h5 -- --match-id m_2bff5ca2cc3ed7ce932c1996cd2cdcdf",
+    "startedAt": "2026-11-23T01:43:38.677Z",
+    "completedAt": "2026-11-23T01:43:47.613Z",
+    "checks": [
+      "primary-nonempty-match-and-confirmed-local-snapshot",
+      "real-independent-https-fallback-and-readonly-notice",
+      "fallback-does-not-overwrite-confirmed-primary-snapshot",
+      "both-transports-fail-uses-original-nonempty-snapshot-and-time",
+      "reconnect-refreshes-primary-and-clears-fault-notice",
+      "uncached-both-fail-shows-read-error-without-fabricated-match",
+      "uncached-original-page-reconnects-to-real-match"
+    ],
+    "pageErrors": [],
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "screenshotVisuallyReviewed": true,
+    "observedPublicSample": {
+      "score": "3:1",
+      "statistics": 6,
+      "timelineEvents": 5
+    },
+    "businessActions": [
+      "settings.getPublic",
+      "matches.getPublic"
+    ],
+    "transportResponsesFabricated": false,
+    "faultInjection": "Abort only this isolated browser context requests; no customer function stopped.",
+    "faultHooksDiscardedWithBrowserContext": true,
+    "existingDevServersChanged": false
+  },
+  "validation": {
+    "relatedUnitTestsPassed": 24,
+    "unitTestFiles": [
+      "tests/cloud-environment.test.ts",
+      "tests/public-fallback-gateway.test.ts",
+      "tests/public-recovery.test.ts"
+    ],
+    "cloudConfigurationModesPassed": [
+      "development",
+      "production",
+      "admin"
+    ],
+    "clientTypecheckPassed": true,
+    "h5BuildPassed": true,
+    "fullUnitSuiteRerun": false,
+    "isolatedRecoveryBrowserRerunThisTurn": false,
+    "wechatBuildRerunThisTurn": false
+  },
+  "sha256": {
+    "config/cloud-environment.json": "e8b343e8983696aff7531c05fcb4fec73c1ae8acb7b005a4a595a9a74da9aee9",
+    "scripts/public-fallback-gateway.mjs": "dd285645e1b2910f19b6afe4b7bea6dcd132753f8ef6a667f12c5a9e239a69ce",
+    "scripts/verify-recovery-customer-h5.mjs": "ca9b6aed7b2f9a4e05e0acdadf5aed55a10b6d19c8e8b8029c1f255a7f86d1a5",
+    "tests/public-fallback-gateway.test.ts": "c330922d65041d35ef42113186570c64927a673ca739d39b75ae00ce63aa7c55",
+    "artifacts/recovery-customer-h5/report.json": "f7a3206796a1925225decd50ce2ed9c4a003ed3fff0227069ad5a87458407e00",
+    "artifacts/recovery-customer-h5/snapshot-390.png": "544a86065914ed42a0797787bdc4b63aa96a5d05c89a4d66b1935b4cbfd92f89"
+  },
+  "administratorLogin": false,
+  "businessWrites": 0,
+  "publicCacheNote": "Normal primary public reads may publish the short-lived recovery snapshot; no business records were written.",
+  "gitCommittedOrPushed": false,
+  "pending": [
+    "Actual hosted H5 origin registration and browser validation",
+    "Cloud-running page and disconnection before completion",
+    "Complete native cold start and form controls",
+    "Physical iPhone and Android",
+    "Real multiple administrators and scale/runtime limits",
+    "Customer whole-module signoff"
+  ],
+  "boundaries": [
+    "This is the current environment fallback, not cross-environment or geographic disaster recovery.",
+    "Scheduled backups and retention remain extensions."
+  ]
+}

@@ -4,8 +4,9 @@ const { createHash } = require('node:crypto')
 const { KINDS, normalize, rankSearch, compare } = require('./search-engine')
 const { IMAGE_ID, NewsImageError, syncImageReferences, scopedObject, inventory } = require('./news-image-model')
 const {badgeView} = require('./team-badge-model')
+const { PUBLIC_ACTIONS: DIRECTORY_ACTIONS, DirectoryError, readDirectory } = require('./public-directory')
 const CATEGORIES = ['快讯', '战报', '公告', '深度', '独家']
-const PUBLIC_ACTIONS = ['news.listPublic', 'news.getPublic', 'search.public', 'search.suggestions', 'directory.teamPublic', 'directory.playerPublic']
+const PUBLIC_ACTIONS = ['news.listPublic', 'news.getPublic', 'search.public', 'search.suggestions', 'directory.teamPublic', 'directory.playerPublic', ...DIRECTORY_ACTIONS]
 const ACTIONS = [...PUBLIC_ACTIONS, 'news.listAdmin', 'news.getAdmin', 'news.create', 'news.update', 'news.delete', 'search.admin', 'content.overview']
 const NEWS_ID = /^n_[a-f0-9]{32}$/, TEAM_ID = /^t_[a-f0-9]{64}$/, PLAYER_ID = /^p_[a-f0-9]{32}$/, COMPETITION_ID = /^c_[a-f0-9]{32}$/
 class ContentError extends Error { constructor(code, message) { super(message); this.code = code } }
@@ -105,6 +106,7 @@ function createContentService({ store, storage, authorize, now = Date.now, logge
       const action = event.action, publicOnly = PUBLIC_ACTIONS.includes(action)
       if (!publicOnly) { const auth = await authorize(event.token); if (!auth.ok) return auth }
       const base = ['action', 'token', 'userInfo', 'tcbContext']
+      if (DIRECTORY_ACTIONS.includes(action)) return await readDirectory(event, { store, storage, now })
       if (['news.create', 'news.update', 'news.delete'].includes(action)) {
         fields(event, [...base, ...(action === 'news.create' ? ['requestId', 'form'] : action === 'news.update' ? ['id', 'expectedVersion', 'form'] : ['id', 'expectedVersion'])])
         if (action === 'news.create' ? typeof event.requestId !== 'string' || !/^[a-f0-9]{32}$/.test(event.requestId) : typeof event.id !== 'string' || !NEWS_ID.test(event.id) || !Number.isSafeInteger(event.expectedVersion) || event.expectedVersion < 1) fail('INVALID_ARGUMENT', '记录标识或版本无效，请重新读取。')
@@ -174,7 +176,7 @@ function createContentService({ store, storage, authorize, now = Date.now, logge
       const data = await catalog(store, false)
       return { ok: true, counts: { teams: data.teams.filter(t => t.status !== 'dissolved').length, matches: data.matches.length, goals: data.matches.filter(m => m.status === 'finished').reduce((sum, m) => sum + (m.result?.homeScore ?? 0) + (m.result?.awayScore ?? 0), 0), news: data.articles.length, publishedNews: data.articles.filter(n => n.status === 'published').length }, recentNews: await Promise.all(data.articles.sort((a, b) => b.updatedAt - a.updatedAt || compare(a._id, b._id)).slice(0, 5).map(n => present(n,true))), serverTime: iso(now()) }
     } catch (error) {
-      if (error instanceof ContentError || error instanceof NewsImageError) return { ok: false, error: { code: error.code, message: error.message } }
+      if (error instanceof ContentError || error instanceof NewsImageError || error instanceof DirectoryError) return { ok: false, error: { code: error.code, message: error.message } }
       logger?.error?.('[content] operation failed')
       return { ok: false, error: { code: 'SERVICE_UNAVAILABLE', message: '内容服务暂不可用，请稍后重试。' } }
     }

@@ -1,0 +1,658 @@
+{
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "scope": "D：单场历史赛果恢复（D07/D08）客户部署与模拟非空技术验收",
+  "status": "adminAuth客户部署及单场历史恢复非空业务技术验收通过；后台按用户确认更新现有本机入口，公网托管/微信真机等单列",
+  "environment": {
+    "appid": "wx3230f06c755cef3a",
+    "id": "cloud1-d6gzg20x709d7f6c1",
+    "cloudDeployed": true,
+    "customerBusinessWritten": true,
+    "adminDelivery": "用户明确确认尚未托管；更新并启动现有本机5174后台，正式构建资源在独立浏览器上下文连接真实客户API验收",
+    "publicHostingDeployed": false,
+    "clientUploaded": false,
+    "physicalDeviceTested": false,
+    "newCollections": false,
+    "newEnvironmentVariables": false,
+    "newHttpRoutes": false
+  },
+  "source": {
+    "baseCommit": "4d8c2d8",
+    "committed": false,
+    "pushed": false,
+    "sha256": {
+      "cloudfunctions/adminAuth/result-restore.js": "b1109c39fb0e2f3c5ba8cdd6cd38ec5be5f856e63e81d655b420967c99f2469c",
+      "cloudfunctions/adminAuth/standings.js": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "cloudfunctions/adminAuth/index.js": "7c1c3bbf6d7467db481b9707ab5aabf59beee866c71007f3a02ab10812f84280",
+      "admin/src/Standings.vue": "f01193411a409c7941a1610108096f14b922e2acadc328167d57cbc295d2ca7d",
+      "admin/src/ResultSnapshot.vue": "2131df8d49402974e00992caaa2f364ec208d523ad551fe3eb0b68728dfec417",
+      "admin/src/api.ts": "99006fa929819b3448485c4024d31a6ca0c91593132e8072bb796171f3f32a6d",
+      "admin/src/styles.css": "6644497088b812f9ef5212b2794c1384c112715318a993b3bb7d4d4de32de3bb",
+      "src/domain/standings.ts": "345f65d8fc490cc58ffbcd737e321cb75f2b5c8d4a42ddc6179b7dd036503917",
+      "tests/result-restore.test.ts": "3fd631a21badbba921d872d1335d19e9d9a0975d76b3c4b5b8cfb07a760c17a1",
+      "tests/helpers/result-restore-fixture.cjs": "78f750b4aacbc071f731db82a8c9d8d7681431143b294631d8ba8ac261c31eb9",
+      "scripts/verify-result-restore.mjs": "05e0a50bb48023809a0bde77e3ebc858c60836cbd2a877fe43d3012e2b5415d9",
+      "package.json": "0f3feadcb4a581c4a2d079836e644dced824254d167d45d1bf2bc53c8ecf319e"
+    }
+  },
+  "deployment": {
+    "function": "adminAuth",
+    "files": 35,
+    "changedFiles": [
+      "index.js",
+      "result-restore.js",
+      "standings.js"
+    ],
+    "sourceDownloadSha256AllMatch": true,
+    "configuration": [
+      {
+        "name": "adminAuth",
+        "status": "Active",
+        "timeout": 20,
+        "runtime": "Nodejs16.13"
+      }
+    ],
+    "configurationMutationRequested": false,
+    "environmentVariableValuesCompared": false,
+    "publicReadRedeployed": false,
+    "pendingTasks": false
+  },
+  "web": {
+    "adminFiles": 133,
+    "h5Files": 155,
+    "productionAssetsFrozen": true,
+    "businessApiResponsesReplacedWithFixtures": false,
+    "responseFaultInjection": "仅首次真实恢复成功后的响应正文改为损坏JSON，重试继续访问真实服务",
+    "localEntry": {
+      "at": "2026-11-23T09:50:34.999Z",
+      "origin": "http://127.0.0.1:5174",
+      "actualRunningServer": true,
+      "interceptedAssets": false,
+      "modules": [
+        {
+          "path": "/src/Standings.vue",
+          "status": 200,
+          "featureFound": true
+        },
+        {
+          "path": "/src/ResultSnapshot.vue",
+          "status": 200,
+          "featureFound": true
+        },
+        {
+          "path": "/src/api.ts",
+          "status": 200,
+          "featureFound": true
+        }
+      ],
+      "pageErrors": []
+    }
+  },
+  "acceptance": {
+    "startedAt": "2026-11-23T09:33:54.553Z",
+    "completedAt": "2026-11-23T09:57:27.065Z",
+    "uniqueCheckNames": 23,
+    "checks": [
+      {
+        "name": "原模拟赛事非空基线与主备公开投影一致",
+        "at": "2026-11-23T09:49:33.895Z",
+        "matchState": "finished",
+        "champion": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "goals": [
+          4,
+          3,
+          1,
+          1
+        ],
+        "assists": [
+          2,
+          2,
+          1,
+          1
+        ],
+        "mainFallbackEqual": 5
+      },
+      {
+        "name": "冻结正式后台真实登录，三个管理动作匿名401，版本和完整原赛果与独立基线一致",
+        "at": "2026-11-23T09:49:39.283Z"
+      },
+      {
+        "name": "全部原比赛状态、完整事件/统计、晋级与冠军已恢复，新增版本审计保留",
+        "at": "2026-11-23T09:54:25.986Z"
+      },
+      {
+        "name": "验收管理员退出后原会话401",
+        "at": "2026-11-23T09:57:26.705Z"
+      },
+      {
+        "name": "同比分精确版本预览只读、完整事件/统计对比、确认门槛与390/320px布局通过",
+        "at": "2026-11-23T09:44:55.941Z"
+      },
+      {
+        "name": "真实恢复丢响应后原请求重试只增一次修订，同ID改内容及旧版本提交409",
+        "at": "2026-11-23T09:45:12.689Z"
+      },
+      {
+        "name": "恢复完整事件后射手/助攻与公开档案按事件重算，主备一致",
+        "at": "2026-11-23T09:45:20.981Z",
+        "matchState": "finished",
+        "champion": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "goals": [
+          3,
+          3,
+          1,
+          1
+        ],
+        "assists": [
+          2,
+          2,
+          1,
+          1
+        ],
+        "mainFallbackEqual": 5
+      },
+      {
+        "name": "恢复完整事件后射手/助攻与公开档案按事件重算，主备一致：可信微信主备回读一致",
+        "at": "2026-11-23T09:45:38.179Z",
+        "actions": [
+          "matches.getPublic",
+          "standings.getPublic",
+          "directory.teamProfilePublic",
+          "directory.playerProfilePublic",
+          "directory.playerProfilePublic"
+        ]
+      },
+      {
+        "name": "H5真实比赛详情：restored-full-events",
+        "at": "2026-11-23T09:45:39.169Z",
+        "events": 7
+      },
+      {
+        "name": "进行中历史恢复保留70分钟，从完赛榜单和冠军移除",
+        "at": "2026-11-23T09:51:43.139Z",
+        "matchState": "live",
+        "champion": null,
+        "goals": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "assists": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "mainFallbackEqual": 5
+      },
+      {
+        "name": "H5真实比赛详情：restored-live",
+        "at": "2026-11-23T09:51:44.166Z",
+        "events": 5
+      },
+      {
+        "name": "预览后真实版本变化拒绝旧提交，撤销后可恢复进行中完整赛果",
+        "at": "2026-11-23T09:51:44.166Z"
+      },
+      {
+        "name": "历史点球5:4恢复后冠军重算，点球不计射手/助攻",
+        "at": "2026-11-23T09:53:46.660Z",
+        "matchState": "finished",
+        "champion": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "goals": [
+          2,
+          1,
+          1,
+          1
+        ],
+        "assists": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "mainFallbackEqual": 5
+      },
+      {
+        "name": "H5真实晋级图：restored-penalties",
+        "at": "2026-11-23T09:53:49.242Z"
+      },
+      {
+        "name": "H5真实比赛详情：restored-penalties",
+        "at": "2026-11-23T09:53:50.129Z",
+        "events": 0
+      },
+      {
+        "name": "已有完赛决赛时拒绝改变半决赛晋级方，无业务/历史写入",
+        "at": "2026-11-23T09:54:04.542Z"
+      },
+      {
+        "name": "已有进行中决赛时拒绝改变半决赛晋级方，无业务/历史写入",
+        "at": "2026-11-23T09:54:08.785Z"
+      },
+      {
+        "name": "H5真实晋级图：changed-advancement",
+        "at": "2026-11-23T09:54:16.001Z"
+      },
+      {
+        "name": "按轮撤销后恢复成功，实际晋级图改变并可恢复；全部业务分支完成",
+        "at": "2026-11-23T09:54:21.603Z"
+      },
+      {
+        "name": "最终原赛果/射手/助攻/档案与主备恢复基线",
+        "at": "2026-11-23T09:56:05.834Z",
+        "matchState": "finished",
+        "champion": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "goals": [
+          4,
+          3,
+          1,
+          1
+        ],
+        "assists": [
+          2,
+          2,
+          1,
+          1
+        ],
+        "mainFallbackEqual": 5
+      },
+      {
+        "name": "最终原赛果/射手/助攻/档案与主备恢复基线：可信微信主备回读一致",
+        "at": "2026-11-23T09:56:29.608Z",
+        "actions": [
+          "matches.getPublic",
+          "standings.getPublic",
+          "directory.teamProfilePublic",
+          "directory.playerProfilePublic",
+          "directory.playerProfilePublic"
+        ]
+      },
+      {
+        "name": "H5真实比赛详情：baseline-restored",
+        "at": "2026-11-23T09:56:31.793Z",
+        "events": 5
+      },
+      {
+        "name": "H5真实晋级图：baseline-restored",
+        "at": "2026-11-23T09:56:33.823Z"
+      }
+    ],
+    "pageErrors": [],
+    "primaryFallbackQueryCount": 5,
+    "trustedWechatQueries": true,
+    "loggedOutAndOldSession401": true,
+    "fallbackDelayObservations": [
+      {
+        "action": "standings.getPublic",
+        "attempt": 1,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 2,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 3,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 4,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 5,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 6,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 7,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 8,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 9,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 10,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 11,
+        "mainRevision": 36,
+        "backupRevision": 33,
+        "savedAt": 1795427368039
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 12,
+        "mainRevision": 36,
+        "code": "SERVICE_UNAVAILABLE"
+      },
+      {
+        "action": "matches.getPublic",
+        "attempt": 1,
+        "savedAt": 1795427419863
+      },
+      {
+        "action": "matches.getPublic",
+        "attempt": 2,
+        "savedAt": 1795427419863
+      },
+      {
+        "action": "matches.getPublic",
+        "attempt": 3,
+        "savedAt": 1795427419863
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 1,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 2,
+        "mainRevision": 39,
+        "code": "SERVICE_UNAVAILABLE"
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 3,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 4,
+        "mainRevision": 39,
+        "code": "SERVICE_UNAVAILABLE"
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 5,
+        "mainRevision": 39,
+        "code": "SERVICE_UNAVAILABLE"
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 6,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 7,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 8,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 9,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 10,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 11,
+        "mainRevision": 39,
+        "backupRevision": 36,
+        "savedAt": 1795427498464
+      },
+      {
+        "action": "standings.getPublic",
+        "attempt": 1,
+        "mainRevision": 49,
+        "backupRevision": 39,
+        "savedAt": 1795427622137
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 1,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 2,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 3,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 4,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 5,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 6,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 7,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 8,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 9,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 10,
+        "savedAt": 1795427624559
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 11,
+        "code": "SERVICE_UNAVAILABLE"
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 12,
+        "code": "SERVICE_UNAVAILABLE"
+      },
+      {
+        "action": "directory.playerProfilePublic",
+        "attempt": 13,
+        "code": "SERVICE_UNAVAILABLE"
+      }
+    ],
+    "fallbackConsistency": "短期有效快照可能滞后；在时效内刷新主服务并回读备用直至精确一致，不承诺写入后即时强一致"
+  },
+  "data": {
+    "collections": 19,
+    "beforeRecords": 145,
+    "afterRecords": 171,
+    "counts": {
+      "teams": 5,
+      "leaderTeamBindings": 2,
+      "users": 2,
+      "players": 31,
+      "competitions": 11,
+      "registrations": 9,
+      "registrationFiles": 11,
+      "matches": 4,
+      "newsArticles": 3,
+      "newsImages": 6,
+      "teamBadges": 3,
+      "platformSettings": 1,
+      "matchLiveEntries": 31,
+      "playerRatings": 0,
+      "matchLiveImages": 8,
+      "evaluationConfigs": 1,
+      "resultRevisions": 42,
+      "playerComments": 0,
+      "playerAwards": 1
+    },
+    "originalBusinessFactsRestored": true,
+    "originalAuditRecordsUnchanged": true,
+    "newAuditRecords": 26,
+    "newRestoreRecords": 12,
+    "allowedOriginalChanges": [
+      {
+        "collection": "teams",
+        "id": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "paths": [
+          "version"
+        ]
+      },
+      {
+        "collection": "teams",
+        "id": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd",
+        "paths": [
+          "version"
+        ]
+      },
+      {
+        "collection": "teams",
+        "id": "t_9ffc35a6150d1ac5eabd37e48ea6110c0cf2f199bbbb6a61b1b0cfc4fd38b776",
+        "paths": [
+          "version"
+        ]
+      },
+      {
+        "collection": "competitions",
+        "id": "c_9f5427d27b4acc8ecac2aad615d663a9",
+        "paths": [
+          "scheduleMutationVersion"
+        ]
+      },
+      {
+        "collection": "matches",
+        "id": "m_3bbdd8550df012cf8ca9ea91f9e67e5b",
+        "paths": [
+          "updatedAt",
+          "version"
+        ]
+      },
+      {
+        "collection": "matches",
+        "id": "m_2bff5ca2cc3ed7ce932c1996cd2cdcdf",
+        "paths": [
+          "updatedAt",
+          "version"
+        ]
+      }
+    ],
+    "finalMatchVersion": 35,
+    "finalSemiVersion": 10,
+    "finalCompetitionRevision": 49,
+    "verificationMethod": "微信官方数据库只读接口独立回读19集合逐条比对；新增修订核对请求来源、操作者、原因、恢复来源及连续版本"
+  },
+  "localRegression": {
+    "reference": "2026-11-23-result-restore.json",
+    "testsPreviouslyPassed": 425,
+    "browserGroupsPreviouslyPassed": 9,
+    "repeatedInCloudStage": false,
+    "businessSourceChangedInCloudStage": false
+  },
+  "intermediateFailures": [
+    {
+      "at": "2026-11-23T09:40:59.340Z",
+      "message": "locator.click: Timeout 25000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '加载更多历史', exact: true })\u001b[22m\n"
+    },
+    {
+      "at": "2026-11-23T09:46:03.162Z",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    assists: [\n      {\n+       assists: 2,\n-       assists: 1,\n        goals: 0,\n        number: 3,\n        playerId: 'p_510ec5fc26e72405a6c1da6a3e5e562b',\n        playerName: '测试杨浦03',\n        rank: 1,\n        teamId: 't_9ffc35a6150d1ac5eabd37e48ea6110c0cf2f199bbbb6a61b1b0cfc4fd38b776',\n        teamName: '【测试】冬日杨浦联队',\n+       value: 2\n-       value: 1\n      },\n      {\n+       assists: 2,\n-       assists: 1,\n        goals: 0,\n        number: 43,\n        playerId: 'p_77f6ad3270911b8508ba95d722d8d0cf',\n        playerName: 'lmn',\n        rank: 1,\n        teamId: 't_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7',\n        teamName: '云端验证队伍',\n+       value: 2\n-       value: 1\n      },\n      {\n        assists: 1,\n        goals: 0,\n        number: 5,\n        playerId: 'p_9295163ac97f9d2cfe80dba765f17dc9',\n        playerName: '测试杨浦05',\n+       rank: 3,\n-       rank: 1,\n        teamId: 't_9ffc35a6150d1ac5eabd37e48ea6110c0cf2f199bbbb6a61b1b0cfc4fd38b776',\n        teamName: '【测试】冬日杨浦联队',\n        value: 1\n      },\n      {\n...\n        playerName: '测试浦东06',\n+       rank: 3,\n-       rank: 1,\n  "
+    }
+  ],
+  "cleanupToolingExtraSameContentRestore": {
+    "count": 1,
+    "finalVersion": 35,
+    "reason": "验收清理脚本按JSON键顺序比较导致一次相同内容恢复；已改用深比较，合法审计保留，未重复业务验收"
+  },
+  "additionalToolingCorrection": "本机模块核验最初用中文明文匹配编译产物失败，改按组件名和动作名后实际5174模块全部200且功能存在；未改业务源码",
+  "limitations": [
+    "后台尚未公网托管，按用户确认更新现有本机入口",
+    "无物理真机或第二账号",
+    "本次客户样例为淘汰赛；小组积分完整样例与规模仍由本地隔离验证覆盖"
+  ],
+  "bracketScope": "本次用真实客户四强/决赛核对晋级方及点球冠军H5图；未更新小程序代码包，完整八强/小组来源、原生控件及物理真机仍待验",
+  "artifacts": {
+    "privateDirectory": ".tools/customer-result-restore-20261123",
+    "screenshots": [
+      "cloud-preview-desktop.png",
+      "cloud-preview-390.png",
+      "cloud-preview-320.png",
+      "cloud-restored-full-events-detail.png",
+      "cloud-restored-live-detail.png",
+      "cloud-restored-penalties-detail.png",
+      "cloud-restored-penalties-bracket.png",
+      "cloud-changed-advancement-bracket.png",
+      "cloud-baseline-restored-detail.png",
+      "cloud-baseline-restored-bracket.png"
+    ]
+  }
+}

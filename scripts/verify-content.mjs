@@ -90,7 +90,7 @@ imageMemory.storage.link = async id => {
 }
 process.env.VITE_ADMIN_API_URL = endpoint
 const config = resolve('.tools/d09-public.vite.config.ts')
-await fs.writeFile(config, "import base from '../vite.config'; export default env => ({ ...base(env), cacheDir: '.tools/d09-public-cache', server: { host: '127.0.0.1', port: 5183, strictPort: true, hmr: false } })\n")
+await fs.writeFile(config, `import base from '../vite.config'; export default env => { const c=base(env); return { ...c, define:{...c.define,'import.meta.env.VITE_PUBLIC_FALLBACK_API_URL':'""'}, cacheDir: '.tools/d09-public-cache', server: { host: '127.0.0.1', port: 5183, strictPort: true, hmr: false } } }\n`)
 const adminVite = await createViteServer({ configFile: 'admin/vite.config.ts', mode: 'test', cacheDir: resolve('.tools/d09-admin-cache'), server: { host: '127.0.0.1', port: 5184, strictPort: true, hmr: false } }); await adminVite.listen()
 const publicServer = spawn('node', ['node_modules/@dcloudio/vite-plugin-uni/bin/uni.js', '--config', config, '--host', '127.0.0.1', '--port', '5183'], { detached: true, env: { ...process.env, CHOKIDAR_USEPOLLING: 'true', VITE_COMPETITION_API_URL: endpoint }, stdio: ['ignore', 'pipe', 'pipe'] })
 let publicLog = ''; for (const stream of [publicServer.stdout, publicServer.stderr]) stream.on('data', chunk => { publicLog += chunk })

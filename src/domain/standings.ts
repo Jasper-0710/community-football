@@ -6,13 +6,22 @@ export interface StandingGroup { id: string; complete: boolean; expectedMatches:
 export interface PlayerRank { playerId: string; playerName: string; number: number; teamId: string; teamName: string; goals: number; assists: number; value: number; rank: number }
 export interface RankedMatch extends MatchSchedule { result?: SavedResult | null }
 export interface StandingsSnapshot { competitionId: string; revision: number; configured: boolean; rules: StandingsRules; groups: StandingGroup[]; goals: PlayerRank[]; assists: PlayerRank[]; matches: RankedMatch[]; championTeamId: string | null }
-export interface ResultHistory { revisions: { version: number; reason: string; revoked: boolean; createdAt: string; result: SavedResult | null }[]; nextVersion: number | null }
+export interface ResultRevision { id?: string; version: number; reason: string; revoked: boolean; createdAt: string; result: SavedResult | null; homeTeamId?: string; awayTeamId?: string; restoredFromRevisionId?: string; restoredFromVersion?: number }
+export interface ResultHistory { revisions: ResultRevision[]; nextVersion: number | null }
+export interface ResultRestoreTarget { competitionId: string; id: string; expectedVersion: number; expectedRevision: number; targetRevisionId: string; targetVersion: number }
+export interface ResultRestoreRequest extends ResultRestoreTarget { previewDigest: string; requestId: string; reason: string }
+export interface ResultRestorePreview extends ResultRestoreTarget {
+  digest: string; targetCreatedAt: string; targetReason: string; currentStatus: RankedMatch['status']
+  homeTeamId: string; awayTeamId: string; homeTeamName: string; awayTeamName: string
+  currentResult: SavedResult | null; targetResult: SavedResult
+}
 const object = (v: any): v is Record<string, any> => !!v && typeof v === 'object' && !Array.isArray(v)
 const nonnegative = (v: unknown) => Number.isSafeInteger(v) && Number(v) >= 0
 const positive = (v: unknown) => nonnegative(v) && Number(v) > 0
 const teamId = (v: unknown) => typeof v === 'string' && /^t_[a-f0-9]{64}$/.test(v)
 const playerId = (v: unknown) => typeof v === 'string' && /^p_[a-f0-9]{32}$/.test(v)
 const name = (v: unknown) => typeof v === 'string' && !!v.trim()
+const revisionId = (v: unknown) => typeof v === 'string' && /^rv_[a-f0-9]{64}$/.test(v)
 const invalid = (): never => { throw new MatchClientError('INVALID_RESPONSE', '榜单服务返回异常，请重新读取。') }
 function parseRules(v: any): StandingsRules {
   if (!object(v) || ![v.winPoints, v.drawPoints, v.lossPoints].every(x => nonnegative(x) && x <= 10) || v.winPoints <= v.drawPoints || v.drawPoints < v.lossPoints || ![1, 2].includes(v.legs) || !Array.isArray(v.groups) || v.groups.length > 16) return invalid()
@@ -59,7 +68,28 @@ export function parseResultHistory(v: any): ResultHistory {
   const revisions = v.revisions.map((r: any) => {
     if (!object(r) || !positive(r.version) || r.version >= last || typeof r.revoked !== 'boolean' || !name(r.reason) || typeof r.createdAt !== 'string' || !Number.isFinite(Date.parse(r.createdAt))) return invalid()
     last = r.version
-    return { version: r.version as number, reason: r.reason as string, revoked: r.revoked as boolean, createdAt: r.createdAt as string, result: parseSavedResult(r.result) }
+    if (r.id !== undefined && !revisionId(r.id) || r.homeTeamId !== undefined && !teamId(r.homeTeamId) || r.awayTeamId !== undefined && (!teamId(r.awayTeamId) || r.awayTeamId === r.homeTeamId) || r.restoredFromRevisionId !== undefined && (!revisionId(r.restoredFromRevisionId) || !positive(r.restoredFromVersion) || r.restoredFromVersion >= r.version) || r.restoredFromVersion !== undefined && r.restoredFromRevisionId === undefined) return invalid()
+    const result = parseSavedResult(r.result)
+    if (r.revoked === !!result) return invalid()
+    return { ...(r.id ? { id: r.id as string } : {}), ...(r.homeTeamId ? { homeTeamId: r.homeTeamId as string } : {}), ...(r.awayTeamId ? { awayTeamId: r.awayTeamId as string } : {}), version: r.version as number, reason: r.reason as string, revoked: r.revoked as boolean, createdAt: r.createdAt as string, result, ...(r.restoredFromRevisionId ? { restoredFromRevisionId: r.restoredFromRevisionId as string, restoredFromVersion: r.restoredFromVersion as number } : {}) }
   })
+  if (v.nextVersion !== null && (!revisions.length || v.nextVersion !== revisions[revisions.length - 1].version)) return invalid()
   return { revisions, nextVersion: v.nextVersion }
+}
+export function parseResultRestorePreview(v: any, expected: ResultRestoreTarget): ResultRestorePreview {
+  if (!object(v) || v.ok !== true || Object.keys(expected).some(key => v[key] !== expected[key as keyof ResultRestoreTarget])
+    || !revisionId(v.targetRevisionId) || !positive(v.targetVersion) || !positive(v.expectedVersion) || v.targetVersion >= v.expectedVersion || !nonnegative(v.expectedRevision)
+    || typeof v.digest !== 'string' || !/^[a-f0-9]{64}$/.test(v.digest) || typeof v.targetCreatedAt !== 'string' || !Number.isFinite(Date.parse(v.targetCreatedAt)) || !name(v.targetReason)
+    || !['scheduled', 'postponed', 'live', 'finished'].includes(v.currentStatus) || !teamId(v.homeTeamId) || !teamId(v.awayTeamId) || v.homeTeamId === v.awayTeamId || !name(v.homeTeamName) || !name(v.awayTeamName)) return invalid()
+  const currentResult = parseSavedResult(v.currentResult), targetResult = parseSavedResult(v.targetResult)
+  if (!targetResult || (['live', 'finished'].includes(v.currentStatus) ? currentResult?.state !== v.currentStatus : !!currentResult)) return invalid()
+  for (const result of [currentResult, targetResult]) {
+    if (!result) continue
+    if ([...result.goals, ...result.cards, ...result.substitutions].some(e => ![v.homeTeamId, v.awayTeamId].includes(e.teamId)) || result.goals.filter(g => g.teamId === v.homeTeamId).length !== result.homeScore || result.goals.filter(g => g.teamId === v.awayTeamId).length !== result.awayScore) return invalid()
+  }
+  return { ...expected, digest: v.digest, targetCreatedAt: v.targetCreatedAt, targetReason: v.targetReason, currentStatus: v.currentStatus, homeTeamId: v.homeTeamId, awayTeamId: v.awayTeamId, homeTeamName: v.homeTeamName, awayTeamName: v.awayTeamName, currentResult, targetResult }
+}
+export function parseResultRestoreAck(v: any, expected: ResultRestoreRequest) {
+  if (!object(v) || v.ok !== true || typeof v.applied !== 'boolean' || !nonnegative(v.revision) || v.revision <= expected.expectedRevision || v.id !== expected.id || v.version !== expected.expectedVersion + 1 || v.restoredFromRevisionId !== expected.targetRevisionId || v.restoredFromVersion !== expected.targetVersion) return invalid()
+  return { applied: v.applied as boolean, revision: v.revision as number, version: v.version as number }
 }

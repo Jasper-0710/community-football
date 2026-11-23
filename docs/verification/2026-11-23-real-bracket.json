@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "scope": "C：完整真实淘汰赛图（D06/D08；#6/#19/#26）",
+  "status": "本地实现及隔离技术验证通过；客户非空页面、微信原生和物理真机待验",
+  "source": {
+    "baseCommit": "4d8c2d8",
+    "candidate": "当前未提交工作区，保留此前首页/档案/H5备用等改动",
+    "committed": false,
+    "pushed": false,
+    "sha256": {
+      "src/domain/bracket.ts": "a1e5a05c54bf8bf892fc42b8957779f56920d95fc3ef14f36efc971c6fee186f",
+      "src/components/BracketTree.vue": "f5b80d5092ed409420be164111bb5c47520d3512508d5682801e83f07f5b86f8",
+      "src/components/PublicStandings.vue": "6cf500932715340203c2ccae6abe8aa899f7968f9c7018ccc214d3cf5b0dc603",
+      "src/styles/global.scss": "78a04a1e54772188240d27d7d6f2b9217cad7482bc1af43e6b17842d72dd0743",
+      "tests/bracket.test.ts": "4374b733c17621092bfae46e296483f79bc764425eb5ffc8c89dadefa79fcc95",
+      "tests/helpers/bracket-fixture.cjs": "7857fd1d544c15dd948e7d9256c98eff88b22831008e82d88d1a7a16631ef097",
+      "scripts/verify-bracket.mjs": "520e8fea0974a750a603f36a7777d34a8663787b332d45abcedbcae0c945c343",
+      "package.json": "e6bd177d5958cd5004966ad9361106e3edbe6f24b9da6559540621bf6a6b8522"
+    }
+  },
+  "environment": {
+    "validation": "实际Vue、HTTP、比赛/榜单/赛事/设置服务和主备缓存；隔离内存及本机HTTPS",
+    "sampleData": "明确标注【模拟】的8队/4组、八强杯、四强杯、未排赛杯和隐藏赛事",
+    "customerEnvironmentAccessed": false,
+    "customerEnvironmentModified": false,
+    "cloudFunctionsChangedByThisFeature": false,
+    "cloudDeployed": false,
+    "clientUploaded": false,
+    "customerBusinessWritten": false,
+    "physicalDeviceTested": false
+  },
+  "features": [
+    "两处晋级入口复用真实榜单快照",
+    "按实际homeFrom/awayFrom排序并连接对应主客队，不按场次号猜配对",
+    "实际签位、未编号轮次、比分、点球、待定来源、北京时间、场地和比赛详情",
+    "完赛胜者及与championTeamId一致的冠军，进行中不提前晋级",
+    "小组名次变化与赛果更正/撤销/重发后刷新同步",
+    "仅四强/决赛、缺失来源及无淘汰赛支持，不补造比赛",
+    "图内横滑、轮次横向定位、H5选择/微信picker和深色主题",
+    "主服务/备用/本机快照/重连，权威不存在清旧图与卸载响应保护"
+  ],
+  "automatedTests": {
+    "command": "npm test",
+    "passed": 411,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "newBracketTests": 6,
+    "log": "/tmp/community-football-bracket-tests.log"
+  },
+  "checks": {
+    "clientTypecheck": "passed",
+    "h5Build": "passed",
+    "wechatMiniProgramBuild": "passed",
+    "adminSourceChangedByThisFeature": false,
+    "buildNotes": "最终展示文案及新增未编号签位用例后再次运行；保留uni既有finally循环依赖提示。"
+  },
+  "browser": {
+    "command": "npm run test:bracket:browser",
+    "passed": 13,
+    "checks": [
+      "真实八强签位按来源连至对应主客队，待定小组名次和北京时间正确",
+      "待定比赛卡片可进入对应真实比赛详情",
+      "小组赛结果填充球队，进行中比分不会提前晋级",
+      "点球胜者、绿色晋级连线和冠军与同一服务快照一致",
+      "撤销后轮、更正前轮再重发，签位、比分、连线与冠军同步更新",
+      "赛事切换支持只有四强、未排赛与隐藏赛事过滤，不补造八强",
+      "390px整页无溢出，图内横滑、轮次定位和赛事选择可用",
+      "320px整页无溢出，图内横滑、轮次定位和赛事选择可用",
+      "深色外观下对阵、来源和连线沿用平台主题",
+      "主服务故障沿用公开备用及本机快照，重连后恢复最新对阵",
+      "权威不存在清除旧图，重试后恢复",
+      "切换页面后迟到响应不覆盖新实例，也不产生卸载错误",
+      "数据页的榜单与晋级入口复用相同真实对阵图"
+    ],
+    "pageErrors": [],
+    "unexpectedExternalOrigins": [],
+    "report": "artifacts/bracket/report.json",
+    "screenshots": [
+      "artifacts/bracket/champion-320.png",
+      "artifacts/bracket/champion-390.png",
+      "artifacts/bracket/dark-320.png",
+      "artifacts/bracket/finished-desktop.png",
+      "artifacts/bracket/pending-desktop.png",
+      "artifacts/bracket/quarter-320.png",
+      "artifacts/bracket/quarter-390.png"
+    ],
+    "visualReview": [
+      "桌面对阵与连接线",
+      "390/320px轮次横滑",
+      "320px深色图"
+    ]
+  },
+  "intermediateFailures": [
+    "测试夹具ISO时间缺毫秒、可选比赛ID和非赛果动作携带不支持requestId，均修正后全部通过。",
+    "首次浏览器滚动节点选择器匹配uni两层包装，改为核对实际滚动节点后13组全部通过。",
+    "沙箱拒绝本机监听/tsx通信管道，获准在沙箱外运行；隔离传输未访问客户地址。"
+  ],
+  "remaining": [
+    "更新客户端后在客户现有模拟四强赛事核对非空图与真实详情",
+    "完整八强、小组并列/名次更正的客户云端样例",
+    "微信原生横滑、picker、比赛跳转和iPhone/Android",
+    "不扩大为自动抽签、任意赛制或单场历史恢复，不记客户整项签收"
+  ]
+}

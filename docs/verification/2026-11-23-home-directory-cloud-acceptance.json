@@ -1,0 +1,703 @@
+{
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "generatedAt": "2026-11-23T07:58:43.412Z",
+  "scope": "A：首页完善；B：球队与球员完整公开档案",
+  "status": "客户云端非空基础业务技术验收通过；小程序代码包已上传。原生控件点击、微信真机、正式托管及规模等剩余验收单列，不扩大为客户整项签收。",
+  "source": {
+    "baseCommit": "4d8c2d8",
+    "candidate": "当前工作区，含此前H5备用接入及首页/档案改动",
+    "committed": false,
+    "pushed": false,
+    "businessSourceChangedDuringCloudAcceptance": false
+  },
+  "environment": {
+    "appid": "wx3230f06c755cef3a",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "customerAccessed": true,
+    "customerBusinessWritten": true,
+    "sample": "既有明确标识的【模拟】冬日社区冠军杯；没有录入正式赛事资料",
+    "productionH5AndAdminBuilds": true,
+    "browserAssetDelivery": "独立Playwright上下文在已允许的本机来源提供正式构建资源；客户API请求真实透传，没有模拟业务响应，未占用或终止用户5173/5174服务",
+    "physicalDevice": false
+  },
+  "deployment": {
+    "functions": [
+      {
+        "name": "adminAuth",
+        "status": "success",
+        "taskId": "confirmation_cloud_fn_deploy_f74af1ce-9264-4ea2-be60-a85f071b1bd3",
+        "detail": "execution_success",
+        "files": 34
+      },
+      {
+        "name": "publicRead",
+        "status": "success",
+        "taskId": "confirmation_cloud_fn_deploy_dc62ea36-d1ed-41c7-aa0a-eab5385c48e2",
+        "detail": "execution_success",
+        "files": 5
+      }
+    ],
+    "downloadedSha256Matches": {
+      "adminAuth": 34,
+      "publicRead": 5,
+      "total": 39
+    },
+    "runtime": [
+      {
+        "name": "adminAuth",
+        "status": "Active",
+        "timeout": 20,
+        "runtime": "Nodejs16.13"
+      },
+      {
+        "name": "publicRead",
+        "status": "Active",
+        "timeout": 3,
+        "runtime": "Nodejs16.13"
+      }
+    ],
+    "configurationChangesIssued": false,
+    "fullEnvironmentVariablesReadbackAvailable": false,
+    "newCollectionsOrFlagsRequired": false
+  },
+  "client": {
+    "buildRoot": "dist/build/mp-weixin/",
+    "simulatorUpdated": true,
+    "upload": {
+      "status": "success",
+      "version": "0.1.0",
+      "at": "2026-11-23T07:51:58.504Z",
+      "bytes": 1746385,
+      "receiptSuccess": true
+    },
+    "packageManifest": {
+      "files": 285,
+      "uncompressedBytes": 1656500,
+      "privateArtifact": ".tools/customer-directory-20261123/client-package-manifest.json"
+    },
+    "reviewSubmitted": false,
+    "liveReleased": false,
+    "experienceVersionDesignationVerified": false,
+    "h5HostingDeployed": false
+  },
+  "baseline": {
+    "collections": 19,
+    "records": 140,
+    "counts": {
+      "users": 2,
+      "leaderTeamBindings": 2,
+      "teams": 5,
+      "players": 31,
+      "competitions": 11,
+      "registrations": 9,
+      "registrationFiles": 11,
+      "matches": 4,
+      "resultRevisions": 11,
+      "newsArticles": 3,
+      "newsImages": 6,
+      "teamBadges": 3,
+      "platformSettings": 1,
+      "matchLiveEntries": 31,
+      "matchLiveImages": 8,
+      "evaluationConfigs": 1,
+      "playerRatings": 0,
+      "playerComments": 0,
+      "playerAwards": 1
+    }
+  },
+  "publicFacts": {
+    "home": {
+      "competitions": 4,
+      "teams": 4,
+      "matches": 3,
+      "finished": 3,
+      "matchday": "2026-12-26",
+      "matchdayMatches": 2
+    },
+    "team": {
+      "played": 2,
+      "won": 1,
+      "drawn": 1,
+      "lost": 0,
+      "goalsFor": 4,
+      "goalsAgainst": 2,
+      "difference": 2
+    },
+    "selectedPlayer": {
+      "goals": 4,
+      "assists": 0,
+      "yellow": 0,
+      "red": 0,
+      "eventMatches": 2
+    },
+    "additionalPlayer": {
+      "goals": 0,
+      "assists": 2,
+      "yellow": 0,
+      "red": 0,
+      "eventMatches": 2
+    },
+    "discipline": {
+      "yellow": 1,
+      "subInMinute": 20,
+      "red": 1
+    }
+  },
+  "httpsAndBrowser": {
+    "checks": [
+      {
+        "name": "真实后台登录及三个匿名管理/赛果动作401，原模拟决赛与基线一致",
+        "at": "2026-11-23T07:35:07.739Z"
+      },
+      {
+        "name": "三个新公开动作及赛事筛选经真实主HTTPS写缓存、独立备用回读一致，私有字段不公开",
+        "at": "2026-11-23T07:35:15.330Z"
+      },
+      {
+        "name": "云端球队胜平负/进失球与球员统计按原赛果独立手算一致",
+        "at": "2026-11-23T07:35:17.225Z",
+        "team": {
+          "played": 2,
+          "won": 1,
+          "drawn": 1,
+          "lost": 0,
+          "goalsFor": 4,
+          "goalsAgainst": 2,
+          "difference": 2
+        },
+        "player": {
+          "goals": 4,
+          "assists": 0,
+          "yellow": 0,
+          "red": 0,
+          "eventMatches": 2
+        },
+        "homeCounts": {
+          "competitions": 4,
+          "teams": 4,
+          "matches": 3,
+          "finished": 3
+        }
+      },
+      {
+        "name": "正式构建首页→真实球队档案→名单球员→所属球队入口和赛事筛选通过",
+        "at": "2026-11-23T07:35:23.080Z"
+      },
+      {
+        "name": "真实云端红黄牌和换人事件在球员档案非空显示",
+        "at": "2026-11-23T07:35:24.801Z"
+      },
+      {
+        "name": "真实客户数据首页/球队/球员390px布局通过",
+        "at": "2026-11-23T07:35:27.685Z"
+      },
+      {
+        "name": "真实客户数据首页/球队/球员320px布局通过",
+        "at": "2026-11-23T07:35:30.517Z"
+      },
+      {
+        "name": "新球员档案真实独立备用→本机原快照→重连恢复通过，故障仅限独立浏览器上下文",
+        "at": "2026-11-23T07:35:33.073Z"
+      },
+      {
+        "name": "同比分更正为乌龙球后球队比分不变，个人进球/助攻重新计算",
+        "at": "2026-11-23T07:36:27.659Z",
+        "team": {
+          "played": 2,
+          "won": 1,
+          "drawn": 1,
+          "lost": 0,
+          "goalsFor": 4,
+          "goalsAgainst": 2,
+          "difference": 2
+        },
+        "player": {
+          "goals": 3,
+          "assists": 0,
+          "yellow": 0,
+          "red": 0,
+          "eventMatches": 2
+        },
+        "homeCounts": {
+          "competitions": 4,
+          "teams": 4,
+          "matches": 3,
+          "finished": 3
+        }
+      },
+      {
+        "name": "本轮赛果幂等重试无重复，旧版本写入拒绝",
+        "at": "2026-11-23T07:36:29.819Z"
+      },
+      {
+        "name": "进行中赛果保留赛程但从累计战绩及个人统计扣除",
+        "at": "2026-11-23T07:36:33.680Z",
+        "team": {
+          "played": 1,
+          "won": 0,
+          "drawn": 1,
+          "lost": 0,
+          "goalsFor": 1,
+          "goalsAgainst": 1,
+          "difference": 0
+        },
+        "player": {
+          "goals": 1,
+          "assists": 0,
+          "yellow": 0,
+          "red": 0,
+          "eventMatches": 1
+        },
+        "homeCounts": {
+          "competitions": 4,
+          "teams": 4,
+          "matches": 3,
+          "finished": 2
+        }
+      },
+      {
+        "name": "撤销后恢复已排赛，档案无残留个人事件，冠军同步清空",
+        "at": "2026-11-23T07:36:38.083Z",
+        "team": {
+          "played": 1,
+          "won": 0,
+          "drawn": 1,
+          "lost": 0,
+          "goalsFor": 1,
+          "goalsAgainst": 1,
+          "difference": 0
+        },
+        "player": {
+          "goals": 1,
+          "assists": 0,
+          "yellow": 0,
+          "red": 0,
+          "eventMatches": 1
+        },
+        "homeCounts": {
+          "competitions": 4,
+          "teams": 4,
+          "matches": 3,
+          "finished": 2
+        }
+      },
+      {
+        "name": "重发后原始战绩、个人事件及冠军恢复",
+        "at": "2026-11-23T07:36:42.898Z",
+        "team": {
+          "played": 2,
+          "won": 1,
+          "drawn": 1,
+          "lost": 0,
+          "goalsFor": 4,
+          "goalsAgainst": 2,
+          "difference": 2
+        },
+        "player": {
+          "goals": 4,
+          "assists": 0,
+          "yellow": 0,
+          "red": 0,
+          "eventMatches": 2
+        },
+        "homeCounts": {
+          "competitions": 4,
+          "teams": 4,
+          "matches": 3,
+          "finished": 3
+        }
+      },
+      {
+        "name": "模拟赛事隐藏后首页数量/赛程同步移除，筛选档案权威不存在且不回退旧快照",
+        "at": "2026-11-23T07:36:46.404Z"
+      },
+      {
+        "name": "原3:1完整事件/六项统计、冠军及全部首页/档案投影恢复；新主备快照一致，修订审计保留",
+        "at": "2026-11-23T07:38:39.190Z"
+      },
+      {
+        "name": "验收管理员会话退出后原会话401",
+        "at": "2026-11-23T07:43:33.477Z"
+      }
+    ],
+    "checkRecords": 16,
+    "pageErrors": [],
+    "actions": [
+      "directory.homePublic",
+      "directory.teamProfilePublic",
+      "directory.playerProfilePublic"
+    ],
+    "queryScopes": [
+      "all public competitions",
+      "specific public competition"
+    ],
+    "primaryAndFallbackExactAfterFinalRead": true,
+    "unauthenticatedManagement": [
+      "standings.saveResult",
+      "standings.revokeResult",
+      "competitions.visibility"
+    ],
+    "allUnauthenticatedManagementReturned401": true,
+    "mobileWidths": [
+      390,
+      320
+    ],
+    "screenshotsReviewed": true,
+    "faultInjection": "仅独立浏览器上下文中断新档案API请求；未改客户网关或函数，主服务→真实备用→本机快照→重连通过"
+  },
+  "mutations": {
+    "method": "正常管理员HTTPS服务；仅既有模拟决赛及模拟赛事展示开关",
+    "correction": "同3:1更正一粒为乌龙球，已选球员累计进球4→3，球队战绩不变",
+    "live": "进行中比分保留，完赛数3→2，已选球队已赛2→1、球员进球4→1",
+    "revoke": "恢复scheduled，个人决赛事件移除、冠军为空",
+    "republish": "原3:1、全部事件和六项统计、冠军恢复",
+    "visibility": "模拟赛事隐藏时首页变为3赛事/1队/0比赛/0完赛；特定赛事档案NOT_FOUND且不显示旧快照，之后恢复公开",
+    "idempotency": "相同requestId applied=false；旧版本新requestId CONFLICT",
+    "operations": [
+      {
+        "action": "standings.saveResult",
+        "reason": "【首页档案验收1123】更正一粒为乌龙球，不改变3:1比分"
+      },
+      {
+        "action": "standings.saveResult",
+        "reason": "【首页档案验收1123】将模拟决赛改为进行中验证不计完赛统计"
+      },
+      {
+        "action": "standings.revokeResult",
+        "reason": "【首页档案验收1123】撤销模拟决赛验证统计及冠军清空"
+      },
+      {
+        "action": "standings.saveResult",
+        "reason": "【首页档案验收1123】重发原始3:1及原有全部事件和六项统计"
+      },
+      {
+        "action": "standings.saveResult",
+        "reason": "【首页档案验收1123】恢复验收开始时完整原始赛果"
+      }
+    ],
+    "auditRecordsRetained": 5,
+    "extraRestore": "验收脚本按JSON字符串顺序比较，触发一次内容相同的再次恢复；没有业务差异，保留其版本和第5条修订审计。"
+  },
+  "finalBusinessState": {
+    "at": "2026-11-23T07:49:34.247Z",
+    "allOriginalBusinessFactsRestored": true,
+    "collections": 19,
+    "beforeRecords": 140,
+    "afterRecords": 145,
+    "addedAudits": 5,
+    "onlyExpectedMetadataChanged": true,
+    "changedOriginalDocuments": [
+      {
+        "collection": "teams",
+        "id": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "paths": [
+          "version"
+        ]
+      },
+      {
+        "collection": "teams",
+        "id": "t_9ffc35a6150d1ac5eabd37e48ea6110c0cf2f199bbbb6a61b1b0cfc4fd38b776",
+        "paths": [
+          "version"
+        ]
+      },
+      {
+        "collection": "competitions",
+        "id": "c_9f5427d27b4acc8ecac2aad615d663a9",
+        "paths": [
+          "scheduleMutationVersion",
+          "updatedAt",
+          "version"
+        ]
+      },
+      {
+        "collection": "matches",
+        "id": "m_2bff5ca2cc3ed7ce932c1996cd2cdcdf",
+        "paths": [
+          "updatedAt",
+          "version"
+        ]
+      }
+    ],
+    "matchVersion": 13,
+    "competitionRevision": 23,
+    "sessionsLoggedOut": true
+  },
+  "nativeSimulator": {
+    "scope": "微信开发者工具原生模拟器，正式小程序构建及真实wx.cloud调用；无API结果注入",
+    "checks": [
+      {
+        "name": "正式小程序三个新接口经客户端解析器真实读取云端非空数据",
+        "at": "2026-11-23T07:42:44.471Z",
+        "result": {
+          "counts": {
+            "competitions": 4,
+            "teams": 4,
+            "matches": 3,
+            "finished": 3
+          },
+          "team": {
+            "played": 2,
+            "won": 1,
+            "drawn": 1,
+            "lost": 0,
+            "goalsFor": 4,
+            "goalsAgainst": 2,
+            "difference": 2
+          },
+          "player": {
+            "goals": 4,
+            "assists": 0,
+            "yellow": 0,
+            "red": 0,
+            "eventMatches": 2
+          }
+        }
+      },
+      {
+        "name": "可信微信云调用三个新公开动作及赛事筛选，独立备用与主服务一致",
+        "at": "2026-11-23T07:43:46.369Z",
+        "result": [
+          {
+            "action": "directory.homePublic",
+            "scoped": false,
+            "mainOk": true,
+            "fallbackOk": true,
+            "equal": true,
+            "source": "fallback"
+          },
+          {
+            "action": "directory.teamProfilePublic",
+            "scoped": false,
+            "mainOk": true,
+            "fallbackOk": true,
+            "equal": true,
+            "source": "fallback"
+          },
+          {
+            "action": "directory.teamProfilePublic",
+            "scoped": true,
+            "mainOk": true,
+            "fallbackOk": true,
+            "equal": true,
+            "source": "fallback"
+          },
+          {
+            "action": "directory.playerProfilePublic",
+            "scoped": false,
+            "mainOk": true,
+            "fallbackOk": true,
+            "equal": true,
+            "source": "fallback"
+          },
+          {
+            "action": "directory.playerProfilePublic",
+            "scoped": true,
+            "mainOk": true,
+            "fallbackOk": true,
+            "equal": true,
+            "source": "fallback"
+          }
+        ]
+      },
+      {
+        "name": "原生home页面实际导航、非空渲染及原生picker选项",
+        "at": "2026-11-23T07:49:11.011Z",
+        "result": {
+          "route": "pages/index/index",
+          "name": "HomeView",
+          "home": {
+            "competitions": 4,
+            "teams": 4,
+            "matches": 3,
+            "finished": 3
+          },
+          "displayed": [
+            "4",
+            "3",
+            "4"
+          ],
+          "previewTeams": 4,
+          "matchday": "12.26 / 周六"
+        }
+      },
+      {
+        "name": "原生team页面实际导航、非空渲染及原生picker选项",
+        "at": "2026-11-23T07:49:15.885Z",
+        "result": {
+          "route": "pages/team/detail",
+          "name": "PublicProfileRecords",
+          "summary": {
+            "played": 2,
+            "won": 1,
+            "drawn": 1,
+            "lost": 0,
+            "goalsFor": 4,
+            "goalsAgainst": 2,
+            "difference": 2
+          },
+          "selected": "",
+          "displayed": [
+            "2",
+            "1",
+            "1",
+            "0",
+            "4",
+            "2",
+            "2"
+          ],
+          "records": 2,
+          "pickerRange": [
+            "全部公开参赛赛事",
+            "联调测试·客户环境赛事（已验证）",
+            "【模拟】冬日社区冠军杯"
+          ],
+          "error": ""
+        }
+      },
+      {
+        "name": "原生player页面实际导航、非空渲染及原生picker选项",
+        "at": "2026-11-23T07:49:20.952Z",
+        "result": {
+          "route": "pages/player/detail",
+          "name": "PublicProfileRecords",
+          "summary": {
+            "goals": 4,
+            "assists": 0,
+            "yellow": 0,
+            "red": 0,
+            "eventMatches": 2
+          },
+          "selected": "",
+          "displayed": [
+            "4",
+            "0",
+            "0",
+            "0"
+          ],
+          "records": 2,
+          "pickerRange": [
+            "全部公开参赛赛事",
+            "联调测试·客户环境赛事（已验证）",
+            "【模拟】冬日社区冠军杯"
+          ],
+          "error": ""
+        }
+      },
+      {
+        "name": "云端真实非空助攻球员经小程序解析器统计",
+        "at": "2026-11-23T07:49:23.130Z",
+        "result": {
+          "goals": 0,
+          "assists": 2,
+          "yellow": 0,
+          "red": 0,
+          "eventMatches": 2
+        }
+      }
+    ],
+    "actualNavigationAndRenderedDataVerified": true,
+    "homeTeamPlayerScreenshotsReviewed": true,
+    "playerMinuteEventsScreenshotReviewed": true,
+    "realTrustedCloudPrimaryFallbackFiveQueriesVerified": true,
+    "productionModuleParsersVerified": true,
+    "apiMocksInstalled": false,
+    "buttonOrPickerInteractionVerified": false,
+    "interactionLimit": "跨组件CSS选择器未返回内部按钮；未通过工具执行原生按钮或picker点击。实际入口与select操作在真实云端H5已通过，微信原生操作/物理真机仍单列。",
+    "physicalDevice": false
+  },
+  "localValidation": {
+    "scope": "此前本地开发阶段通过结果，本云端阶段未重复全量测试或修改业务源码",
+    "fullSuitePassed": 405,
+    "directoryBrowserGroups": 14,
+    "contentBrowserGroups": 28,
+    "clientAndAdminTypecheck": true,
+    "recoveryContract": true,
+    "builds": [
+      "H5",
+      "mp-weixin",
+      "admin"
+    ],
+    "historicalEvidence": "2026-11-23-home-directory.json"
+  },
+  "interruptions": [
+    {
+      "stage": "首次只读脚本",
+      "count": 1,
+      "issue": "预期公开赛事数写为5，但实际基线为4；断言失败，没有业务写入。",
+      "resolution": "按官方保存的业务基线计算公开数量，新的真实读取与页面验收全部通过；原报告保留。"
+    },
+    {
+      "stage": "业务操作后的首次最终主备比较",
+      "count": 1,
+      "at": "2026-11-23T07:36:51.303Z",
+      "issue": "独立备用曾返回较早有效快照中的match.updatedAt；当时主备没有立即完全一致。",
+      "resolution": "未删除失败记录或改写客户时间；随后重新主读/备用回读5组精确一致，可信微信5组也一致。备用仍为有时间标识的短期快照，不承诺强一致即时同步。"
+    },
+    {
+      "stage": "官方独立数据库回读",
+      "issue": "新增修订使单页输出超出CLI JSON输出长度。",
+      "resolution": "resultRevisions按5条分页，19集合完整回读和原始事实逐项比对通过。"
+    },
+    {
+      "stage": "原生接口自动化",
+      "count": 2,
+      "issue": "--args被CLI拒绝；合并10个云调用触发自动化超时。",
+      "resolution": "参数放入受控函数字符串、每组查询分步执行；新解析器及5组真实主备全部通过。"
+    },
+    {
+      "stage": "原生控件自动化",
+      "issue": "跨组件选择器未找到内部按钮。",
+      "resolution": "未将未执行的点击计为通过；实际导航、渲染数据和截图已核对，原生按钮/picker操作保留待验。"
+    }
+  ],
+  "remaining": [
+    "微信原生按钮/picker实际操作及iPhone/Android真机、跨账号/跨设备",
+    "正式H5及后台托管域名与相应允许来源、代码包设为体验版及提审/正式发布",
+    "当前样例不足20场；真实云端大分页、2000条扫描边界与性能",
+    "实际名单/审核资格变更等剩余云端分支；本轮仅本地专项已覆盖，不扩大为全部云端分支通过",
+    "客户效果核对与29项整项签收"
+  ],
+  "artifacts": {
+    "privateRoot": ".tools/customer-directory-20261123/",
+    "rawReports": [
+      "accept-report.json",
+      "attempt1-accept-report.json",
+      "native-report.json",
+      "readback-verified.json",
+      "client-upload-task.json"
+    ],
+    "screenshots": [
+      "cloud-home-390.png",
+      "cloud-home-320.png",
+      "cloud-team-390.png",
+      "cloud-team-320.png",
+      "cloud-player-390.png",
+      "cloud-player-320.png",
+      "native-home.jpg",
+      "native-team.jpg",
+      "native-player.jpg",
+      "native-player-events.jpg"
+    ],
+    "credentialsOrSessionsCommitted": false,
+    "businessSnapshotsCommitted": false
+  },
+  "finalValidation": {
+    "gitDiffWhitespaceCheck": true,
+    "documentationLinks": {
+      "documents": 7,
+      "checked": 159,
+      "missing": 0
+    },
+    "artifactConsistency": {
+      "deployedCloudFiles": 39,
+      "uploadedClientFiles": 285,
+      "allHashesStillMatch": true
+    },
+    "nativeSimulatorRestoredToHome": true
+  },
+  "markdownVersion": "2.43",
+  "workbookSnapshotVersion": "2.26",
+  "workbookUpdated": false
+}

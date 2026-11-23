@@ -2,8 +2,9 @@
 
 const { createHash } = require('node:crypto')
 const { StandingsError, fail, fields, integer, cleanText, validateRules, qualification, calculateStandings, assertSchedule, protectResults, validateResult } = require('./standings-engine')
+const { REVISION_ID, digest, historicalResult } = require('./result-restore')
 const PUBLIC_ACTIONS = ['standings.getPublic']
-const ACTIONS = [...PUBLIC_ACTIONS, 'standings.getAdmin', 'standings.updateRules', 'standings.bindMatch', 'standings.saveResult', 'standings.revokeResult', 'standings.history']
+const ACTIONS = [...PUBLIC_ACTIONS, 'standings.getAdmin', 'standings.updateRules', 'standings.bindMatch', 'standings.saveResult', 'standings.revokeResult', 'standings.history', 'standings.previewRestoreResult', 'standings.restoreResult']
 const CID = /^c_[a-f0-9]{32}$/, MID = /^m_[a-f0-9]{32}$/
 const revisionOf = competition => competition.scheduleMutationVersion || 0
 const resultView = result => result ? {
@@ -55,22 +56,28 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
         const match = await store.match(event.id)
         if (!match || match.competitionId !== event.competitionId) fail('比赛不存在。', 'NOT_FOUND')
         const rows = await store.history(event.id, event.beforeVersion || null, 21)
-        return { ok: true, revisions: rows.slice(0, 20).map(row => ({ version: row.version, reason: row.reason, revoked: row.revoked, createdAt: new Date(row.createdAt).toISOString(), result: resultView(row.result) })), nextVersion: rows.length > 20 ? rows[19].version : null }
+        return { ok: true, revisions: rows.slice(0, 20).map(row => ({ id: row._id, version: row.version, reason: row.reason, revoked: row.revoked, createdAt: new Date(row.createdAt).toISOString(), result: resultView(row.result), homeTeamId: row.homeTeamId, awayTeamId: row.awayTeamId, ...(row.restoredFromRevisionId ? { restoredFromRevisionId: row.restoredFromRevisionId, restoredFromVersion: row.restoredFromVersion } : {}) })), nextVersion: rows.length > 20 ? rows[19].version : null }
       }
       const operation = event.action
-      const resultOperation = ['standings.saveResult', 'standings.revokeResult'].includes(operation)
-      fields(event, [...base, 'expectedRevision', ...(operation === 'standings.updateRules' ? ['rules'] : ['id', 'expectedVersion', ...(operation === 'standings.bindMatch' ? ['homeQualification', 'awayQualification'] : ['requestId', 'reason', ...(operation === 'standings.saveResult' ? ['result'] : [])])])])
+      const preview = operation === 'standings.previewRestoreResult', restore = operation === 'standings.restoreResult'
+      const resultOperation = ['standings.saveResult', 'standings.revokeResult', 'standings.restoreResult'].includes(operation)
+      fields(event, [...base, 'expectedRevision', ...(operation === 'standings.updateRules' ? ['rules'] : ['id', 'expectedVersion', ...(operation === 'standings.bindMatch' ? ['homeQualification', 'awayQualification'] : [...(preview ? [] : ['requestId', 'reason']), ...(operation === 'standings.saveResult' ? ['result'] : []), ...(preview || restore ? ['targetRevisionId', 'targetVersion', ...(restore ? ['previewDigest'] : [])] : [])])])])
       integer(event.expectedRevision, 0, Number.MAX_SAFE_INTEGER, '榜单版本')
       if (operation !== 'standings.updateRules') {
         if (typeof event.id !== 'string' || !MID.test(event.id)) fail('比赛标识无效。')
         integer(event.expectedVersion, 1, Number.MAX_SAFE_INTEGER, '比赛版本')
+      }
+      if (preview || restore) {
+        if (typeof event.targetRevisionId !== 'string' || !REVISION_ID.test(event.targetRevisionId)) fail('请选择有效的历史赛果版本。')
+        integer(event.targetVersion, 1, Number.MAX_SAFE_INTEGER, '目标历史版本')
+        if (restore && (typeof event.previewDigest !== 'string' || !/^[a-f0-9]{64}$/.test(event.previewDigest))) fail('请先预览并核对要恢复的历史版本。')
       }
       let operationId, fingerprint, reason
       if (resultOperation) {
         if (typeof event.requestId !== 'string' || !/^[a-f0-9]{32}$/.test(event.requestId)) fail('提交标识无效，请重新打开赛果表单。')
         reason = cleanText(event.reason, 300, '录入或更正原因')
         operationId = 'rv_' + createHash('sha256').update(`${event.id}:${event.requestId}`).digest('hex')
-        fingerprint = createHash('sha256').update(JSON.stringify({ operation, competitionId: event.competitionId, id: event.id, expectedVersion: event.expectedVersion, expectedRevision: event.expectedRevision, reason, result: event.result || null })).digest('hex')
+        fingerprint = digest({ operation, competitionId: event.competitionId, id: event.id, expectedVersion: event.expectedVersion, expectedRevision: event.expectedRevision, reason, result: event.result || null, ...(restore ? { targetRevisionId: event.targetRevisionId, targetVersion: event.targetVersion, previewDigest: event.previewDigest } : {}) })
       }
       return await store.transaction(event.competitionId, async tx => {
         const competition = await tx.competition()
@@ -79,7 +86,7 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
           const previous = await tx.revision(operationId)
           if (previous) {
             if (previous.fingerprint !== fingerprint) fail('该提交已经使用，请刷新后重新操作。', 'CONFLICT')
-            return { ok: true, applied: false, revision: revisionOf(competition) }
+            return { ok: true, applied: false, revision: revisionOf(competition), ...(restore ? { id: event.id, version: previous.version, restoredFromRevisionId: previous.restoredFromRevisionId, restoredFromVersion: previous.restoredFromVersion } : {}) }
           }
         }
         if (revisionOf(competition) !== event.expectedRevision) fail('赛程或榜单已更新，请刷新后核对最新数据。', 'CONFLICT')
@@ -96,7 +103,7 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
           if (team) teams.set(id, team)
         }
         const before = calculateStandings(competition, matches, teams)
-        let nextCompetition = { ...competition }, updated, touched = []
+        let nextCompetition = { ...competition }, updated, restorePreview, touched = []
         if (operation === 'standings.updateRules') {
           const rules = validateRules(event.rules)
           for (const group of rules.groups) for (const id of group.teamIds) { const team = await approvedTeam(tx, event.competitionId, id); teams.set(id, team); touched.push(team) }
@@ -111,9 +118,21 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
             updated.awayQualification = qualification(event.awayQualification)
           } else {
             const resolved = before.matches.find(match => match._id === event.id)
-            if (operation === 'standings.saveResult') {
+            if (operation === 'standings.saveResult' || preview || restore) {
               for (const id of [resolved.homeTeamId, resolved.awayTeamId].filter(Boolean)) { const team = await approvedTeam(tx, event.competitionId, id); teams.set(id, team); touched.push(team) }
-              updated.result = validateResult(event.result, resolved, teams, record.result)
+              if (preview || restore) {
+                const target = await tx.revision(event.targetRevisionId)
+                if (!target || target._id !== event.targetRevisionId || target.competitionId !== event.competitionId || target.matchId !== record._id || target.version !== event.targetVersion) fail('所选历史版本不存在或不属于本场比赛。', 'NOT_FOUND')
+                if (target.version >= record.version) fail('只能恢复早于当前比赛版本的历史赛果。', 'CONFLICT')
+                if (!Number.isFinite(new Date(target.createdAt).getTime()) || typeof target.reason !== 'string' || !target.reason.trim()) fail('历史修订记录不完整，不能恢复。')
+                updated.result = historicalResult(target, resolved)
+                restorePreview = { ok: true, competitionId: event.competitionId, id: record._id, expectedVersion: record.version, expectedRevision: revisionOf(competition), targetRevisionId: target._id, targetVersion: target.version,
+                  targetCreatedAt: new Date(target.createdAt).toISOString(), targetReason: target.reason, currentStatus: record.status,
+                  homeTeamId: resolved.homeTeamId, awayTeamId: resolved.awayTeamId, homeTeamName: teams.get(resolved.homeTeamId)?.name, awayTeamName: teams.get(resolved.awayTeamId)?.name,
+                  currentResult: resultView(record.result), targetResult: resultView(updated.result) }
+                restorePreview.digest = digest({ preview: restorePreview, competitionVersion: competition.version, stage: record.stage, teams: [...teams].map(([id, team]) => [id, team.version]).sort((a, b) => a[0].localeCompare(b[0])) })
+                if (restore && restorePreview.digest !== event.previewDigest) fail('预览后数据已变化，请刷新并重新预览历史版本。', 'CONFLICT')
+              } else updated.result = validateResult(event.result, resolved, teams, record.result)
               updated.status = updated.result.state
             } else {
               if (!['live', 'finished'].includes(record.status) || !record.result) fail('该场比赛没有可撤销的赛果。')
@@ -126,6 +145,7 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
         assertSchedule(nextMatches, nextCompetition.standingsRules)
         const after = calculateStandings(nextCompetition, nextMatches, teams)
         protectResults(before.matches, after.matches)
+        if (preview) return restorePreview
         // All derived values come from the current result revision. Only facts
         // are persisted, so corrections and revocations cannot leave stale totals.
         nextCompetition.scheduleMutationVersion = revisionOf(competition) + 1
@@ -135,9 +155,9 @@ function createStandingsService({ store, authorize, now = Date.now, logger = con
           homeTeamId: updated.result?.homeTeamId || matches.find(match => match._id === event.id).result.homeTeamId,
           awayTeamId: updated.result?.awayTeamId || matches.find(match => match._id === event.id).result.awayTeamId,
           result: updated.result, previousResult: matches.find(match => match._id === event.id).result || null,
-          revoked: operation === 'standings.revokeResult', reason, fingerprint, operator: auth.admin?.username || '', createdAt: now() })
+          revoked: operation === 'standings.revokeResult', reason, fingerprint, operator: auth.admin?.username || '', createdAt: now(), ...(restore ? { restoredFromRevisionId: event.targetRevisionId, restoredFromVersion: event.targetVersion } : {}) })
         await tx.writeCompetition(nextCompetition)
-        return { ok: true, applied: true, revision: nextCompetition.scheduleMutationVersion }
+        return { ok: true, applied: true, revision: nextCompetition.scheduleMutationVersion, ...(restore ? { id: event.id, version: updated.version, restoredFromRevisionId: event.targetRevisionId, restoredFromVersion: event.targetVersion } : {}) }
       })
     } catch (error) {
       if (error instanceof StandingsError) return { ok: false, error: { code: error.code, message: error.message } }

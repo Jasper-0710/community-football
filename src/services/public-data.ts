@@ -9,7 +9,8 @@ import { parseNewsArticle, parseNewsPage, parseSearchPage, parsePublicTeam, pars
 import { parseLivePage } from '../domain/match-live'
 import { parsePlatformSettings } from '../domain/platform-settings'
 import { parseEvaluationPublic } from '../domain/evaluation'
-const actions = new Set(['competitions.listPublic','competitions.getPublic','matches.listPublic','matches.getPublic','standings.getPublic','news.listPublic','news.getPublic','search.public','search.suggestions','directory.teamPublic','directory.playerPublic','live.listPublic','settings.getPublic'])
+import { parsePublicHome, parseTeamProfile, parseFullPlayerProfile } from '../domain/directory'
+const actions = new Set(['competitions.listPublic','competitions.getPublic','matches.listPublic','matches.getPublic','standings.getPublic','news.listPublic','news.getPublic','search.public','search.suggestions','directory.teamPublic','directory.playerPublic','directory.homePublic','directory.teamProfilePublic','directory.playerProfilePublic','live.listPublic','settings.getPublic'])
 function sanitize(data: Record<string,unknown>, raw: any): any {
   if (raw?.ok !== true) throw new PublicReadError(raw?.error?.code || 'INVALID_RESPONSE', raw?.error?.message || '公开服务返回异常，请重试。')
   const wrap = (fields: object) => ({ ok:true,...fields })
@@ -25,6 +26,9 @@ function sanitize(data: Record<string,unknown>, raw: any): any {
     case 'search.suggestions': if(Array.isArray(raw.words)&&raw.words.length<=8&&raw.words.every((word:unknown)=>typeof word==='string'&&word.trim()&&Array.from(word).length<=40))return wrap({words:[...new Set(raw.words)]}); break
     case 'directory.teamPublic': { const team=parsePublicTeam(raw.team); if(team.id!==data.id)break; return wrap({team}) }
     case 'directory.playerPublic': { const player=parsePlayerProfile(raw.player); if(player.id!==data.id||player.teamId!==data.teamId)break; return wrap({player}) }
+    case 'directory.homePublic': return wrap({home:parsePublicHome(raw.home)})
+    case 'directory.teamProfilePublic': return wrap(parseTeamProfile(raw, String(data.id), data.competitionId as string | undefined))
+    case 'directory.playerProfilePublic': return wrap(parseFullPlayerProfile(raw, String(data.id), String(data.teamId), data.competitionId as string | undefined))
     case 'live.listPublic': return wrap(parseLivePage(raw,false,String(data.matchId)))
     case 'settings.getPublic': return wrap({settings:parsePlatformSettings(raw.settings)})
     case 'evaluation.getPublic': return wrap(parseEvaluationPublic(raw))

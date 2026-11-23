@@ -1,0 +1,114 @@
+{
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "scope": "A：首页完善；B：球队与球员完整公开档案",
+  "source": {
+    "baseCommit": "4d8c2d8",
+    "candidate": "当前工作区，含此前H5备用接入变更",
+    "committed": false,
+    "pushed": false
+  },
+  "status": "本地实现及隔离技术验证通过；客户部署、云端非空联动和微信端验收待执行",
+  "environment": {
+    "validation": "实际Vue页面、业务服务、HTTP处理器及主备缓存；隔离HTTPS和内存存储",
+    "data": "明确标注【验收】的模拟赛事、球队、球员及赛果",
+    "customerEnvironment": "cloud1-d6gzg20x709d7f6c1",
+    "customerEnvironmentAccessed": false,
+    "customerEnvironmentModified": false,
+    "cloudDeployed": false,
+    "customerBusinessWritten": false,
+    "physicalDeviceTested": false
+  },
+  "features": [
+    "首页动态赛事/球队/比赛数量、北京时间比赛日及最多六项比赛与球队预览",
+    "首页实际赛程、球队、比赛入口及最多三项简洁赛事预览",
+    "根业务页面与实际比赛详情移除示例对象展示门禁",
+    "球队按赛事筛选战绩、进失球、净胜球与完整分页赛程",
+    "球员进球、助攻、红黄牌及进球/助攻/换人/纪律分钟事件",
+    "有效完赛统计、赛果更正/撤销/重发与资格变化重新计算",
+    "按赛事审核资格与展示开关过滤，公开字段白名单",
+    "查询绑定游标、过期响应保护、真实空态及失败重试",
+    "新接口接入主服务、独立云端备用、本机快照与恢复期只读机制"
+  ],
+  "automatedTests": {
+    "command": "npm test",
+    "passed": 405,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "log": "/tmp/community-football-home-directory-tests.log",
+    "targeted": {
+      "command": "npx tsx --test tests/public-profile-lifecycle.test.ts tests/public-directory.test.ts",
+      "passed": 13,
+      "coverage": "公开统计/隐私/资格/分页/更正撤销及路由初始化、返回重读、卸载和延迟响应"
+    }
+  },
+  "checks": {
+    "clientTypecheck": "passed",
+    "adminTypecheck": "passed",
+    "recoverySharedContract": "passed，4份",
+    "h5Build": "passed",
+    "wechatMiniProgramBuild": "passed",
+    "adminBuild": "passed",
+    "buildNotes": "H5/小程序在最后生命周期修改后重建；后台文件未再修改，沿用本轮此前通过的类型与构建。保留已有uni循环依赖及Vite CJS提示。"
+  },
+  "directoryBrowser": {
+    "command": "npm run test:directory:browser",
+    "passed": 14,
+    "checks": [
+      "首页统计、北京时间比赛日、球队预览来自公开服务，比赛进入真实详情",
+      "首页全部赛程和认识球队进入公开业务页面",
+      "球队介绍、名单、完整战绩和赛程显示一致，赛事筛选重算",
+      "球员进球、助攻、红黄牌和换人事件可查看、按赛事筛选并返回所属球队",
+      "390px首页、球队与球员档案无横向溢出，移动选择器可筛选赛事",
+      "320px首页、球队与球员档案无横向溢出，移动选择器可筛选赛事",
+      "新增首页和档案跟随平台明暗设置，390px暗色布局正常",
+      "实际赛果服务更正和撤销后，球员统计、球队战绩与后轮参与记录同步更新",
+      "球队和球员超过20场记录可连续分页，无重复或丢失",
+      "切换页面后旧赛事筛选的延迟响应不会覆盖当前球员",
+      "新档案接口支持云端备用、本机已确认快照与重连，来源始终标识",
+      "权威隐藏结果清空档案且不回退到旧快照",
+      "没有公开赛事时首页显示真实零值与空态",
+      "首次读取失败不伪装空数据，首页重试后恢复"
+    ],
+    "pageErrors": [],
+    "externalOrigins": [],
+    "requests": 142,
+    "rawReport": "artifacts/directory/report.json",
+    "navigation": "独立深链接完整文档冷启动；站内跳转使用实际按钮",
+    "screenshotsReviewed": [
+      "artifacts/directory/home-390.png",
+      "artifacts/directory/team-390.png",
+      "artifacts/directory/player-390.png",
+      "artifacts/directory/home-320.png",
+      "artifacts/directory/team-320.png",
+      "artifacts/directory/player-320.png",
+      "artifacts/directory/home-dark-390.png",
+      "artifacts/directory/team-dark-390.png",
+      "artifacts/directory/player-dark-390.png"
+    ]
+  },
+  "existingContentBrowser": {
+    "command": "npm run test:content:browser",
+    "passed": 28,
+    "pageErrors": [],
+    "reportGeneratedAt": "2026-11-23T02:48:45.069Z",
+    "rawReport": "artifacts/content/report.json",
+    "notes": "新闻、搜索、图片与基础档案既有回归；隔离Vite配置显式禁用客户备用地址。此报告date字段保留原用例日期2026-11-17，实际运行时间见generatedAt。"
+  },
+  "statisticsRules": [
+    "仅计展示赛事、该赛事报名通过且未解散球队的有效完赛记录",
+    "点球比分单列；胜平负和进失球按点球大战前比分，平局计平",
+    "乌龙球与点球大战不计个人进球；不推算出场次数、首发或上场时间",
+    "球员以当前公开名单ID关联历史事件，移出名单后不继续公开该档案",
+    "沿用现有每集合2000条扫描上限；超限报错，不静默截断累计统计"
+  ],
+  "pending": [
+    "部署包含public-directory.js及新白名单的adminAuth、publicRead和对应客户端",
+    "客户云端用专用模拟内容完成首页/档案、更正撤销重发、可见性和主备非空复验",
+    "微信原生控件、iPhone/Android真机及约定实际规模验证",
+    "客户最终规则核对与整项签收；本轮不替代此前云端证据"
+  ],
+  "deploymentConfiguration": "没有新增集合、环境变量、数据库权限或HTTP路由；保留现有配置，更新函数和客户端。",
+  "artifactNotes": "原始报告和截图位于本机忽略目录；本JSON为脱敏验证摘要。Excel仍为v2.26历史快照。"
+}

@@ -1,0 +1,58 @@
+{
+  "date": "2026-11-22",
+  "timezone": "Asia/Shanghai",
+  "markdownVersion": "2.40",
+  "sourceBaseCommit": "4d8c2d8",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "H5 fallback configuration verification/registration and preparation of a production-build customer browser acceptance script. Actual customer H5 fallback acceptance has not run.",
+  "configuration": {
+    "primaryRouteUnchanged": "/admin-suth",
+    "fallbackFunction": "publicRead",
+    "fallbackHttpsRegistered": false,
+    "customerConfigurationChanged": false,
+    "guessedRouteSaved": false,
+    "otherCloudBaseEnvironmentRejected": true,
+    "normalizedSamePrimaryUrlRejected": true
+  },
+  "registrationTool": {
+    "command": "npm run cloud:setup -- --public-fallback-url <verified-console-https-url>",
+    "checksBeforeSaving": 7,
+    "checks": [
+      "primary public settings read",
+      "fallback CORS preflight",
+      "fresh fallback source/time and payload equal primary",
+      "unlisted origin rejected",
+      "anonymous and bearer-shaped private actions rejected",
+      "login unsupported",
+      "GET rejected"
+    ],
+    "administratorLoginNeeded": false,
+    "businessWrites": 0
+  },
+  "newCustomerH5BrowserScript": {
+    "file": "scripts/verify-recovery-customer-h5.mjs",
+    "syntaxChecked": true,
+    "executed": false,
+    "intendedScope": "Production H5 static assets at an allowed local origin, actual customer HTTPS/CORS, context-local transport failures only",
+    "customerCloudServiceStopped": false,
+    "existingDevServerChanged": false
+  },
+  "validation": {
+    "relatedUnitTestsPassed": 23,
+    "unitTestFiles": ["tests/cloud-environment.test.ts", "tests/public-fallback-gateway.test.ts", "tests/public-recovery.test.ts"],
+    "isolatedRecoveryBrowserGroupsPassed": 19,
+    "isolatedRecoveryBrowserPageErrors": [],
+    "isolatedBrowserScope": "Actual Vue and isolated HTTPS services/database/storage/auth, not customer cloud",
+    "cloudConfigurationModesPassed": ["development", "production", "admin"],
+    "clientTypecheckPassed": true,
+    "h5BuildPassed": true,
+    "fullUnitSuiteRerun": false,
+    "wechatBuildRerun": false
+  },
+  "blocker": "Verified complete HTTPS URL associated with customer publicRead is not available. Browser access host unavailable and native cloud-console control could not be reliably located; requested the URL from the user.",
+  "customerBusinessDataChanged": false,
+  "administratorLogin": false,
+  "deployed": false,
+  "gitCommittedOrPushed": false,
+  "excelVersion": "2.26"
+}

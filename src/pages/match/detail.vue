@@ -18,16 +18,19 @@ const { data, matches, error, load } = useTournament()
 const pageActive = ref(true)
 onShow(() => { pageActive.value = true })
 onHide(() => { pageActive.value = false })
-const id = ref(''), tab = ref('overview'), realMatch = ref<MatchSchedule | null>(null), realError = ref('')
+const id = ref(''), tab = ref('overview'), realMatch = ref<MatchSchedule | null>(null), realError = ref(''), realLoading = ref(true)
 onLoad(query => { id.value = query?.id || ''; void loadRealMatch() })
 
 let realGeneration=0
 onUnmounted(()=>{realGeneration++})
 async function loadRealMatch() {
-  if (!id.value) return
+  if (!id.value) { realLoading.value = false; return }
   const generation=++realGeneration
+  realLoading.value = true
+  realError.value = ''
   try { const value=await getPublicMatch(id.value);if(generation===realGeneration){realMatch.value=value;realError.value=''} }
   catch (value) { if(generation===realGeneration){realMatch.value = null; realError.value = value instanceof Error ? value.message : '暂时无法读取真实比赛详情。'} }
+  finally { if (generation === realGeneration) realLoading.value = false }
 }
 function realTeam(id: string, name: string | null | undefined): Team {
   return { id, name: name || '参赛球队', shortName: name || '球队', district: '', group: 'A', color: '#2c7a56', badge: '', founded: 0, description: '' }
@@ -42,17 +45,17 @@ const realEvents = computed<MatchEvent[]>(() => {
   return events.sort((a, b) => a.minute - b.minute || a.id.localeCompare(b.id))
 })
 const realData = computed<Tournament | null>(() => {
-  if (!data.value || !realMatch.value) return data.value
-  const source = realMatch.value, teams = [...data.value.teams]
+  if (!realMatch.value) return data.value
+  const source = realMatch.value, teams: Team[] = []
   for (const [teamId, teamName] of [[source.homeTeamId, source.homeTeamName], [source.awayTeamId, source.awayTeamName]] as const) if (teamId && !teams.some(team => team.id === teamId)) teams.push(realTeam(teamId, teamName))
-  const players = [...data.value.players]
+  const players: Player[] = []
   const allPlayers = source.result ? source.result.goals.flatMap(goal => [goal.scorer, goal.assist]).concat(source.result.cards.map(card => card.player), source.result.substitutions.flatMap(change => [change.playerIn, change.playerOut])).filter(Boolean) : []
   for (const player of allPlayers) {
     const playerValue = player!
     const teamId = source.result?.goals.find(goal => goal.scorer?.id === playerValue.id || goal.assist?.id === playerValue.id)?.teamId || source.result?.cards.find(card => card.player.id === playerValue.id)?.teamId || source.result?.substitutions.find(change => change.playerIn.id === playerValue.id || change.playerOut.id === playerValue.id)?.teamId
     if (teamId && !players.some(item => item.id === playerValue.id)) players.push({ id: playerValue.id, teamId, name: playerValue.name, number: playerValue.number, position: '' })
   }
-  return { ...data.value, teams, players }
+  return { id: source.competitionId, name: '公开赛事', season: '', demoDate: '', updatedAt: source.updatedAt, teams, players, matches: [], articles: [] }
 })
 const realPageMatch = computed<Match | null>(() => {
   const source = realMatch.value
@@ -96,7 +99,9 @@ function back() { uni.navigateBack({ fail: () => uni.reLaunch({ url: '/pages/ind
       </view>
       <view class="inline-note"><AppIcon name="info" tone="muted" :size="16"/><text>{{ isReal ? '本场详情来自公开赛事的真实赛果，赛程、榜单与事件使用同一份云端记录。' : '本场比赛为虚构演示。比分、事件与球队数据来自同一份本地资料，不提供实时直播或实际场地导航。' }}</text></view>
     </view>
-    <view v-else-if="error && !realError" class="empty-state"><text>{{ error }}</text><button hover-class="none" role="button" tabindex="0" class="ui-button primary-button" @click="load">重新加载</button></view>
+    <view v-else-if="realLoading" class="loading-state">正在读取比赛详情…</view>
+    <view v-else-if="realError" class="empty-state match-read-error" role="alert"><text>{{ realError }}</text><button hover-class="none" role="button" tabindex="0" class="ui-button primary-button" @click="loadRealMatch">重新读取比赛</button><button hover-class="none" role="button" tabindex="0" class="ui-button outline-button" @click="back">返回赛事</button></view>
+    <view v-else-if="error" class="empty-state"><text>{{ error }}</text><button hover-class="none" role="button" tabindex="0" class="ui-button primary-button" @click="load">重新加载</button></view>
     <view v-else-if="pageData" class="empty-state"><text class="h2">没有找到这场比赛</text><button hover-class="none" role="button" tabindex="0" class="ui-button primary-button" @click="back">返回赛事</button></view>
     <view v-else class="loading-state">正在加载比赛…</view>
   </AppShell>

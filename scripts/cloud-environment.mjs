@@ -28,8 +28,9 @@ export function validateCloudEnvironment(values, target = cloudEnvironment) {
     let url
     try { url = new URL(publicFallbackApiUrl) } catch { throw new Error('备用公开接口地址无效。') }
     if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) throw new Error('备用公开接口须使用不含凭据、参数或片段的HTTPS地址。')
+    if (url.hostname.endsWith('.app.tcloudbase.com') && !url.hostname.startsWith(`${target.envId}-`)) throw new Error(`备用公开接口属于其他云环境，必须使用客户环境 ${target.envId}。`)
     if (publicFallbackApiUrl !== target.publicFallbackApiUrl) throw new Error('备用公开接口必须先登记到config/cloud-environment.json，不能使用未确认的备用数据源。')
-    if (publicFallbackApiUrl === competitionApiUrl) throw new Error('备用公开接口必须与主服务分开配置。')
+    if ([adminApiUrl, competitionApiUrl].filter(Boolean).some(endpoint => new URL(endpoint).href === url.href)) throw new Error('备用公开接口必须与主服务分开配置。')
   }
   const manifest = JSON.parse(fs.readFileSync(new URL('../src/manifest.json', import.meta.url), 'utf8'))
   if (manifest['mp-weixin']?.appid !== target.appid) throw new Error(`小程序AppID必须为 ${target.appid}。`)

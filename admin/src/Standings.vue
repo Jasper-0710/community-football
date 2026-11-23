@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import ResultSnapshot from './ResultSnapshot.vue'
 import type { createAdminAuth } from './auth'
 import type { AdminCompetition } from '../../src/domain/competition'
 import type { ManagedTeam, TeamSummary } from '../../src/domain/team'
 import type { RegistrationSummary } from '../../src/domain/registration'
 import type { GroupQualification, MatchCardKind, MatchStats } from '../../src/domain/match'
 import { matchStageLabels, matchStatusLabels, matchTime } from '../../src/domain/match'
-import type { RankedMatch, ResultHistory, ResultInput, ResultPlayer, StandingsRules, StandingsSnapshot } from '../../src/domain/standings'
+import type { RankedMatch, ResultHistory, ResultRevision, ResultRestorePreview, ResultRestoreRequest, ResultInput, ResultPlayer, StandingsRules, StandingsSnapshot } from '../../src/domain/standings'
 const props = defineProps<{ auth: ReturnType<typeof createAdminAuth>; initialCompetitionId?: string; initialMatchId?: string }>()
 const competitions = ref<AdminCompetition[]>([]), teams = ref<TeamSummary[]>([]), approvedIds = ref<string[]>([])
 const competitionId = ref(props.initialCompetitionId || ''), snapshot = ref<StandingsSnapshot | null>(null)
@@ -24,6 +25,9 @@ const cardRows = ref<{ teamId: string; minute: string; kind: MatchCardKind; play
 const substitutionRows = ref<{ teamId: string; minute: string; playerInId: string; playerOutId: string }[]>([])
 const statsForm = reactive({ possessionHome: '', possessionAway: '', shotsHome: '', shotsAway: '', shotsOnTargetHome: '', shotsOnTargetAway: '', cornersHome: '', cornersAway: '', foulsHome: '', foulsAway: '', offsidesHome: '', offsidesAway: '' })
 const requestId = ref('')
+const restorePreview = ref<ResultRestorePreview | null>(null), restoreReason = ref(''), restoreConfirmed = ref(false)
+const pendingRestore = ref<ResultRestoreRequest | null>(null), restorePanel = ref<HTMLElement | null>(null)
+function clearRestore() { restorePreview.value = null; restoreReason.value = ''; restoreConfirmed.value = false; pendingRestore.value = null }
 let generation = 0
 const explain = (e: unknown) => e instanceof Error ? e.message : '赛事数据暂不可用，请重试。'
 const teamName = (id: string | null) => teams.value.find(team => team.id === id)?.name || '待定'
@@ -44,7 +48,7 @@ async function pages<T>(read: (cursor?: string) => Promise<{ rows: T[]; nextCurs
 }
 async function loadCurrent() {
   const serial = ++generation, id = competitionId.value
-  snapshot.value = null; editor.value = null; busy.value = true; error.value = ''
+  snapshot.value = null; editor.value = null; clearRestore(); busy.value = true; error.value = ''
   try {
     if (!id) { approvedIds.value = []; return }
     const [data, registrations] = await Promise.all([
@@ -61,7 +65,7 @@ async function loadCurrent() {
 async function refresh() {
   if (busy.value) return
   const serial = ++generation
-  busy.value = true; error.value = ''; notice.value = ''; snapshot.value = null; editor.value = null
+  busy.value = true; error.value = ''; notice.value = ''; snapshot.value = null; editor.value = null; clearRestore()
   try {
     const [allCompetitions, allTeams] = await Promise.all([
       pages(async cursor => { const r = await props.auth.authorized((api, token) => api.competitions(token, cursor)); return { rows: r.competitions, nextCursor: r.nextCursor } }),
@@ -92,7 +96,7 @@ function players(teamId: string): ResultPlayer[] {
 async function open(match: RankedMatch, mode: typeof editorMode.value) {
   if (busy.value) return
   const serial = generation
-  editor.value = null; error.value = ''; notice.value = ''; busy.value = true
+  editor.value = null; clearRestore(); error.value = ''; notice.value = ''; busy.value = true
   try {
     roster.value = []
     if (mode === 'result') {
@@ -148,7 +152,7 @@ function inputResult(): ResultInput {
     substitutions: substitutionRows.value.map(change => ({ teamId: change.teamId, minute: Number(change.minute), playerInId: change.playerInId, playerOutId: change.playerOutId })), stats }
 }
 async function submit() {
-  if (busy.value || !snapshot.value || !editor.value) return
+  if (busy.value || !snapshot.value || !editor.value || editorMode.value === 'history') return
   const match = editor.value, revision = snapshot.value.revision
   busy.value = true; error.value = ''; notice.value = ''
   try {
@@ -169,9 +173,49 @@ async function submit() {
 }
 async function moreHistory() {
   if (busy.value || !editor.value || !history.value.nextVersion) return
+  const serial = generation, id = editor.value.id, cursor = history.value.nextVersion
   busy.value = true; error.value = ''
-  try { const page = await props.auth.authorized((api, token) => api.resultHistory(token, competitionId.value, editor.value!.id, history.value.nextVersion!)); history.value = { revisions: [...history.value.revisions, ...page.revisions], nextVersion: page.nextVersion } }
-  catch (e) { error.value = explain(e) } finally { busy.value = false }
+  try {
+    const page = await props.auth.authorized((api, token) => api.resultHistory(token, competitionId.value, id, cursor))
+    if (serial !== generation || editor.value?.id !== id) return
+    if (page.revisions.some(r => r.version >= cursor) || page.nextVersion !== null && page.nextVersion >= cursor) throw new Error('历史分页异常，请刷新后重试。')
+    history.value = { revisions: [...history.value.revisions, ...page.revisions], nextVersion: page.nextVersion }
+  } catch (e) { if (serial === generation && editor.value?.id === id) error.value = explain(e) } finally { if (serial === generation) busy.value = false }
+}
+async function previewRestore(row: ResultRevision) {
+  if (busy.value || pendingRestore.value || !snapshot.value || !editor.value || !row.id || !row.result || row.revoked || row.version >= editor.value.version!) return
+  const serial = generation, match = editor.value
+  clearRestore(); busy.value = true; error.value = ''; notice.value = ''
+  try {
+    const preview = await props.auth.authorized((api, token) => api.previewResultRestore(token, { competitionId: competitionId.value, id: match.id, expectedVersion: match.version!, expectedRevision: snapshot.value!.revision, targetRevisionId: row.id!, targetVersion: row.version }))
+    if (serial !== generation || editor.value?.id !== match.id) return
+    restorePreview.value = preview
+    await nextTick()
+    if (serial === generation) restorePanel.value?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  } catch (e) { if (serial === generation && editor.value?.id === match.id) error.value = explain(e) } finally { if (serial === generation) busy.value = false }
+}
+async function confirmRestore() {
+  if (busy.value || !restorePreview.value || !editor.value || editorMode.value !== 'history') return
+  if (!pendingRestore.value && (!restoreConfirmed.value || !restoreReason.value.trim())) { error.value = '请核对历史赛果，填写恢复原因并勾选确认。'; return }
+  const serial = generation, p = restorePreview.value
+  // Keep the exact request after an uncertain response. Retrying must not create
+  // a second revision or allow the reason/target to change under the same ID.
+  const form = pendingRestore.value || { competitionId: p.competitionId, id: p.id, expectedVersion: p.expectedVersion, expectedRevision: p.expectedRevision, targetRevisionId: p.targetRevisionId, targetVersion: p.targetVersion, previewDigest: p.digest, requestId: makeId(), reason: restoreReason.value.trim() }
+  pendingRestore.value = form; busy.value = true; error.value = ''; notice.value = ''
+  try {
+    const result = await props.auth.authorized((api, token) => api.restoreResult(token, { ...form }))
+    if (serial !== generation || editor.value?.id !== form.id) return
+    notice.value = `已将历史 v${form.targetVersion} 恢复为新修订 v${result.version}，比分、事件、技术统计及榜单与晋级已同步更新。`
+    await loadCurrent()
+  } catch (e) {
+    if (serial !== generation || editor.value?.id !== form.id) return
+    const code = (e as { code?: string })?.code
+    if (code && ['CONFLICT', 'INVALID_ARGUMENT', 'NOT_FOUND', 'UNAUTHORIZED', 'FORBIDDEN', 'SERVICE_MAINTENANCE'].includes(code)) {
+      pendingRestore.value = null
+      if (code === 'CONFLICT' || code === 'NOT_FOUND') clearRestore()
+      error.value = explain(e)
+    } else error.value = `${explain(e)} 提交结果尚未确认，请点击“重试确认恢复”核对原请求，或刷新数据检查最新历史。`
+  } finally { if (serial === generation) busy.value = false }
 }
 onMounted(async () => { await refresh(); const match = snapshot.value?.matches.find(m => m.id === props.initialMatchId); if (match) await open(match, 'history') })
 onUnmounted(() => { ++generation })
@@ -197,7 +241,28 @@ onUnmounted(() => { ++generation })
             <p v-else class="field-note">撤销 {{ editor.homeScore }} : {{ editor.awayScore }} 的赛果后，本场恢复已排赛，榜单不再统计本场，并重新判断晋级。原记录保留在更正历史中。</p>
             <template v-if="editorMode !== 'qualification'"><label for="result-reason">{{ editorMode === 'revoke' ? '撤销原因' : '录入或更正原因' }}</label><textarea id="result-reason" v-model="resultForm.reason" rows="3" maxlength="300" required placeholder="填写赛果来源或更正原因，便于后续核对" /></template><div class="form-footer"><p class="muted">保存后公开榜单与赛程将读取最新结果。</p><button type="submit" class="primary-button">{{ editorMode === 'qualification' ? '保存晋级来源' : editorMode === 'revoke' ? '确认撤销赛果' : '保存并发布赛果' }}</button></div>
           </fieldset>
-          <template v-else><p v-if="!history.revisions.length" class="muted">暂无赛果变更记录。</p><section v-for="revision in history.revisions" :key="revision.version" class="result-history-row"><div class="card-heading"><strong>{{ revision.revoked ? '撤销赛果' : `${revision.result?.homeScore} : ${revision.result?.awayScore}` }}</strong><span class="muted">{{ matchTime(revision.createdAt) }}</span></div><p>{{ revision.reason }}</p><p v-if="revision.result?.penalties" class="muted">点球 {{ revision.result.penalties.join(' : ') }}</p><p v-for="(goal, index) in revision.result?.goals || []" :key="index" class="muted">{{ goal.minute }}′ {{ teamName(goal.teamId) }} · {{ goal.ownGoal ? '乌龙球' : `${goal.scorer?.name}${goal.assist ? `（${goal.assist.name} 助攻）` : ''}` }}</p></section><button v-if="history.nextVersion" class="secondary-button" type="button" :disabled="busy" @click="moreHistory">加载更多历史</button></template>
+          <template v-else>
+            <section v-if="restorePreview" ref="restorePanel" class="result-restore-panel" aria-label="历史赛果恢复预览">
+              <div class="card-heading"><div><span class="eyebrow">历史赛果恢复</span><h3>将 v{{ restorePreview.targetVersion }} 恢复为新修订 v{{ restorePreview.expectedVersion + 1 }}</h3><p class="muted">{{ matchTime(restorePreview.targetCreatedAt) }} · {{ restorePreview.targetReason }}</p></div></div>
+              <p class="field-note">按选中的历史版本恢复全部比分、事件和统计，保留当时的球员姓名与号码。原历史仍保留；完赛结果会重新计算积分、射手、助攻、晋级和冠军。</p>
+              <div class="result-restore-comparison">
+                <section aria-label="当前赛果"><h3>当前 v{{ restorePreview.expectedVersion }} · {{ matchStatusLabels[restorePreview.currentStatus] }}</h3><ResultSnapshot :result="restorePreview.currentResult" :home-team-id="restorePreview.homeTeamId" :home-team-name="restorePreview.homeTeamName" :away-team-name="restorePreview.awayTeamName" /></section>
+                <section aria-label="拟恢复赛果"><h3>拟恢复 v{{ restorePreview.targetVersion }}</h3><ResultSnapshot :result="restorePreview.targetResult" :home-team-id="restorePreview.homeTeamId" :home-team-name="restorePreview.homeTeamName" :away-team-name="restorePreview.awayTeamName" /></section>
+              </div>
+              <fieldset :disabled="busy || !!pendingRestore"><label for="restore-reason">恢复原因</label><textarea id="restore-reason" v-model="restoreReason" rows="3" maxlength="300" placeholder="填写恢复所选历史版本的原因" /><label class="result-restore-confirm"><input v-model="restoreConfirmed" type="checkbox" /><span>已核对 v{{ restorePreview.targetVersion }} 的比分、事件和统计，确认生成新修订并同步榜单与晋级。</span></label></fieldset>
+              <p v-if="pendingRestore && !busy" class="field-note" role="status">上次提交结果尚未确认；重试将核对同一请求，不会重复生成修订。</p>
+              <div class="form-footer"><button type="button" class="secondary-button" :disabled="busy || !!pendingRestore" @click="clearRestore">取消恢复预览</button><button type="button" class="primary-button" :disabled="busy || !pendingRestore && (!restoreConfirmed || !restoreReason.trim())" @click="confirmRestore">{{ busy ? '正在处理…' : pendingRestore ? '重试确认恢复' : '确认恢复历史赛果' }}</button></div>
+            </section>
+            <p v-if="!history.revisions.length" class="muted">暂无赛果变更记录。</p>
+            <section v-for="revision in history.revisions" :key="revision.version" class="result-history-row" :data-version="revision.version">
+              <div class="card-heading"><strong>v{{ revision.version }} · {{ revision.revoked ? '撤销赛果' : `${revision.result?.homeScore} : ${revision.result?.awayScore}` }} <span v-if="revision.version === editor.version" class="status-badge neutral">当前版本</span></strong><span class="muted">{{ matchTime(revision.createdAt) }}</span></div>
+              <p>{{ revision.reason }}</p><p v-if="revision.restoredFromVersion" class="muted">从历史 v{{ revision.restoredFromVersion }} 恢复生成，原版本记录保留。</p>
+              <details v-if="revision.result"><summary>查看完整赛果与事件</summary><ResultSnapshot :result="revision.result" :home-team-id="revision.homeTeamId || editor.homeTeamId" :home-team-name="revision.homeTeamId ? teamName(revision.homeTeamId) : editor.homeTeamName || '历史主队'" :away-team-name="revision.awayTeamId ? teamName(revision.awayTeamId) : editor.awayTeamName || '历史客队'" /></details>
+              <button v-if="revision.id && revision.result && !revision.revoked && revision.version < editor.version!" type="button" class="secondary-button" :disabled="busy || !!pendingRestore" @click="previewRestore(revision)">预览恢复 v{{ revision.version }}</button>
+              <p v-else-if="!revision.id && revision.result" class="field-note">请更新管理云函数后使用历史恢复。</p>
+            </section>
+            <button v-if="history.nextVersion" class="secondary-button" type="button" :disabled="busy" @click="moreHistory">加载更多历史</button>
+          </template>
         </form>
         <div v-if="!matches.length" class="account-card competition-empty"><h2>尚未排赛</h2><p class="muted">请先在“赛程与对阵”新增比赛。</p></div>
         <div v-for="match in matches.filter(m => active !== 'advancement' || m.stage !== 'group')" :key="match.id" class="account-card standings-match-row"><div><span class="status-badge neutral">{{ matchStageLabels[match.stage] }} · {{ match.groupId || `第${match.round}轮` }}</span><h3>{{ pairing(match) }}</h3><p class="muted">{{ matchTime(match.scheduledAt) }} · {{ match.venue }}</p><p v-if="active === 'advancement'" class="muted">主队：{{ sourceText(match, 'home') }}<br />客队：{{ sourceText(match, 'away') }}</p></div><div class="standings-match-actions"><strong class="result-score">{{ ['finished', 'live'].includes(match.status) ? `${match.homeScore} : ${match.awayScore}${match.status === 'live' && match.result?.minute != null ? ` · ${match.result.minute}′` : ''}` : matchStatusLabels[match.status] }}</strong><span v-if="match.penalties" class="muted">点球 {{ match.penalties.join(' : ') }}</span><div class="competition-actions"><template v-if="active === 'results'"><button class="secondary-button" :disabled="busy || !match.homeTeamId || !match.awayTeamId" @click="open(match, 'result')">{{ match.status === 'finished' ? '更正赛果' : '录入赛果' }}</button><button v-if="['finished', 'live'].includes(match.status)" class="secondary-button" :disabled="busy" @click="open(match, 'revoke')">撤销赛果</button><button class="secondary-button" :disabled="busy" @click="open(match, 'history')">更正历史</button></template><button v-else class="secondary-button" :disabled="busy" @click="open(match, 'qualification')">设置分组来源</button></div></div></div>

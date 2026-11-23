@@ -1,7 +1,7 @@
 'use strict'
 const { createHash } = require('node:crypto')
 const TTL = 120000, MAX_BYTES = 512 * 1024
-const ACTIONS = ['competitions.listPublic','competitions.getPublic','matches.listPublic','matches.getPublic','standings.getPublic','news.listPublic','news.getPublic','search.public','search.suggestions','directory.teamPublic','directory.playerPublic','live.listPublic','settings.getPublic']
+const ACTIONS = ['competitions.listPublic','competitions.getPublic','matches.listPublic','matches.getPublic','standings.getPublic','news.listPublic','news.getPublic','search.public','search.suggestions','directory.teamPublic','directory.playerPublic','directory.homePublic','directory.teamProfilePublic','directory.playerProfilePublic','live.listPublic','settings.getPublic']
 const ALLOWED = ['action','id','competitionId','matchId','teamId','cursor','category','query','kind']
 function query(event) {
   const data = Object.fromEntries(Object.entries(event || {}).filter(([key])=>!['userInfo','tcbContext'].includes(key)))

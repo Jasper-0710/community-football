@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-23",
+  "timezone": "Asia/Shanghai",
+  "scope": "D：单场历史赛果恢复（D07/D08；#20/#27）",
+  "status": "本地实现及隔离技术验证通过；adminAuth/后台客户部署和非空恢复验收待做",
+  "source": {
+    "baseCommit": "4d8c2d8",
+    "candidate": "当前未提交工作区，保留两位开发者此前H5备用/首页/公开档案/真实图等改动",
+    "committed": false,
+    "pushed": false,
+    "sha256": {
+      "cloudfunctions/adminAuth/result-restore.js": "b1109c39fb0e2f3c5ba8cdd6cd38ec5be5f856e63e81d655b420967c99f2469c",
+      "cloudfunctions/adminAuth/standings.js": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "cloudfunctions/adminAuth/index.js": "7c1c3bbf6d7467db481b9707ab5aabf59beee866c71007f3a02ab10812f84280",
+      "admin/src/Standings.vue": "f01193411a409c7941a1610108096f14b922e2acadc328167d57cbc295d2ca7d",
+      "admin/src/ResultSnapshot.vue": "2131df8d49402974e00992caaa2f364ec208d523ad551fe3eb0b68728dfec417",
+      "admin/src/api.ts": "99006fa929819b3448485c4024d31a6ca0c91593132e8072bb796171f3f32a6d",
+      "admin/src/styles.css": "6644497088b812f9ef5212b2794c1384c112715318a993b3bb7d4d4de32de3bb",
+      "src/domain/standings.ts": "345f65d8fc490cc58ffbcd737e321cb75f2b5c8d4a42ddc6179b7dd036503917",
+      "tests/result-restore.test.ts": "3fd631a21badbba921d872d1335d19e9d9a0975d76b3c4b5b8cfb07a760c17a1",
+      "tests/helpers/result-restore-fixture.cjs": "78f750b4aacbc071f731db82a8c9d8d7681431143b294631d8ba8ac261c31eb9",
+      "scripts/verify-result-restore.mjs": "05e0a50bb48023809a0bde77e3ebc858c60836cbd2a877fe43d3012e2b5415d9",
+      "package.json": "0f3feadcb4a581c4a2d079836e644dced824254d167d45d1bf2bc53c8ecf319e"
+    }
+  },
+  "environment": {
+    "validation": "实际管理员登录、Vue后台、uni H5客户端、比赛/榜单服务及HTTPS处理器；隔离内存与本机端口5213/5214",
+    "customerEnvironmentAccessed": false,
+    "customerEnvironmentModified": false,
+    "customerBusinessWritten": false,
+    "cloudDeployed": false,
+    "clientUploaded": false,
+    "physicalDeviceTested": false,
+    "newCollections": false,
+    "newEnvironmentVariables": false,
+    "newHttpRoutes": false
+  },
+  "features": [
+    "精确历史ID/版本选择，同比分不推断来源",
+    "当前与目标全量只读预览：状态/分钟/比分/点球/进球含乌龙/助攻/红黄牌/换人/六项统计",
+    "历史球员姓名及号码快照保留，支持后来改名/换号/移出名单",
+    "原因与确认、新修订/来源/前后赛果审计，原记录保留",
+    "榜单、晋级与冠军和公开详情/档案沿用有效赛果重算",
+    "比赛/赛事版本、预览摘要、报名/参赛方、幂等/并发与live/finished后轮保护",
+    "事务中途失败全部回滚；D13整库恢复互斥及管理鉴权",
+    "后台响应不明保留原请求重试，分页及卸载迟到响应保护"
+  ],
+  "automatedTests": {
+    "command": "npm test",
+    "passed": 425,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "newRestoreTests": 14,
+    "log": "/tmp/community-football-result-restore-tests.log"
+  },
+  "checks": {
+    "adminTypecheck": "passed",
+    "clientTypecheck": "passed",
+    "recoveryContractFourCopies": "passed",
+    "adminBuild": "passed",
+    "h5Build": "passed",
+    "wechatMiniProgramBuild": "passed",
+    "diffCheck": "passed",
+    "buildNotes": "保留既有Vite CJS与uni finally循环依赖提示。"
+  },
+  "browser": {
+    "command": "npm run test:result-restore:browser",
+    "passed": 9,
+    "checks": [
+      "管理员选择精确历史版本，全事件/统计对比、只读预览和确认门槛可用，同比分不混淆版本",
+      "390px与320px预览改为上下对比，整页无横向溢出",
+      "恢复响应损坏后保留原请求重试，仅生成一次新修订并展示来源审计",
+      "真实客户端比赛详情同步恢复进球/乌龙/牌面/换人和统计，射手助攻按所选事件重算",
+      "预览后球队版本变化阻止提交，原数据与历史保持一致",
+      "已有进行中后轮时拒绝恢复，撤销后轮后可恢复并更新真实晋级图",
+      "后台恢复历史点球赛果后，真实淘汰赛图同步重算并展示冠军",
+      "历史记录超过一页时仍可加载并选择旧版本",
+      "预览响应迟到时切换页面，不覆盖新页面也不产生卸载错误"
+    ],
+    "pageErrors": [],
+    "unexpectedExternalOrigins": [],
+    "report": "artifacts/result-restore/report.json",
+    "screenshots": [
+      "artifacts/result-restore/preview-desktop.png",
+      "artifacts/result-restore/preview-390.png",
+      "artifacts/result-restore/preview-320.png",
+      "artifacts/result-restore/restored-public-detail.png"
+    ],
+    "visualReview": [
+      "桌面并排比较和确认操作",
+      "390/320px单列比较、输入和按钮",
+      "恢复后客户端详情事件与技术统计"
+    ]
+  },
+  "intermediateFailures": [
+    "首次隔离报名夹具无附件被既有报名协议拒绝，补齐模拟材料后通过。",
+    "断开socket被Chromium透明重试，改为完整损坏响应验证应用原请求重试；两种情形均无重复修订。",
+    "tsx管道/浏览器本机监听受沙箱限制，获准运行后通过；所有测试请求保持本机隔离。"
+  ],
+  "remaining": [
+    "完整更新客户adminAuth及后台静态包并核验源码",
+    "客户明确标识的非空模拟比赛历史恢复/原因来源审计/幂等/过期/后轮保护及基线恢复",
+    "主HTTPS/独立备用/可信微信比赛榜单与档案回读；备用遵循既有快照时效",
+    "C真实图客户端更新和客户页面补验",
+    "小组积分/名次、完整八强、微信原生与iPhone/Android、真实并发与规模",
+    "不扩大为D13整库恢复、任意赛制或客户整项签收"
+  ]
+}

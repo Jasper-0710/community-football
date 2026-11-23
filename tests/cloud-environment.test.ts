@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { cloudEnvironment, validateCloudEnvironment } from '../scripts/cloud-environment.mjs'
 
-const target = { ...cloudEnvironment, adminApiUrl: '' }
+const target = { ...cloudEnvironment, adminApiUrl: '', publicFallbackApiUrl: '' }
 const customerUrl = `https://${target.envId}-1234567890.ap-shanghai.app.tcloudbase.com/admin-auth`
 const legacyUrl = 'https://cloud1-d2goo1h1mee3b7a38-1525008540.ap-shanghai.app.tcloudbase.com/admin-auth'
 
@@ -46,4 +46,20 @@ test('隔离浏览器测试可使用本机接口，不更改客户环境ID', () 
 
 test('AppID与客户配置不一致时停止构建', () => {
   assert.throws(() => validateCloudEnvironment({}, { ...target, appid: 'wx-wrong-app' }), /AppID必须为/)
+})
+
+test('H5备用地址须先登记，且属于客户环境的独立入口', () => {
+  const fallback = customerUrl.replace('/admin-auth', '/public-read')
+  const confirmed = { ...target, adminApiUrl: customerUrl, publicFallbackApiUrl: fallback }
+  assert.equal(validateCloudEnvironment({}, confirmed).publicFallbackApiUrl, fallback)
+  assert.throws(() => validateCloudEnvironment({ VITE_PUBLIC_FALLBACK_API_URL: fallback }, { ...confirmed, publicFallbackApiUrl: '' }), /必须先登记/)
+  assert.throws(() => validateCloudEnvironment({}, { ...confirmed, publicFallbackApiUrl: legacyUrl }), /属于其他云环境/)
+  assert.throws(() => validateCloudEnvironment({}, { ...confirmed, publicFallbackApiUrl: customerUrl }), /与主服务分开/)
+})
+
+test('备用地址规范化后不得与主接口相同，本机测试覆盖也不能放行主地址', () => {
+  const alias = customerUrl.replace('.com/', '.com:443/')
+  const confirmed = { ...target, adminApiUrl: customerUrl, publicFallbackApiUrl: alias }
+  assert.throws(() => validateCloudEnvironment({}, confirmed), /与主服务分开/)
+  assert.throws(() => validateCloudEnvironment({ VITE_COMPETITION_API_URL: 'http://127.0.0.1:5176/api' }, confirmed), /与主服务分开/)
 })

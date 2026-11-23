@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-22",
+  "timezone": "Asia/Shanghai",
+  "markdownVersion": "2.38",
+  "sourceCommit": "4d8c2d8",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "Current customer deployment and business baseline readback; WeChat simulator nonempty UI with client transport fault injection and real cloud fallback. No real backup/restore acceptance claim.",
+  "deployment": {
+    "redeployed": false,
+    "adminAuthCurrentSourceFilesMatched": 33,
+    "functionsChecked": [
+      {"name": "adminAuth", "status": "Active", "timeoutSeconds": 20},
+      {"name": "publicRead", "status": "Active", "timeoutSeconds": 3}
+    ],
+    "guardVersions": {"adminAuth": 1, "teamManagement": 1, "userProfile": 1},
+    "primaryPublicHttps": {"httpStatus": 200, "ok": true}
+  },
+  "baseline": {
+    "capturedAt": "2026-11-22T08:05:31.051Z",
+    "collections": 19,
+    "records": 140,
+    "canonicalBusinessBytes": 172644,
+    "assetsDownloadedAndHashed": 28,
+    "assetBytes": 1389247,
+    "isRegisteredCloudBackup": false,
+    "rawDataLocation": "Ignored local .tools/customer-d13-20261122/ only"
+  },
+  "nativeSimulator": {
+    "observation": "WeChat automation and desktop accessibility state; no physical-device or screenshot claim",
+    "nonemptyBaseline": {"score": [3, 1], "statisticRows": 6, "events": 5},
+    "checks": [
+      {"name": "Primary nonempty existing match detail", "passed": true},
+      {"name": "Injected primary public transport failure; actual publicRead calls returned recovery.source=fallback", "passed": true},
+      {"name": "Fallback UI retained nonempty result and displayed source plus read-only notice", "passed": true},
+      {"name": "Injected primary and fallback transport failures; local snapshot retained same nonempty detail", "passed": true},
+      {"name": "Local snapshot showed original time November 22 16:11 Asia/Shanghai and read-only notice", "passed": true},
+      {"name": "Fault injection removed; actual reconnect click refreshed primary and cleared recovery notice", "passed": true}
+    ],
+    "faultInjectionScope": "Only the current simulator process public wx.cloud.callFunction calls; cloud functions remained active",
+    "faultInjectionRestored": true,
+    "faultHookActiveAfterCleanup": false,
+    "faultHookCheckedAt": "2026-11-22T08:25:24.471Z",
+    "fakeBusinessResponsesOrClock": false
+  },
+  "businessWrites": {
+    "administratorLoginAttemptedThisFollowup": false,
+    "businessRecordsMutated": false,
+    "backupCreateExecuted": false,
+    "restoreExecuted": false,
+    "rollbackExecuted": false,
+    "note": "Successful public primary reads may refresh the existing private public-cache objects. They are not business record edits or registered backups."
+  },
+  "pendingInputs": [
+    "Current valid administrator login/session; old password was not retried",
+    "Independent HTTPS route bound to publicRead; no guessed URL configured"
+  ],
+  "notAccepted": [
+    "Customer nonempty registered backup, asset archives, restore and automatic rollback",
+    "Actual customer concurrent-restore, uncertain-response and repeated-apply write acceptance",
+    "H5 independent HTTPS and browser failure-switch acceptance",
+    "Cold or uncached native failure, expiration and actual write rejection",
+    "Physical iPhone/Android, multiple real administrators and runtime/size bounds",
+    "Whole D13 customer signoff"
+  ],
+  "checksNotRerun": ["384 unit tests", "18 browser groups", "6 isolated baseline groups", "typechecks and builds"],
+  "uiLimitations": ["Browser access host unavailable", "Native developer-tools screenshot unavailable"],
+  "gitCommittedOrPushed": false,
+  "excelVersion": "2.26"
+}
