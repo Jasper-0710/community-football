@@ -1,5 +1,6 @@
 import {parseBackup,parseBackupStatus,parseRestorePlan,parseRestoreResult,BackupClientError} from '../../src/domain/recovery'
 import {parseBadgeCleanup} from '../../src/domain/team-badge'
+import {parseLeaderPage,parseTeamMutation,type TeamMutation} from '../../src/domain/team-maintenance'
 import {parsePlatformSettings,type PlatformForm} from '../../src/domain/platform-settings'
 import {parseCleanupResult} from './registration-maintenance'
 import { parseMatch, parseMatchPage, type MatchScheduleForm } from '../../src/domain/match'
@@ -106,6 +107,9 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async cleanupTeamBadges(token:string,dryRun=true,cursor?:string) {const result=parseBadgeCleanup(await request('teams.badges.cleanup',{dryRun,...(cursor?{cursor}:{})},token));if(result.dryRun!==dryRun)throw new AdminApiError('INVALID_RESPONSE','队徽清理回执异常。');return result},
     async teams(token: string, cursor?: string) { return parseTeamPage(await request('teams.listAdmin', cursor ? { cursor } : {}, token)) },
     async team(token: string, id: string) { return parseManagedTeam((await request('teams.getAdmin', { id }, token)).team) },
+    async teamLeaders(token:string,cursor?:string){return parseLeaderPage(await request('teams.leadersAdmin',cursor?{cursor}:{},token))},
+    async mutateTeam(token:string,mutation:TeamMutation){const {action,...fields}=mutation;return parseTeamMutation(await request(action,fields,token),mutation)},
+    async checkTeamDissolution(token:string,id:string,expectedVersion:number){const r=await request('teams.checkDissolutionAdmin',{id,expectedVersion},token);if(r.canDissolve!==true||r.version!==expectedVersion)throw new AdminApiError('INVALID_RESPONSE','解散条件返回异常，请重新读取球队。')},
     async competitions(token: string, cursor?: string) { return parseCompetitionPage(await request('competitions.listAdmin', cursor ? { cursor } : {}, token), true) },
     async createCompetition(token: string, requestId: string, form: CompetitionForm) { return parseCompetition((await request('competitions.create', { requestId, form }, token)).competition, true) },
     async updateCompetition(token: string, id: string, expectedVersion: number, form: CompetitionForm) { return parseCompetition((await request('competitions.update', { id, expectedVersion, form }, token)).competition, true) },

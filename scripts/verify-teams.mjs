@@ -84,11 +84,11 @@ files.storage.link = async id => {
 }
 process.env.VITE_ADMIN_API_URL = endpoint + '/api'
 const testConfig = resolve('.tools/d04-browser.vite.config.ts')
-const transport = `export class WechatCloudError extends Error {}\nexport function initializeWechatCloud() {}\nexport async function callWechatCloudFunction(name,data) { const r=await fetch(${JSON.stringify(endpoint + '/wx/')}+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json() }`
+const transport = `export class WechatCloudError extends Error { constructor(public code:string,message:string){super(message)} }\nexport function initializeWechatCloud() {}\nlet recoveryGuard=(name:string,data:any)=>{};export function setWechatRecoveryGuard(check:typeof recoveryGuard){recoveryGuard=check}\nexport async function callWechatCloudFunction(name,data) { recoveryGuard(name,data);const r=await fetch(${JSON.stringify(endpoint + '/wx/')}+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json() }`
 // H5 cannot use the native WeChat filesystem/compressor. Only preparation is
 // replaced: the real picker, upload/resume client, Vue UI and server all run.
 const prepare = `export async function prepareTeamBadge(path:string):Promise<BadgeDraft>{return createBadgeDraft(new Uint8Array(await (await fetch(path)).arrayBuffer()),path)}`
-await writeFile(testConfig, `import {defineConfig} from 'vite';import uni from '@dcloudio/vite-plugin-uni';export default defineConfig({cacheDir:'.tools/d04-vite-cache',plugins:[{name:'isolated-d04-transport',enforce:'pre',transform(code,id){if(id.endsWith('/src/services/wechat-cloud.ts'))return ${JSON.stringify(transport)};if(id.endsWith('/src/services/team-badges.ts'))return code.replace('export async function prepareTeamBadge(', 'async function nativePrepareTeamBadge(')+${JSON.stringify('\n' + prepare)};if(id.endsWith('/src/services/user-profile.ts'))return code.replace(/export function supportsWechatProfile\\(\\): boolean \\{[\\s\\S]*?\\n\\}/,'export function supportsWechatProfile(): boolean { return true }')}},uni()],server:{host:'127.0.0.1',port:5188,strictPort:true,hmr:false}})`)
+await writeFile(testConfig, `import {defineConfig} from 'vite';import uni from '@dcloudio/vite-plugin-uni';export default defineConfig({define:{'import.meta.env.VITE_COMPETITION_API_URL':${JSON.stringify(JSON.stringify(endpoint+'/api'))},'import.meta.env.VITE_PUBLIC_FALLBACK_API_URL':'""'},cacheDir:'.tools/d04-vite-cache',plugins:[{name:'isolated-d04-transport',enforce:'pre',transform(code,id){if(id.endsWith('/src/services/wechat-cloud.ts'))return ${JSON.stringify(transport)};if(id.endsWith('/src/services/team-badges.ts'))return code.replace('export async function prepareTeamBadge(', 'async function nativePrepareTeamBadge(')+${JSON.stringify('\n' + prepare)};if(id.endsWith('/src/services/user-profile.ts'))return code.replace(/export function supportsWechatProfile\\(\\): boolean \\{[\\s\\S]*?\\n\\}/,'export function supportsWechatProfile(): boolean { return true }')}},uni()],server:{host:'127.0.0.1',port:5188,strictPort:true,hmr:false}})`)
 const vite = await createViteServer({ configFile: 'admin/vite.config.ts', mode: 'test', cacheDir: resolve('.tools/d04-admin-vite-cache'), server: { host: '127.0.0.1', port: 5186, strictPort: true, watch: { usePolling: true }, hmr: false } })
 await vite.listen()
 const userServer = spawn('node', ['node_modules/@dcloudio/vite-plugin-uni/bin/uni.js', '--config', testConfig, '--host', '127.0.0.1', '--port', '5188'], { detached: true, env: { ...process.env, VITE_COMPETITION_API_URL: endpoint + '/api', CHOKIDAR_USEPOLLING: 'true' }, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -179,7 +179,7 @@ try {
   const publicPage = await context.newPage()
   publicPage.on('pageerror',e=>errors.push(e.message))
   const competitionId='c_'+'1'.repeat(32)
-  memory.seed('competitions',competitionId,{displayEnabled:true});memory.seed('registrations','public-badge',{competitionId,teamId:id,status:'approved'})
+  memory.seed('competitions',competitionId,{name:'【验收】队徽联动赛事',displayEnabled:true});memory.seed('registrations','public-badge',{competitionId,teamId:id,status:'approved'})
   await publicPage.goto(userBase+'/#/pages/team/detail?id='+id)
   await publicPage.locator('.public-team-profile .page-title').waitFor()
   await publicPage.waitForFunction(()=>!!document.querySelector('.public-team-heading image img, .public-team-heading uni-image img')?.naturalWidth)
@@ -327,7 +327,7 @@ try {
   console.log(`Verified ${checks.length} team browser flows.`)
 } catch (error) {
   await snapshot(user, 'failure-user').catch(()=>{}); await snapshot(admin, 'failure-admin').catch(()=>{})
-  await writeFile(`${out}/failure.txt`, await user.locator('body').innerText() + '\nADMIN\n' + await admin.locator('body').innerText())
+  await writeFile(`${out}/failure.txt`, JSON.stringify({errors,previewLog:previewLog.slice(-5000)},null,2) + '\nUSER\n' + await user.locator('body').innerText() + '\nADMIN\n' + await admin.locator('body').innerText())
   throw error
 } finally {
   await browser.close(); await vite.close()

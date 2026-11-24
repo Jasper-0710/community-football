@@ -1,0 +1,144 @@
+{
+  "date": "2026-11-24",
+  "feature": "E：后台球队／球员基础档案维护",
+  "status": "local-development-and-isolated-verification-passed",
+  "generatedAt": "2026-11-24T01:40:58.588574+00:00",
+  "source": {
+    "baseCommit": "d652aacaa2ab3e311eeb467d4edf1097a0c11bc2",
+    "sha256": {
+      "admin/src/Teams.vue": "3e5c01abb7c4be19897ac7ac1c99ab115217c8b5cf358fc39ce42cc36bb61b69",
+      "admin/src/TeamMaintenanceForm.vue": "f19c556399c3bc471abceefb7e48c63d9bd46b0477d334f929cd8dde84beb840",
+      "admin/src/api.ts": "d18380fcd2953ffb08be6f258c1c2e84c0521e1f5ff1e87098d6fef5a8bdb884",
+      "admin/src/styles.css": "d61d345737a2120c22ae5eeff41eda5f29a494004f38a9a7a8c74536be2536f3",
+      "cloudfunctions/adminAuth/teams.js": "1bae71971de011b53f8ddba6e532b1aee24fb679234f030cf514f05d61e230ae",
+      "cloudfunctions/adminAuth/team-profile-model.js": "7d337875f4a8c2e4c11f8ad34d9f7725f60d194d2c78afcc66e6d588c031f307",
+      "cloudfunctions/adminAuth/team-store.js": "21d624c3772856a158f7e7ac8acad320f94b0019bcbcf29e2b243eaa34305f68",
+      "cloudfunctions/adminAuth/index.js": "2d5f6a2536b3cd9eab48acfecead6decefc81d330f012e4aa80400821294cb13",
+      "cloudfunctions/adminAuth/recovery-model.js": "3de0bba5c8fedcf3effa6300b15c8a38af771b789d7bde9404fff4fbe4ecdae6",
+      "src/domain/team-maintenance.ts": "f5a66d4c17c505631119e8fa9af17a2f14b112f508d6cd0b741a0b7db8c183b6",
+      "tests/helpers/team-store.cjs": "f2c1712b6d4dcdcad8451955fa498b348201205d8b1503ccb06349d3de8b88e5",
+      "tests/helpers/team-maintenance-fixture.cjs": "b7d0152243bceb903bc88c9ea19be780813e545a37c64b5e9a349f0c773974d4",
+      "tests/team-maintenance.test.ts": "9074b54a3bd2a2281ef7784931c619b4413300eb968cacf4407bab693ca08b07",
+      "scripts/verify-team-maintenance.mjs": "38c4443310fb294134af26c5852270a56e3b085a41a22756027c8f14fae53ac3",
+      "scripts/verify-teams.mjs": "e12b9ccf926bcc43ac32c88b9ab6e841c7732f32f225444bc579502d700edd37",
+      "package.json": "a24ecb15224f40a12e12a4a31dea8fe2d67880f13fbabacdbb02de1b9a235598"
+    }
+  },
+  "scope": {
+    "productionHandlers": true,
+    "actualVueAdminAndH5": true,
+    "isolatedTransactionsAndMockBusinessData": true,
+    "customerCloudAccess": false,
+    "customerDeployment": false,
+    "customerWrites": false,
+    "physicalWeChatDevice": false,
+    "gitCommitOrPush": false,
+    "excelSnapshot": "v2.26 unchanged"
+  },
+  "implemented": [
+    "管理员为已登录微信用户代建球队，维护一人一队绑定与角色",
+    "球队名称、所属区、介绍及领队电话维护",
+    "当前名单球员新增、编辑、号码唯一、移出归档及号码复用",
+    "无报名/赛程/成绩关联时更换领队或确认解散",
+    "事务、版本、请求指纹、旧表单及跨队归属保护",
+    "保存回执不明保留原始请求重试，维护记录不重复",
+    "公开档案、搜索及领队读取同步；历史赛果和报名记录保留",
+    "D13恢复清除旧管理员提交回执"
+  ],
+  "verification": {
+    "unitTests": {
+      "passed": 440,
+      "failed": 0,
+      "newMaintenanceTests": 15
+    },
+    "browser": {
+      "maintenance": {
+        "checks": [
+          "管理员资料维护校验必填项，并同步真实领队处理器和公开Vue档案",
+          "后台添加球员有就近错误提示和同队重号校验，客户端名单同步",
+          "真实保存后损坏回执，表单锁定并重试原请求，版本和维护记录只增加一次",
+          "领队并发修改使后台旧表单409，重读前不能覆盖新版本",
+          "移出可取消，确认后保留球员档案及完整历史赛果，球队统计不变",
+          "已关联报名和赛程的球队禁止解散及换领队，原归属与数据保持不变",
+          "选择已登录且无球队的微信领队代建，已有球队用户不可选，390/320px表单无溢出",
+          "无业务关联球队换领队需核对队名，保存后原领队释放名额、新领队接管当前名单",
+          "球队解散可取消且须精确队名，成功后保留只读名单并释放领队绑定"
+        ],
+        "errors": [],
+        "unexpected": [],
+        "mutationCount": 11,
+        "scope": "Actual admin/H5 Vue, HTTPS authorization and production handlers with isolated transactional records. No customer deployment, customer writes or physical device verification.",
+        "generatedAt": "2026-11-24T01:39:56.376Z"
+      },
+      "existingTeams": {
+        "passed": 23,
+        "checks": [
+          "guest login and required-field validation prevent an empty team",
+          "create grants leader role and returning to the page restores exactly one team",
+          "badge entry remains visible with a disabled picker and clear explanation while uploads are unavailable",
+          "badge selection previews locally and cancel preserves the default without creating cloud objects",
+          "multi-part badge upload saves once and persists after reload in both owner and admin views",
+          "approved public team profile displays the same badge without exposing storage references or contact data",
+          "temporary signing failure preserves team data and the saved badge recovers on explicit refresh",
+          "interrupted replacement preserves the old badge and retries only work not already acknowledged by the server",
+          "lost successful save response requires a fresh read and recovers the committed badge without duplicate team creation",
+          "restore-default cancellation retains the badge; confirmed removal and a later fresh upload both work",
+          "empty player fields and zero number show specific inline errors next to the form without writing a player",
+          "add and edit players persist real roster changes; duplicate numbers remain editable after rejection",
+          "admin archive reads owner updates, contact details and the current roster from the same store",
+          "390px team forms, roster and admin archive remain readable without page overflow",
+          "320px team forms, roster and admin archive remain readable without page overflow",
+          "cancel removal preserves the roster; confirmed removal archives the player and updates admin view",
+          "stale writes show a conflict and require a fresh read before continuing",
+          "read failures hide stale private details and both views recover after retry",
+          "linked teams cannot dissolve; wrong confirmation and cancellation preserve the team",
+          "confirmation reports exact punctuation mismatches and accepts outer whitespace without weakening the server name check",
+          "confirmed dissolution releases ownership and admin retains the final roster with archive status",
+          "admin cleanup previews before deletion, removes expired replacements and keeps the dissolved archive badge",
+          "leader can recreate a different team while the old archive remains intact"
+        ],
+        "errors": [],
+        "scope": "Real Vue pages and real userProfile/teamManagement/adminAuth handlers with isolated transactional memory and byte storage. Test-only transport and H5 image preparation replacement; native WeChat compression/filesystem and customer cloud are not verified here.",
+        "generatedAt": "2026-11-24T01:32:33.500Z"
+      }
+    },
+    "checksPassed": [
+      "npm run typecheck",
+      "npm run typecheck:admin",
+      "npm run check:recovery-contract",
+      "npm run check:registration-contract",
+      "npm run build:admin",
+      "npm run build:h5",
+      "npm run build:mp-weixin",
+      "git diff --check"
+    ],
+    "screenshotsInspected": [
+      "artifacts/team-maintenance/create-320.png",
+      "artifacts/team-maintenance/editable-roster-320.png"
+    ],
+    "responsiveWidths": [
+      320,
+      390
+    ]
+  },
+  "earlierFailuresResolved": [
+    "新服务测试夹具混用其他存储的故障开关；修正后验证回滚",
+    "并发用例不应假设固定获胜顺序；改为验证只有一个成功",
+    "修正测试使用的榜单字段及故障注入用例重号",
+    "新浏览器夹具补全各球队元数据",
+    "既有球队脚本补齐D13 setWechatRecoveryGuard导出及公开赛事名称；生产微信模块原有导出正常"
+  ],
+  "remaining": [
+    "更新客户adminAuth完整代码包与后台，完成真实非空联动验收",
+    "能力值维度、范围、算法与展示需客户确认",
+    "真实微信多账号/真机及正式托管按专项验收"
+  ],
+  "deployment": {
+    "function": "adminAuth",
+    "adminUpdateRequired": true,
+    "newCollections": [],
+    "newEnvironmentVariables": [],
+    "newHttpRoutes": [],
+    "otherFunctionsChanged": []
+  }
+}

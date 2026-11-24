@@ -12,7 +12,10 @@ exports.createTeamMemory=()=>{
    }finally{release()}
   },
  }
- const adminStore={async list(cursor,limit){if(failures.read)throw new Error('read unavailable');return [...records].filter(([k,v])=>k.startsWith('teams/')&&(!cursor||v._id>cursor)).map(([,v])=>structuredClone(v)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)},async read(id){if(failures.read)throw new Error('read unavailable');return structuredClone(records.get(key('teams',id))??null)},async user(id){return structuredClone(records.get(key('users',id))??null)}}
+ const adminStore={transaction:store.transaction,
+  async leaders(cursor,limit){if(failures.read)throw new Error('read unavailable');return [...records].filter(([k,v])=>k.startsWith('users/')&&(!cursor||v._id>cursor)).map(([,v])=>structuredClone(v)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)},
+  async binding(id){if(failures.read)throw new Error('read unavailable');return structuredClone(records.get(key('leaderTeamBindings',id))??null)},
+  async list(cursor,limit){if(failures.read)throw new Error('read unavailable');return [...records].filter(([k,v])=>k.startsWith('teams/')&&(!cursor||v._id>cursor)).map(([,v])=>structuredClone(v)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)},async read(id){if(failures.read)throw new Error('read unavailable');return structuredClone(records.get(key('teams',id))??null)},async user(id){return structuredClone(records.get(key('users',id))??null)}}
  function database(){return {runTransaction:fn=>store.transaction(tx=>fn({collection:c=>({doc:id=>({get:async()=>({data:await tx.get(c,id)}),set:async({data})=>tx.set(c,id,data),update:async({data})=>tx.set(c,id,{...await tx.get(c,id),...data})})})}))}}
  return {store,adminStore,records,failures,database,seed(c,id,v){records.set(key(c,id),{...structuredClone(v),_id:id})},read(c,id){return structuredClone(records.get(key(c,id))??null)}}
 }

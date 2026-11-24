@@ -1,0 +1,298 @@
+{
+  "date": "2026-11-24",
+  "timezone": "Asia/Shanghai",
+  "generatedAt": "2026-11-24T09:06:17.995Z",
+  "markdownVersion": "2.48",
+  "scope": "E 后台球队／球员基础档案维护：客户部署、现有模拟球队维护与公开联动",
+  "status": "adminAuth完整部署和现有非空球队／球员维护技术验证已完成；HTTP业务错误映射修复待开发者工具确认／复测；代建、换领队与解散成功分支因缺空闲真实微信用户待验，不记E完整收口。",
+  "source": {
+    "baseCommit": "d652aac",
+    "uncommitted": true,
+    "pushed": false,
+    "cloudAcceptanceCodeChange": "补齐号码冲突／已建队／关联保护等业务错误的HTTP状态映射，保留云端队徽分片白名单；同步publicRead的共享HTTP源码；新增一项真实业务handler的HTTP回归。"
+  },
+  "environment": {
+    "appid": "wx3230f06c755cef3a",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "customerAccessed": true,
+    "customerBusinessWritten": true,
+    "scope": "仅【测试】冬日徐汇联队，原8人名单；无正式客户资料录入",
+    "adminEntry": "http://127.0.0.1:5174",
+    "adminPublicHosting": false,
+    "h5": "独立浏览器上下文在已允许本机来源运行正式构建，真实客户HTTPS业务响应",
+    "physicalDevice": false
+  },
+  "deployment": {
+    "full": {
+      "status": "success",
+      "detail": "execution_success",
+      "files": 37,
+      "packSize": "93.0 KB",
+      "downloadedSha256Matches": 37,
+      "runtime": [
+        {
+          "name": "adminAuth",
+          "status": "Active",
+          "timeout": 20,
+          "runtime": "Nodejs16.13"
+        }
+      ]
+    },
+    "httpCorrection": {
+      "status": "pending",
+      "taskId": "confirmation_cloud_fn_inc_deploy_6560d3ae-09dc-46d9-9736-93ae839f3487",
+      "file": "http.js",
+      "requiredAfterFullDeployment": true,
+      "finalVerificationPending": true
+    },
+    "newCollections": false,
+    "configurationChanges": false,
+    "publicReadRedeployed": false,
+    "teamManagementRedeployed": false,
+    "clientUploaded": false
+  },
+  "cloudVerification": {
+    "apiChecks": [
+      {
+        "name": "真实后台登录、球队列表和非空球队档案读取通过",
+        "at": "2026-11-24T06:41:24.578Z",
+        "teamId": "t_140c838a6ab8df080eee9df93761944211494e4969e92bcd7a9919ae885c7933",
+        "playerCount": 8,
+        "teamName": "【测试】冬日徐汇联队"
+      },
+      {
+        "name": "球队资料临时更新后主 HTTPS、备用 HTTPS 与公开档案同步",
+        "at": "2026-11-24T06:41:28.310Z",
+        "descriptionVisible": true,
+        "fallbackAttempts": 1
+      },
+      {
+        "name": "球队资料更新与恢复通过，名称、区、电话和原介绍最终不变",
+        "at": "2026-11-24T06:41:29.369Z"
+      },
+      {
+        "name": "后台新增球员的同队重复号码被真实云端拒绝",
+        "at": "2026-11-24T06:41:30.420Z",
+        "code": "NUMBER_IN_USE"
+      },
+      {
+        "name": "球员新增、编辑和旧版本并发保护通过",
+        "at": "2026-11-24T06:41:32.690Z",
+        "staleCode": "CONFLICT",
+        "playerId": "p_0590343bd20b7ba5b6ca5c34f8f061c0"
+      },
+      {
+        "name": "临时球员移出后名单恢复原样，客户原有非空名单未改变",
+        "at": "2026-11-24T06:41:33.854Z",
+        "playerCount": 8
+      },
+      {
+        "name": "已有报名／赛程／成绩关联的球队拒绝解散或换领队",
+        "at": "2026-11-24T06:41:34.592Z",
+        "code": "TEAM_IN_USE"
+      },
+      {
+        "name": "验收管理员退出后原会话 401",
+        "at": "2026-11-24T06:42:19.689Z"
+      }
+    ],
+    "browserChecks": [
+      {
+        "name": "实际后台登录与非空原档案一致，八项新增管理接口匿名401",
+        "at": "2026-11-24T08:58:11.998Z"
+      },
+      {
+        "name": "实际后台保存球队名称与介绍，正式H5档案及全局搜索同步",
+        "at": "2026-11-24T08:58:17.639Z"
+      },
+      {
+        "name": "重复号码在后台就近提示且不发请求，新增球员的公开名单／档案／搜索同步，历史战绩不变",
+        "at": "2026-11-24T08:58:28.555Z"
+      },
+      {
+        "name": "云端真实保存后损坏响应，后台锁表重试原请求，版本只增加一次",
+        "at": "2026-11-24T08:58:32.083Z"
+      },
+      {
+        "name": "第二页面真实云端修改后，旧表单409并禁止覆盖，重读显示新版本",
+        "at": "2026-11-24T08:58:34.889Z"
+      },
+      {
+        "name": "实际移出可取消；确认后原名单恢复、公开球员和搜索移除，历史比赛统计不变，390/320px无溢出",
+        "at": "2026-11-24T08:58:44.522Z"
+      },
+      {
+        "name": "异常后按原版本恢复验收资料和名单",
+        "at": "2026-11-24T08:59:13.712Z"
+      },
+      {
+        "name": "实际验收会话退出并以原令牌回读401",
+        "at": "2026-11-24T08:59:14.235Z"
+      },
+      {
+        "name": "实际后台登录与非空原档案一致，八项新增管理接口匿名401",
+        "at": "2026-11-24T09:01:18.879Z"
+      },
+      {
+        "name": "实际新建表单禁用已有球队用户，原球队资料与8人名单恢复，最终公开档案和后台重入一致，pageErrors=[]",
+        "at": "2026-11-24T09:01:22.760Z",
+        "users": 2,
+        "available": 0
+      },
+      {
+        "name": "实际验收会话退出并以原令牌回读401",
+        "at": "2026-11-24T09:01:23.321Z"
+      }
+    ],
+    "pageErrors": [],
+    "realBrowserMutations": [
+      "teams.updateAdmin",
+      "teams.savePlayerAdmin",
+      "teams.savePlayerAdmin",
+      "teams.savePlayerAdmin",
+      "teams.savePlayerAdmin",
+      "teams.removePlayerAdmin"
+    ],
+    "noBusinessResponseMocks": true,
+    "responseLossTest": "独立浏览器转发真实保存后仅将一次成功响应改为损坏JSON；原请求重试版本不重复",
+    "concurrency": "第二页面正常管理员HTTPS修改后，旧后台表单CONFLICT并锁定直到重读",
+    "publicRead": "资料和球员新增/编辑/移出同步公开档案与搜索；球队战绩保持；最终公开主备精确等于原基线",
+    "mobileWidths": [
+      390,
+      320
+    ],
+    "screenshotsReviewed": true,
+    "anonymousManagementActionsDenied": 8,
+    "leaderPicker": {
+      "total": 2,
+      "available": 0
+    },
+    "sessionLogout401": true
+  },
+  "finalBusinessState": {
+    "at": "2026-11-24T09:04:58.867Z",
+    "allOriginalBusinessFactsRestored": true,
+    "originalRows": 171,
+    "finalRows": 173,
+    "collections": 19,
+    "unchangedCollections": 17,
+    "changedTeams": [
+      {
+        "teamId": "t_140c838a6ab8df080eee9df93761944211494e4969e92bcd7a9919ae885c7933",
+        "fromVersion": 5,
+        "toVersion": 16,
+        "audits": 11,
+        "actions": [
+          "teams.updateAdmin",
+          "teams.updateAdmin",
+          "teams.savePlayerAdmin",
+          "teams.savePlayerAdmin",
+          "teams.removePlayerAdmin",
+          "teams.updateAdmin",
+          "teams.savePlayerAdmin",
+          "teams.savePlayerAdmin",
+          "teams.updateAdmin",
+          "teams.removePlayerAdmin",
+          "teams.updateAdmin"
+        ]
+      }
+    ],
+    "addedRemovedPlayerArchives": [
+      {
+        "id": "p_0590343bd20b7ba5b6ca5c34f8f061c0",
+        "status": "removed"
+      },
+      {
+        "id": "p_80020860655abc7af736c55aa304e0a1",
+        "status": "removed"
+      }
+    ],
+    "originalUsersBindingsPlayersMatchesRegistrationsAndRevisionsUnchanged": true,
+    "recoveryDataValidation": true
+  },
+  "fallbackReadback": {
+    "at": "2026-11-24T08:48:35.530Z",
+    "result": [
+      {
+        "source": "primary",
+        "status": 200,
+        "baselineEqual": true
+      },
+      {
+        "source": "fallback",
+        "status": 200,
+        "baselineEqual": true,
+        "cache": {
+          "source": "fallback",
+          "savedAt": 1795510112457,
+          "expiresAt": 1795510232457
+        }
+      }
+    ]
+  },
+  "localValidation": {
+    "fullSuitePassed": 441,
+    "failures": 0,
+    "teamMaintenanceAndAuthTests": 33,
+    "teamMaintenanceBrowserGroupsBeforeCloud": 9,
+    "legacyTeamBrowserGroupsPreviouslyPassed": 23,
+    "clientTypecheckBeforeCloud": true,
+    "adminTypecheck": true,
+    "sharedRecoveryContract": true,
+    "registrationContract": true,
+    "adminBuild": true,
+    "h5AndMiniProgramBuild": "本轮开始前本地开发阶段通过；本云端阶段未改客户端业务源码，未重复上传小程序。"
+  },
+  "interruptions": [
+    {
+      "stage": "验收脚本启动",
+      "issue": "语法及stdin读取方式错误，尚未登录或进行客户业务写入，修正后执行。"
+    },
+    {
+      "stage": "HTTP拒绝路径",
+      "issue": "首次真实重复号码和关联保护返回业务错误JSON但HTTP 500。",
+      "resolution": "新增业务handler HTTP回归并改为409，33项及全量441项通过；增量部署仍待工具内确认。"
+    },
+    {
+      "stage": "首次最终备用回读",
+      "issue": "原数据库业务已恢复，独立备用仍读到恢复前介绍，首次30秒内检查未通过。",
+      "resolution": "保留失败报告，随后只读主备回读与原基线精确相同；备用为120秒有效快照，不承诺即时强一致。"
+    },
+    {
+      "stage": "浏览器候选选项",
+      "issue": "把select的option等待为可见导致超时。",
+      "resolution": "选项已经加载且禁用，改为检查attached和disabled；异常清理恢复原资料，随后只读重入和截图通过。"
+    }
+  ],
+  "remaining": [
+    "在微信开发者工具确认http.js原增量任务，再回下载37文件并复测409/400错误码。",
+    "增加至少2个已登录、填写昵称且无球队的真实微信用户，完成后台代建→更换领队→解散成功闭环；当前2用户均已有球队，未编造OPENID或释放客户现有绑定。",
+    "微信领队实际页面/真机和跨账号验证、正式公网后台托管与客户效果签收。",
+    "能力值维度／范围／算法仍待确认，不属本次基础维护。"
+  ],
+  "artifacts": {
+    "privateRoot": ".tools/customer-team-maintenance-20261124/",
+    "reports": [
+      "accept-report.json",
+      "browser-report.json",
+      "inventory-verified.json",
+      "public-final-readback.json",
+      "http-fix-task.json"
+    ],
+    "screenshots": [
+      "cloud-maintenance-roster-390.png",
+      "cloud-maintenance-roster-320.png",
+      "cloud-maintenance-public-390.png",
+      "cloud-maintenance-public-320.png",
+      "cloud-dissolve-protected-320.png",
+      "cloud-create-leaders-320.png",
+      "cloud-maintenance-restored-320.png"
+    ],
+    "credentialsCommitted": false,
+    "fullBusinessSnapshotsCommitted": false
+  },
+  "workbook": {
+    "version": "2.26",
+    "updated": false
+  }
+}

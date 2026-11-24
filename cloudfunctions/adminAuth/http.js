@@ -32,7 +32,7 @@ function createHttpHandler(service, allowedOrigins = [], publicActions = []) {
       if (Buffer.byteLength(raw) > 270000) throw new Error()
       input = JSON.parse(raw)
       if (!input || typeof input !== 'object' || Array.isArray(input) || Object.hasOwn(input, 'token')) throw new Error()
-      if (Buffer.byteLength(raw) > 16384 && !['news.images.chunk', 'live.images.chunk'].includes(input.action)) throw new Error()
+      if (Buffer.byteLength(raw) > 16384 && !['news.images.chunk', 'live.images.chunk', 'teams.badges.chunk'].includes(input.action)) throw new Error()
     } catch { return error(400, 'INVALID_ARGUMENT', '请求格式不正确。') }
     if (input.action !== 'login' && !publicActions.includes(input.action)) {
       const authorization = /^Bearer ([a-f0-9]{64})$/.exec(requestHeaders.authorization || '')
@@ -40,7 +40,7 @@ function createHttpHandler(service, allowedOrigins = [], publicActions = []) {
       input.token = authorization[1]
     }
     const result = await service(input)
-    const status = result.ok ? 200 : ({ INVALID_ARGUMENT: 400, INVALID_CREDENTIALS: 401, UNAUTHORIZED: 401, FORBIDDEN: 403, NOT_FOUND: 404, CONFLICT: 409, UPLOAD_RESTART_REQUIRED:409, CAPACITY_FULL:409, RATE_LIMITED: 429, UPLOAD_UNAVAILABLE:503, NOT_CONFIGURED: 503, SERVICE_MAINTENANCE:503, INVALID_BACKUP:400, MISSING_ASSET:409, LIMIT_EXCEEDED:413, SERVICE_UNAVAILABLE: 503 }[result.error.code] || 500)
+    const status = result.ok ? 200 : ({ INVALID_ARGUMENT: 400, INVALID_CREDENTIALS: 401, UNAUTHORIZED: 401, FORBIDDEN: 403, NOT_FOUND: 404, CONFLICT: 409, NUMBER_IN_USE:409, ALREADY_EXISTS:409, TEAM_IN_USE:409, PROFILE_REQUIRED:400, CONFIRMATION_REQUIRED:400, UPLOAD_RESTART_REQUIRED:409, CAPACITY_FULL:409, RATE_LIMITED: 429, UPLOAD_UNAVAILABLE:503, NOT_CONFIGURED: 503, SERVICE_MAINTENANCE:503, INVALID_BACKUP:400, MISSING_ASSET:409, LIMIT_EXCEEDED:413, SERVICE_UNAVAILABLE: 503 }[result.error.code] || 500)
     return response(status, result)
   }
 }

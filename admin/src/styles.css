@@ -449,3 +449,30 @@ dd { margin: 0; overflow-wrap: anywhere; font-weight: 500; }
 /* D13: backup and recovery */
 .backup-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}.backup-admin .account-card{min-width:0;margin-bottom:22px}.backup-admin h2{margin:0 0 14px}.backup-admin p{line-height:1.75}.backup-admin .primary-button{width:auto}.backup-admin input[type=file]{max-width:100%;padding:10px;background:#f6f8f6;border:1px solid var(--border,#dce4de);border-radius:10px}.backup-file-label{display:block;margin:20px 0 10px;font-weight:600}.backup-limits{font-size:13px}.backup-filename,.backup-history code,.backup-preview label{overflow-wrap:anywhere;word-break:break-word}.backup-table-scroll{overflow:auto;max-width:100%}.backup-preview table{width:100%;border-collapse:collapse}.backup-preview th,.backup-preview td{text-align:left;padding:12px;border-bottom:1px solid #e5ebe6}.backup-preview input{display:block;width:100%;max-width:620px;margin:10px 0 18px;padding:12px;border:1px solid #ccd8cf;border-radius:10px;min-width:0}.backup-actions{display:flex;gap:12px;flex-wrap:wrap}.backup-history-row{display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:1px solid #e5ebe6;padding:18px 0}.backup-history-row>div{display:grid;gap:6px;min-width:0}.backup-history-row code{font-size:12px;color:#596b60}.backup-admin .danger-button{background:#a83832;color:white;border:0;border-radius:10px;padding:12px 18px;font-weight:600;cursor:pointer}.backup-admin button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:720px){.backup-grid{grid-template-columns:1fr;gap:0}.backup-history-row{align-items:stretch;flex-direction:column}.backup-history-row button{align-self:flex-start}.backup-admin .workspace-heading{gap:16px;align-items:flex-start;flex-direction:column}.backup-preview th,.backup-preview td{padding:10px 6px;font-size:13px}.backup-actions{flex-direction:column}.backup-admin .account-card{padding:20px}.backup-admin .primary-button{max-width:100%;white-space:normal}}
+
+/* Team and player maintenance shares the existing workbench form language. */
+.team-editor-anchor { scroll-margin-top:24px; }
+.team-maintenance-form { margin-bottom:24px; }
+.team-maintenance-form fieldset { border:0; padding:0; margin:0; min-width:0; }
+.team-maintenance-form label { display:block; margin:20px 0 8px; font-weight:600; }
+.team-maintenance-form .form-grid label { margin-top:20px; }
+.team-maintenance-form input, .team-maintenance-form select { min-height:48px; }
+.team-maintenance-form [aria-invalid="true"] { border-color:#ae4738; }
+.team-maintenance-form .field-error { margin:8px 0 0; color:#a4372d; font-size:14px; }
+.team-maintenance-form .form-footer { flex-wrap:wrap; }
+.team-form-help { line-height:1.8; margin:10px 0 14px; }
+.team-confirm-name { overflow-wrap:anywhere; font-weight:600; }
+.team-detail-actions { margin-top:22px; }
+.team-danger-text { color:#a4372d; }
+.team-danger-button { background:#9c3d32; border-color:#9c3d32; }
+.admin-player-editable .admin-player-row { grid-template-columns:60px minmax(0,1fr) 70px 160px; }
+.admin-player-actions { gap:8px; }
+.admin-player-actions button { min-height:40px; padding:8px 12px; }
+.team-saved-notice { border-color:#b5d1b8; background:#eef6ec; color:#275538; }
+@media(max-width:600px){
+ .admin-player-editable .admin-player-row { grid-template-columns:38px minmax(0,1fr) 50px; gap:10px; }
+ .admin-player-editable .admin-player-labels > span:last-child { display:none; }
+ .admin-player-actions { grid-column:2 / -1; justify-content:flex-start; }
+ .team-maintenance-form .form-footer > button { flex:1 1 100%; }
+ .team-maintenance-form .card-heading { display:block; }
+}

@@ -2,6 +2,7 @@
 
 const cloud = require('wx-server-sdk')
 const { createAdminTeamService } = require('./teams')
+const { createAdminTeamStore } = require('./team-store')
 const { createAdminRegistrationService } = require('./registrations')
 const { createRegistrationCleanupService } = require('./registration-cleanup')
 const { createStorageAdapter } = require('./registration-storage')
@@ -122,11 +123,7 @@ const imageStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.ge
 const teams = createAdminTeamService({
   storage: imageStorage,
   authorize: token => service({ action: 'session', token }),
-  store: {
-    async list(cursor, limit) { return (await database.collection('teams').where(cursor ? { _id: database.command.gt(cursor) } : {}).orderBy('_id', 'asc').limit(limit).get()).data },
-    async read(id) { return (await database.collection('teams').doc(id).get()).data },
-    async user(id) { return (await database.collection('users').doc(id).get()).data },
-  },
+  store: createAdminTeamStore(database),
 })
 const registrationStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.getWXContext().ENV || process.env.SCF_NAMESPACE)
 const registrationStore = {
@@ -159,6 +156,8 @@ const recovery = createRecoveryService({store:createRecoveryStore(database),cont
   return results.every(result=>result.result?.ok===true&&result.result.recoveryGuardVersion===1)
 }})
 const readActions = new Set([...PUBLIC_ACTIONS,...MATCH_PUBLIC_ACTIONS,...STANDINGS_PUBLIC_ACTIONS,...CONTENT_PUBLIC_ACTIONS,...SETTINGS_PUBLIC_ACTIONS,...LIVE_PUBLIC_ACTIONS,'evaluation.getPublic','evaluation.getAdmin','teams.listAdmin','teams.getAdmin','registrations.listAdmin','registrations.getAdmin','registrations.fileLink','matches.listAdmin','matches.getAdmin','standings.getAdmin','standings.history','standings.previewRestoreResult','competitions.listAdmin','competitions.getAdmin','settings.getAdmin','live.listAdmin','news.listAdmin','news.getAdmin','search.admin','content.overview','news.images.config','news.images.get','live.images.config','live.images.get'])
+readActions.add('teams.leadersAdmin')
+readActions.add('teams.checkDissolutionAdmin')
 const guardedRouter = event => event?.action?.startsWith('backup.') ? recovery(event) : ['login','session','overview','logout'].includes(event?.action) ? businessRouter(event) : recoveryGuard(event,businessRouter,readActions.has(event?.action))
 const publicCache=createPublicCache({storage:imageStorage,environment:process.env.TCB_ENV||cloud.getWXContext().ENV||process.env.SCF_NAMESPACE,enabled:process.env.PUBLIC_READ_CACHE_ENABLED==='true'})
 const router=event=>publicCache(event,guardedRouter)

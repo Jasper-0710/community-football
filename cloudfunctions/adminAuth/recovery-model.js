@@ -60,7 +60,7 @@ function materialize(target, current) {
       if (canonical(row) === canonical(before)) continue
       for (const field of ['version', 'scheduleMutationVersion']) if (Number.isSafeInteger(row[field]) || Number.isSafeInteger(before?.[field])) row[field] = Math.max(row[field] || 0, before?.[field] || 0) + 1
       if (name === 'users' && row.favorites) { row.favorites.version = Math.max(row.favorites.version || 0, before?.favorites?.version || 0) + 1; row.favorites.requests = [] }
-      for (const key of ['lastRequestId','lastFingerprint','lastBadgeRequest','lastOwnerRequest','lastReviewRequest','lastExpectedVersion','requests']) delete row[key]
+      for (const key of ['lastRequestId','lastFingerprint','lastBadgeRequest','lastOwnerRequest','lastReviewRequest','lastAdminRequest','lastExpectedVersion','requests']) delete row[key]
     }
   }
   return result
