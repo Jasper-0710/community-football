@@ -1,0 +1,1117 @@
+{
+  "generatedAt": "2026-11-25T06:59:56.140Z",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "status": "passed-scoped-nonempty-customer-cloud-group-acceptance",
+  "scope": "D08 four-team single group round robin, group-rank semifinals and winner-sourced final; explicit simulation fixture on actual customer cloud",
+  "sourceBaseline": "bd08e40 plus existing F workspace and D08 regression/document changes",
+  "fixture": {
+    "competitionId": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5",
+    "name": "【D08模拟验收1125】小组积分与晋级联动",
+    "existingTeams": 4,
+    "groupMatches": 6,
+    "knockoutMatches": 3,
+    "registrationPath": "Four explicitly seeded simulated approved registrations; not a D05 signup/material/review acceptance",
+    "confirmationTasks": {
+      "competitions": {
+        "taskId": "confirmation_cloud_db_write_doc_8b8fe297-db45-40e2-85dc-db39b2ae4d31",
+        "status": "success",
+        "count": 1
+      },
+      "registrations": {
+        "taskId": "confirmation_cloud_db_write_doc_72eb69b3-725a-490e-8d3e-a5e5a83d8c23",
+        "status": "success",
+        "count": 4
+      }
+    },
+    "fixtureRepairs": {
+      "tasks": [
+        {
+          "team": "A",
+          "taskId": "confirmation_cloud_db_write_doc_2546c98c-3d5c-4f28-accf-054c2100f9a6",
+          "status": "success",
+          "matchedCount": 1,
+          "modifiedCount": 1
+        },
+        {
+          "team": "B",
+          "taskId": "confirmation_cloud_db_write_doc_99ff2657-fa7a-4534-a9ba-c2815a5fd34b",
+          "status": "success",
+          "matchedCount": 1,
+          "modifiedCount": 1
+        },
+        {
+          "team": "C",
+          "taskId": "confirmation_cloud_db_write_doc_8da0b959-3815-4d71-bf73-155450abba2d",
+          "status": "success",
+          "matchedCount": 1,
+          "modifiedCount": 1
+        },
+        {
+          "team": "D",
+          "taskId": "confirmation_cloud_db_write_doc_ead69837-d756-4ecd-b64c-67e386f24e9a",
+          "status": "success",
+          "matchedCount": 1,
+          "modifiedCount": 1
+        }
+      ],
+      "officialReadback": {
+        "at": "2026-11-25T03:37:26.806Z",
+        "competitionId": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5",
+        "count": 4,
+        "exactPreparedRecordsMatch": true,
+        "attachmentCounts": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "version": 2,
+        "reviewRules": {
+          "minPlayers": 1,
+          "maxPlayers": 20,
+          "rulesVersion": 1
+        }
+      },
+      "preservedNoopTask": {
+        "taskId": "confirmation_cloud_db_write_doc_11ab7b45-9f3f-4639-a564-e23ea41b0d71",
+        "status": "success",
+        "matchedCount": 0,
+        "modifiedCount": 0
+      },
+      "cause": "Isolated fixture omitted mandatory attachments and cloned old review rules; fixture-only repair reused original simulated material references and applied the new competition 1–20 player rules. Original registrations/files unchanged; production parsers unchanged."
+    },
+    "prewriteReadback": {
+      "at": "2026-11-25T03:14:00.824Z",
+      "environment": "cloud1-d6gzg20x709d7f6c1",
+      "competitionId": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5",
+      "competitionCount": 1,
+      "approvedRegistrationCount": 4,
+      "counters": {
+        "pending": 0,
+        "approved": 4,
+        "occupied": 4
+      },
+      "existingTeamsAndRostersUnchanged": true,
+      "servers": [
+        {
+          "origin": "http://127.0.0.1:5174",
+          "status": 200
+        },
+        {
+          "origin": "http://127.0.0.1:5173",
+          "status": 200
+        }
+      ]
+    },
+    "finallyHidden": true,
+    "registrationEnabled": false,
+    "auditRetained": true
+  },
+  "localRegression": {
+    "passed": 31,
+    "failed": 0,
+    "files": [
+      "tests/standings.test.ts",
+      "tests/bracket.test.ts",
+      "tests/matches.test.ts"
+    ],
+    "newRegressionCases": 2,
+    "fullSuiteRerun": false
+  },
+  "cloudSourceChecks": {
+    "standings.js": {
+      "local": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "remote": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "equal": true
+    },
+    "standings-engine.js": {
+      "local": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+      "remote": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+      "equal": true
+    },
+    "standings-store.js": {
+      "local": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+      "remote": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+      "equal": true
+    },
+    "matches.js": {
+      "local": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+      "remote": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+      "equal": true
+    },
+    "competitions.js": {
+      "local": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+      "remote": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+      "equal": true
+    }
+  },
+  "businessAlgorithmChanged": false,
+  "functionsDeployedThisScope": false,
+  "clientUploadedThisScope": false,
+  "cloud": {
+    "startedAt": "2026-11-25T03:14:38.177Z",
+    "completedAt": "2026-11-25T06:55:24.065Z",
+    "checkCount": 39,
+    "checks": [
+      "Normal browser admin login reaches customer cloud",
+      "Four seeded eligible teams and counters agree; anonymous management rejected",
+      "Normal rules/schedule APIs created six group matches and source-bound semifinals/final",
+      "incomplete: trusted WeChat cloud result and client parser agree",
+      "incomplete: main/fallback, public details and authoritative standings agree",
+      "Live results excluded; five of six finished matches cannot advance",
+      "tied: trusted WeChat cloud result and client parser agree",
+      "tied: main/fallback, public details and authoritative standings agree",
+      "Hand-calculated standings agree; tied second/absent third place remains unresolved",
+      "Normal browser admin login reaches customer cloud",
+      "goals-for: main/fallback, public details and authoritative standings agree",
+      "Goals scored resolves equal points and equal goal difference",
+      "Normal browser admin login reaches customer cloud",
+      "D08 isolated event temporarily hidden until fixture repair is confirmed",
+      "Normal browser admin login reaches customer cloud",
+      "Four repaired simulation qualifications read back; isolated event resumed for UI acceptance",
+      "AD: real admin form saves against customer cloud",
+      "corrected: trusted WeChat cloud result and client parser agree",
+      "corrected: main/fallback, public details and authoritative standings agree",
+      "standings.saveResult: downstream participant protection is atomic",
+      "standings.revokeResult: downstream participant protection is atomic",
+      "standings.updateRules: downstream participant protection is atomic",
+      "standings.bindMatch: downstream participant protection is atomic",
+      "final: real admin form saves against customer cloud",
+      "champion: trusted WeChat cloud result and client parser agree",
+      "champion: main/fallback, public details and authoritative standings agree",
+      "standings.saveResult: downstream participant protection is atomic",
+      "standings.revokeResult: downstream participant protection is atomic",
+      "Normal browser admin login reaches customer cloud",
+      "Interrupted revocations independently reconciled at revision 30; none repeated",
+      "revoked: trusted WeChat cloud result and client parser agree",
+      "revoked: main/fallback, public details and authoritative standings agree",
+      "republished: trusted WeChat cloud result and client parser agree",
+      "republished: main/fallback, public details and authoritative standings agree",
+      "Revocation clears all qualifiers; correction changes rounds/champion; identical retry and stale revision protected",
+      "Admin standings render four cloud rows",
+      "Real customer H5 renders standings, scorer/assist rows, source-bound bracket and champion without page overflow",
+      "Acceptance event hidden in primary; original winter-cup standings and results unchanged",
+      "Hidden event fallback snapshot expires within existing 120s TTL"
+    ],
+    "phaseSnapshots": [
+      {
+        "phase": "incomplete",
+        "revision": 18,
+        "groupComplete": false,
+        "finishedGroupMatches": 5,
+        "rows": [
+          {
+            "team": "A",
+            "rank": 1,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "B",
+            "rank": 1,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "C",
+            "rank": 3,
+            "played": 2,
+            "won": 1,
+            "drawn": 0,
+            "lost": 1,
+            "goalsFor": 1,
+            "goalsAgainst": 3,
+            "difference": -2,
+            "points": 3
+          },
+          {
+            "team": "D",
+            "rank": 4,
+            "played": 2,
+            "won": 0,
+            "drawn": 2,
+            "lost": 0,
+            "goalsFor": 1,
+            "goalsAgainst": 1,
+            "difference": 0,
+            "points": 2
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": null,
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          }
+        ]
+      },
+      {
+        "phase": "tied",
+        "revision": 19,
+        "groupComplete": true,
+        "finishedGroupMatches": 6,
+        "rows": [
+          {
+            "team": "D",
+            "rank": 1,
+            "played": 3,
+            "won": 1,
+            "drawn": 2,
+            "lost": 0,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 5
+          },
+          {
+            "team": "A",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "B",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "C",
+            "rank": 4,
+            "played": 3,
+            "won": 1,
+            "drawn": 0,
+            "lost": 2,
+            "goalsFor": 2,
+            "goalsAgainst": 5,
+            "difference": -3,
+            "points": 3
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": null,
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": "D",
+            "away": "C",
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          }
+        ]
+      },
+      {
+        "phase": "goals-for",
+        "revision": 20,
+        "groupComplete": true,
+        "finishedGroupMatches": 6,
+        "rows": [
+          {
+            "team": "D",
+            "rank": 1,
+            "played": 3,
+            "won": 1,
+            "drawn": 2,
+            "lost": 0,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 5
+          },
+          {
+            "team": "B",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 3,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "A",
+            "rank": 3,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 2,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "C",
+            "rank": 4,
+            "played": 3,
+            "won": 1,
+            "drawn": 0,
+            "lost": 2,
+            "goalsFor": 3,
+            "goalsAgainst": 6,
+            "difference": -3,
+            "points": 3
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": null,
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": "B",
+            "away": "A",
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": "D",
+            "away": "C",
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          }
+        ]
+      },
+      {
+        "phase": "corrected",
+        "revision": 21,
+        "groupComplete": true,
+        "finishedGroupMatches": 6,
+        "rows": [
+          {
+            "team": "A",
+            "rank": 1,
+            "played": 3,
+            "won": 2,
+            "drawn": 0,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 2,
+            "difference": 2,
+            "points": 6
+          },
+          {
+            "team": "B",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 3,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "D",
+            "rank": 3,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 3,
+            "difference": 0,
+            "points": 4
+          },
+          {
+            "team": "C",
+            "rank": 4,
+            "played": 3,
+            "won": 1,
+            "drawn": 0,
+            "lost": 2,
+            "goalsFor": 3,
+            "goalsAgainst": 6,
+            "difference": -3,
+            "points": 3
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": null,
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": "B",
+            "away": "D",
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": "A",
+            "away": "C",
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          }
+        ]
+      },
+      {
+        "phase": "champion",
+        "revision": 26,
+        "groupComplete": true,
+        "finishedGroupMatches": 6,
+        "rows": [
+          {
+            "team": "A",
+            "rank": 1,
+            "played": 3,
+            "won": 2,
+            "drawn": 0,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 2,
+            "difference": 2,
+            "points": 6
+          },
+          {
+            "team": "B",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 3,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "D",
+            "rank": 3,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 3,
+            "difference": 0,
+            "points": 4
+          },
+          {
+            "team": "C",
+            "rank": 4,
+            "played": 3,
+            "won": 1,
+            "drawn": 0,
+            "lost": 2,
+            "goalsFor": 3,
+            "goalsAgainst": 6,
+            "difference": -3,
+            "points": 3
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": "A",
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": "A",
+            "away": "B",
+            "status": "finished",
+            "score": [
+              1,
+              1
+            ],
+            "penalties": [
+              5,
+              4
+            ]
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": "B",
+            "away": "D",
+            "status": "finished",
+            "score": [
+              1,
+              0
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": "A",
+            "away": "C",
+            "status": "finished",
+            "score": [
+              1,
+              0
+            ],
+            "penalties": null
+          }
+        ]
+      },
+      {
+        "phase": "revoked",
+        "revision": 30,
+        "groupComplete": false,
+        "finishedGroupMatches": 5,
+        "rows": [
+          {
+            "team": "A",
+            "rank": 1,
+            "played": 3,
+            "won": 2,
+            "drawn": 0,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 2,
+            "difference": 2,
+            "points": 6
+          },
+          {
+            "team": "B",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 4,
+            "goalsAgainst": 3,
+            "difference": 1,
+            "points": 4
+          },
+          {
+            "team": "C",
+            "rank": 3,
+            "played": 2,
+            "won": 1,
+            "drawn": 0,
+            "lost": 1,
+            "goalsFor": 2,
+            "goalsAgainst": 4,
+            "difference": -2,
+            "points": 3
+          },
+          {
+            "team": "D",
+            "rank": 4,
+            "played": 2,
+            "won": 0,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 1,
+            "goalsAgainst": 2,
+            "difference": -1,
+            "points": 1
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": null,
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": null,
+            "away": null,
+            "status": "scheduled",
+            "score": [
+              null,
+              null
+            ],
+            "penalties": null
+          }
+        ]
+      },
+      {
+        "phase": "republished",
+        "revision": 35,
+        "groupComplete": true,
+        "finishedGroupMatches": 6,
+        "rows": [
+          {
+            "team": "B",
+            "rank": 1,
+            "played": 3,
+            "won": 2,
+            "drawn": 1,
+            "lost": 0,
+            "goalsFor": 6,
+            "goalsAgainst": 1,
+            "difference": 5,
+            "points": 7
+          },
+          {
+            "team": "D",
+            "rank": 2,
+            "played": 3,
+            "won": 1,
+            "drawn": 1,
+            "lost": 1,
+            "goalsFor": 3,
+            "goalsAgainst": 3,
+            "difference": 0,
+            "points": 4
+          },
+          {
+            "team": "A",
+            "rank": 3,
+            "played": 3,
+            "won": 1,
+            "drawn": 0,
+            "lost": 2,
+            "goalsFor": 2,
+            "goalsAgainst": 4,
+            "difference": -2,
+            "points": 3
+          },
+          {
+            "team": "C",
+            "rank": 4,
+            "played": 3,
+            "won": 1,
+            "drawn": 0,
+            "lost": 2,
+            "goalsFor": 3,
+            "goalsAgainst": 6,
+            "difference": -3,
+            "points": 3
+          }
+        ],
+        "scorerRows": 4,
+        "assistRows": 4,
+        "champion": "B",
+        "knockout": [
+          {
+            "match": "final",
+            "stage": "final",
+            "home": "B",
+            "away": "A",
+            "status": "finished",
+            "score": [
+              1,
+              1
+            ],
+            "penalties": [
+              4,
+              3
+            ]
+          },
+          {
+            "match": "semi2",
+            "stage": "semi",
+            "home": "D",
+            "away": "A",
+            "status": "finished",
+            "score": [
+              0,
+              1
+            ],
+            "penalties": null
+          },
+          {
+            "match": "semi1",
+            "stage": "semi",
+            "home": "B",
+            "away": "C",
+            "status": "finished",
+            "score": [
+              1,
+              0
+            ],
+            "penalties": null
+          }
+        ]
+      }
+    ],
+    "mutations": {
+      "standings.updateRules:applied": 1,
+      "matches.create:applied": 9,
+      "standings.bindMatch:applied": 2,
+      "standings.saveResult:applied": 18,
+      "standings.revokeResult:applied": 5
+    },
+    "conflictResponsesIncludingStaleRevision": 7,
+    "publicSnapshotReadbacks": [
+      {
+        "phase": "goals-for",
+        "elapsedMs": 946,
+        "observations": 1,
+        "observedRevisions": [
+          20
+        ]
+      },
+      {
+        "phase": "corrected",
+        "elapsedMs": 1998,
+        "observations": 1,
+        "observedRevisions": [
+          21
+        ]
+      },
+      {
+        "phase": "champion",
+        "elapsedMs": 24232,
+        "observations": 7,
+        "observedRevisions": [
+          21,
+          26
+        ]
+      },
+      {
+        "phase": "revoked",
+        "elapsedMs": 1989,
+        "observations": 1,
+        "observedRevisions": [
+          30
+        ]
+      },
+      {
+        "phase": "republished",
+        "elapsedMs": 127274,
+        "observations": 35,
+        "observedRevisions": [
+          30,
+          35
+        ]
+      }
+    ],
+    "hiddenFallback": {
+      "savedAt": 1795589601788,
+      "expiresAt": 1795589721788,
+      "policy": "Existing public snapshot TTL 120s; authoritative NOT_FOUND immediately prevents client fallback use"
+    },
+    "previousFailures": [
+      {
+        "phase": "goals-for",
+        "message": "Fallback retained an earlier valid snapshot beyond the original 60s harness window",
+        "at": "2026-11-25T03:18:08.275Z",
+        "evidence": "accept-attempt-1-private.json"
+      },
+      {
+        "phase": "correction-ui",
+        "message": "locator.waitFor: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.standings-match-row').first() to be visible\u001b[22m\n",
+        "at": "2026-11-25T03:20:40.772Z",
+        "evidence": "accept-attempt-2-private.json"
+      },
+      {
+        "phase": "revoke-correct-republish",
+        "message": "Interrupted after four applied revocations at revision 30; DNS failed during cleanup, prior session logout unconfirmed",
+        "at": "2026-11-25T03:39:58.208Z",
+        "evidence": "accept-attempt-3-private.json"
+      }
+    ],
+    "loggedOut": true,
+    "oldSessionRejected": true,
+    "sessionCleanup": {
+      "currentAttempt": {
+        "startedAt": "2026-11-25T06:50:42.575Z",
+        "resumedPhase": "revoke-correct-republish",
+        "loggedOut": true,
+        "oldSessionRejected": true,
+        "finishedAt": "2026-11-25T06:55:25.136Z"
+      },
+      "captureAttempt": {
+        "loggedOut": true,
+        "oldSessionRejected": true
+      },
+      "priorInterruptedSession": {
+        "attemptEvidence": "accept-attempt-3-private.json",
+        "lastKnownActivityAt": "2026-11-25T03:39:58.208Z",
+        "logoutConfirmed": false,
+        "tokenPersisted": false,
+        "processExited": true,
+        "browserProcessRemaining": false,
+        "policy": "Prior interrupted memory-only session revocation cannot be confirmed; leave other administrator sessions unchanged and allow normal expiry"
+      }
+    }
+  },
+  "browser": {
+    "admin": "Existing local development admin on 127.0.0.1:5174 connected to real customer HTTPS",
+    "h5": "Current development H5 on 127.0.0.1:5173 connected to real customer HTTPS; not a frozen production build or hosted deployment",
+    "pageErrors": [],
+    "viewportWidths": [
+      1440,
+      390
+    ],
+    "screenshotSha256": {
+      "admin-final-standings.png": "4062cdda96a8eae76d673a326c857f5572f98239fd4002d4c980930e84274ed2",
+      "h5-final-bracket.png": "9c4dd530c1b8f63ad218f6e7be10fc277e4ca786f5a39d04755891a0e69284aa",
+      "h5-final-bracket-390.png": "02ae801d09657fe69ed209b4a738273321907c0c912a0e0f36d68514d137408c",
+      "h5-final-bracket-390-final.png": "c9b112fc02e41bef399f79c6ec95cc8847c1efc539cc9f614add41b920ba1e1d",
+      "h5-final-bracket-390-champion.png": "68678ae3e0b16347b7e55f4fbeb58e445cbb119d52c93e055110dbc3580a4d65"
+    },
+    "mobileCapture": {
+      "startedAt": "2026-11-25T06:57:00.580Z",
+      "pageErrors": [],
+      "captures": [
+        {
+          "label": "半决赛",
+          "file": "h5-final-bracket-390.png",
+          "bounds": {
+            "x": 33,
+            "y": 519.890625,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "label": "决赛",
+          "file": "h5-final-bracket-390-final.png",
+          "bounds": {
+            "x": 33,
+            "y": 555.890625,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "label": "冠军",
+          "file": "h5-final-bracket-390-champion.png",
+          "bounds": {
+            "x": 93,
+            "y": 555.890625,
+            "width": 264,
+            "height": 288
+          }
+        }
+      ],
+      "loggedOut": true,
+      "oldSessionRejected": true,
+      "playerRowsCompared": true,
+      "mobileJumpControls": true,
+      "completedAt": "2026-11-25T06:57:39.406Z",
+      "hiddenInPrimary": true,
+      "fallbackExpired": true,
+      "firstFullPageCaptureRejected": "390px full-page capture repeated fixed app content; preserved privately and replaced with viewport captures of semifinals, final and champion"
+    }
+  },
+  "native": {
+    "transport": "Trusted wx.cloud.callFunction in developer-tools simulator, parsed through built client domain/standings.js",
+    "physicalDevice": false,
+    "comparisonPhases": [
+      "incomplete",
+      "tied",
+      "corrected",
+      "champion",
+      "revoked",
+      "republished"
+    ],
+    "scope": "Rules/groups/player totals/champion and match participant/result/source facts; no native form/picker click acceptance"
+  },
+  "independentReadback": {
+    "at": "2026-11-25T06:58:19.635Z",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "competitionId": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5",
+    "collections": [
+      {
+        "collection": "competitions",
+        "originalRows": 11,
+        "afterRows": 12,
+        "addedRows": 1,
+        "originalFactsUnchanged": true,
+        "excludedMetadata": null
+      },
+      {
+        "collection": "teams",
+        "originalRows": 5,
+        "afterRows": 5,
+        "addedRows": 0,
+        "originalFactsUnchanged": true,
+        "excludedMetadata": "Referenced-team version counters only"
+      },
+      {
+        "collection": "registrations",
+        "originalRows": 9,
+        "afterRows": 13,
+        "addedRows": 4,
+        "originalFactsUnchanged": true,
+        "excludedMetadata": null
+      },
+      {
+        "collection": "matches",
+        "originalRows": 4,
+        "afterRows": 13,
+        "addedRows": 9,
+        "originalFactsUnchanged": true,
+        "excludedMetadata": null
+      },
+      {
+        "collection": "resultRevisions",
+        "originalRows": 42,
+        "afterRows": 65,
+        "addedRows": 23,
+        "originalFactsUnchanged": true,
+        "excludedMetadata": null
+      }
+    ],
+    "unexpectedChanges": [],
+    "newAuditCount": 23,
+    "completedAt": "2026-11-25T06:58:38.981Z"
+  },
+  "limitations": [
+    "Four-team group and semifinals/final; not a full eight-team customer bracket",
+    "Explicitly seeded eligibility does not cover D05 user registration/material/review flows",
+    "Developer-tools simulator parser and local browsers; native controls and iPhone/Android physical devices remain separate",
+    "No deployment, public admin/H5 hosting, customer final rules, large-data performance, or complete 29-item customer signoff",
+    "Independent readback covers five D08-relevant collections, not a full 19/20-collection audit",
+    "The previous DNS-interrupted attempt exited with its token only in memory; logout could not be confirmed. The final acceptance and capture attempts independently logged out and their old tokens returned 401; no unrelated administrator session was removed."
+  ],
+  "privateEvidenceDirectory": ".tools/customer-group-20261125/"
+}

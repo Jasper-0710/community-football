@@ -1,0 +1,122 @@
+{
+  "generatedAt": "2026-11-25T03:37:02.026Z",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "status": "three-fixture-repairs-applied-one-noop-repair-confirmation-pending",
+  "competitionId": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5",
+  "cloudAcceptanceComplete": false,
+  "completedPhases": [
+    "baseline",
+    "schedule",
+    "incomplete",
+    "tied",
+    "goals-for"
+  ],
+  "checks": [
+    "Normal browser admin login reaches customer cloud",
+    "Four seeded eligible teams and counters agree; anonymous management rejected",
+    "Normal rules/schedule APIs created six group matches and source-bound semifinals/final",
+    "incomplete: trusted WeChat cloud result and client parser agree",
+    "incomplete: main/fallback, public details and authoritative standings agree",
+    "Live results excluded; five of six finished matches cannot advance",
+    "tied: trusted WeChat cloud result and client parser agree",
+    "tied: main/fallback, public details and authoritative standings agree",
+    "Hand-calculated standings agree; tied second/absent third place remains unresolved",
+    "Normal browser admin login reaches customer cloud",
+    "goals-for: main/fallback, public details and authoritative standings agree",
+    "Goals scored resolves equal points and equal goal difference",
+    "Normal browser admin login reaches customer cloud",
+    "D08 isolated event temporarily hidden until fixture repair is confirmed"
+  ],
+  "lastRevision": 20,
+  "currentGroupResultPhase": "BC corrected from 3:0 to 4:1; D/B/A/C; AD still 1:1",
+  "fixture": {
+    "simulated": true,
+    "hiddenWhileRepairPending": true,
+    "registrations": 4,
+    "groupMatches": 6,
+    "knockoutMatches": 3,
+    "notD05Acceptance": true
+  },
+  "blocker": {
+    "cause": "Fixture setup omitted required attachments; cloned review rules also differed from the new simulated competition roster count",
+    "repair": "Reuse each existing team original simulated material reference and apply new fixture 1–20 player rules; original records/files unchanged",
+    "productionParserChanged": false,
+    "localSummaryAndDetailParserChecks": 4,
+    "pendingTasks": [
+      {
+        "team": "D",
+        "taskId": "confirmation_cloud_db_write_doc_ead69837-d756-4ecd-b64c-67e386f24e9a",
+        "status": "pending"
+      }
+    ],
+    "originalRepairTaskResults": [
+      {
+        "team": "A",
+        "taskId": "confirmation_cloud_db_write_doc_2546c98c-3d5c-4f28-accf-054c2100f9a6",
+        "status": "success",
+        "matchedCount": 1,
+        "modifiedCount": 1
+      },
+      {
+        "team": "B",
+        "taskId": "confirmation_cloud_db_write_doc_99ff2657-fa7a-4534-a9ba-c2815a5fd34b",
+        "status": "success",
+        "matchedCount": 1,
+        "modifiedCount": 1
+      },
+      {
+        "team": "C",
+        "taskId": "confirmation_cloud_db_write_doc_8da0b959-3815-4d71-bf73-155450abba2d",
+        "status": "success",
+        "matchedCount": 1,
+        "modifiedCount": 1
+      },
+      {
+        "team": "D",
+        "taskId": "confirmation_cloud_db_write_doc_11ab7b45-9f3f-4639-a564-e23ea41b0d71",
+        "status": "success",
+        "matchedCount": 0,
+        "modifiedCount": 0
+      }
+    ],
+    "noopReason": "Original D task completed with matchedCount=0; exact fixture-object predicate replaced by scoped scalar guards for this one row"
+  },
+  "preservedFailures": [
+    {
+      "phase": "goals-for",
+      "at": "2026-11-25T03:18:08.275Z"
+    },
+    {
+      "phase": "correction-ui",
+      "at": "2026-11-25T03:20:40.772Z"
+    },
+    {
+      "phase": "correction-ui",
+      "cause": "Invalid isolated registration fixture"
+    }
+  ],
+  "fallback": {
+    "policyTtlMs": 120000,
+    "firstShortWaitFailurePreserved": true,
+    "goalsForReadbackPassed": true
+  },
+  "sessions": {
+    "loggedOut": true,
+    "oldSessionRejected": true
+  },
+  "remaining": [
+    "Confirm original four repair tasks and independently read the repaired records",
+    "Real admin AD correction and point/goal-difference qualification change",
+    "Live/finished downstream atomic conflict checks",
+    "Penalty champion, revoke/correct/republish, retry and stale revision",
+    "Final H5 standings/players/bracket, hide/TTL expiration and independent five-collection audit"
+  ],
+  "businessAlgorithmChanged": false,
+  "functionsDeployed": false,
+  "limitations": [
+    "No full eight-team bracket",
+    "Native cloud/parser checks in developer-tools simulator, not physical device",
+    "No public admin or H5 deployment",
+    "No final cloud-loop pass while tool confirmations are pending"
+  ]
+}

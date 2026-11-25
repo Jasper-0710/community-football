@@ -32,13 +32,15 @@ export function parsePersonalAppearance(value: unknown): PersonalAppearance {
 }
 
 /** Personal choices never override the platform's name, navigation or destinations. */
-export function resolveAppearance(platform: Omit<PlatformForm, 'navigation'> & { navigation: readonly PlatformForm['navigation'][number][] }, personal: PersonalAppearance): PlatformForm {
+type DeepReadonly<T> = T extends Array<infer U> ? readonly DeepReadonly<U>[] : T extends object ? {readonly [K in keyof T]:DeepReadonly<T[K]>} : T
+export function resolveAppearance(platform: DeepReadonly<PlatformForm>, personal: PersonalAppearance): PlatformForm {
   return {
     ...platform,
     ...(personal.theme === 'platform' ? {} : { theme: personal.theme, customColor: personal.customColor }),
     mode: personal.mode === 'platform' ? platform.mode : personal.mode,
     radius: personal.radius === 'platform' ? platform.radius : personal.radius,
     navigation: platform.navigation.map(item => ({ ...item })),
+    external: JSON.parse(JSON.stringify(platform.external)),
   }
 }
 

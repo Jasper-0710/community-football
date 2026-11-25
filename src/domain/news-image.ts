@@ -16,12 +16,12 @@ export function parseNewsImage(v: any): NewsImage {
   if (!v || !id(v.id) || typeof v.articleId !== 'string' || !/^n_[a-f0-9]{32}$/.test(v.articleId) || typeof v.name !== 'string' || !v.name.trim() || Array.from(v.name).length > 120 || !int(v.size) || !v.size || v.size > NEWS_IMAGE_MAX_BYTES || !['image/png','image/jpeg'].includes(v.mime) || !int(v.width) || !int(v.height) || !v.width || !v.height || v.width > 4096 || v.height > 4096 || v.width*v.height > 8_000_000 || !safeContentImage(v.url)) return invalid()
   return {id:v.id,articleId:v.articleId,name:v.name,size:v.size,mime:v.mime,width:v.width,height:v.height,url:v.url}
 }
-export function parseNewsImageUpload(v: any): NewsImageUpload {
+export function parseNewsImageUpload(v: any, validId: (v:unknown)=>boolean = id): NewsImageUpload {
   const chunks = Math.ceil(NEWS_IMAGE_MAX_BYTES / NEWS_IMAGE_CHUNK)
-  if (v?.ok !== true || !id(v.id) || v.chunkSize !== NEWS_IMAGE_CHUNK || !Array.isArray(v.uploaded) || v.uploaded.length > chunks || v.uploaded.some((i: unknown) => !int(i) || Number(i) >= chunks) || new Set(v.uploaded).size !== v.uploaded.length) return invalid()
+  if (v?.ok !== true || !validId(v.id) || v.chunkSize !== NEWS_IMAGE_CHUNK || !Array.isArray(v.uploaded) || v.uploaded.length > chunks || v.uploaded.some((i: unknown) => !int(i) || Number(i) >= chunks) || new Set(v.uploaded).size !== v.uploaded.length) return invalid()
   return {id:v.id,chunkSize:v.chunkSize,uploaded:v.uploaded}
 }
-export function parseNewsImageCleanup(v: any): NewsImageCleanup {
-  if (v?.ok !== true || typeof v.dryRun !== 'boolean' || !['scanned','eligibleObjects','removedObjects','protectedImages','deferredImages'].every(k => int(v[k])) || v.scanned > 20 || v.protectedImages > v.scanned || v.deferredImages > v.scanned || v.removedObjects > v.eligibleObjects || v.dryRun && v.removedObjects !== 0 || v.nextCursor !== null && !id(v.nextCursor)) return invalid()
+export function parseNewsImageCleanup(v: any, validId: (v:unknown)=>boolean = id): NewsImageCleanup {
+  if (v?.ok !== true || typeof v.dryRun !== 'boolean' || !['scanned','eligibleObjects','removedObjects','protectedImages','deferredImages'].every(k => int(v[k])) || v.scanned > 20 || v.protectedImages > v.scanned || v.deferredImages > v.scanned || v.removedObjects > v.eligibleObjects || v.dryRun && v.removedObjects !== 0 || v.nextCursor !== null && !validId(v.nextCursor)) return invalid()
   return {dryRun:v.dryRun,scanned:v.scanned,eligibleObjects:v.eligibleObjects,removedObjects:v.removedObjects,protectedImages:v.protectedImages,deferredImages:v.deferredImages,nextCursor:v.nextCursor}
 }

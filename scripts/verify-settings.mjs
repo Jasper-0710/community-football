@@ -11,6 +11,8 @@ const require=createRequire(import.meta.url)
 const {createAdminService,createAccount}=require('../cloudfunctions/adminAuth/service.js')
 const {createHttpHandler}=require('../cloudfunctions/adminAuth/http.js')
 const {createSettingsService,PUBLIC_ACTIONS}=require('../cloudfunctions/adminAuth/platform-settings.js')
+const {createPlatformImageService}=require('../cloudfunctions/adminAuth/external-entries.js')
+const {createNewsImageStorage}=require('../tests/helpers/news-image-storage.cjs')
 const {createContentService,PUBLIC_ACTIONS:CONTENT_PUBLIC}=require('../cloudfunctions/adminAuth/content.js')
 const {createCompetitionService,PUBLIC_ACTIONS:COMPETITION_PUBLIC}=require('../cloudfunctions/adminAuth/competitions.js')
 const {createMatchService,PUBLIC_ACTIONS:MATCH_PUBLIC}=require('../cloudfunctions/adminAuth/matches.js')
@@ -23,7 +25,8 @@ const out='artifacts/settings';await fs.mkdir(out,{recursive:true});await fs.mkd
 const now=Date.parse('2026-11-18T02:00:00Z'),password=randomBytes(24).toString('base64url')
 const auth=createAdminService({store:createMemoryStore(await createAccount('admin',password,now)).store,now:()=>now,logger:{error(){}}})
 const authorize=token=>auth({action:'session',token}),memory=createContentMemoryStore(),{store,collections}=memory
-const settings=createSettingsService({store,authorize,now:()=>now,logger:{error(){}}}),content=createContentService({store,authorize,now:()=>now,logger:{error(){}}})
+const imageStorage=createNewsImageStorage().storage,platformImages=createPlatformImageService({store,storage:imageStorage,authorize,enabled:true})
+const settings=createSettingsService({store,storage:imageStorage,authorize,now:()=>now,logger:{error(){}}}),content=createContentService({store,authorize,now:()=>now,logger:{error(){}}})
 const cid='c_'+'1'.repeat(32),mid='m_'+'1'.repeat(32),home='t_'+'1'.repeat(64),away='t_'+'2'.repeat(64)
 collections.competitions.set(cid,{_id:cid,name:'主题验收社区杯',description:'隔离浏览器数据',format:'round_robin',formatDescription:'单循环',startDate:'2026-11-20',endDate:'2026-12-31',venue:'社区球场',registrationRequirements:'提交材料',registrationStartAt:null,registrationEndAt:null,registrationEnabled:false,displayEnabled:true,version:1,createdAt:now,updatedAt:now})
 for(const [id,name] of [[home,'邻里联队'],[away,'社区星火']])collections.teams.set(id,{_id:id,name,status:'active',district:'虹口区',description:'社区球队',version:1,roster:[]})
@@ -35,7 +38,7 @@ let failPublic=false,loseAck=false,holdSave=false;const saves=[]
 const router=async event=>{
  if(event.action==='settings.getPublic'&&failPublic)return {ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'同步暂不可用，请重试。'}}
  if(event.action==='settings.update'){saves.push(structuredClone(event));if(holdSave)await new Promise(r=>setTimeout(r,350))}
- return event.action.startsWith('settings.')?settings(event):/^(news|search|directory|content)\./.test(event.action)?content(event):event.action.startsWith('competitions.')?competitions(event):event.action.startsWith('matches.')?matches(event):event.action.startsWith('standings.')?standings(event):auth(event)
+ return event.action.startsWith('settings.images.')?platformImages(event):event.action.startsWith('settings.')?settings(event):/^(news|search|directory|content)\./.test(event.action)?content(event):event.action.startsWith('competitions.')?competitions(event):event.action.startsWith('matches.')?matches(event):event.action.startsWith('standings.')?standings(event):auth(event)
 }
 const adminOrigin='http://127.0.0.1:5194',publicOrigin='http://127.0.0.1:5193',certDir=await fs.mkdtemp('/tmp/community-football-settings-')
 execFileSync('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',`${certDir}/key.pem`,'-out',`${certDir}/cert.pem`,'-days','1','-subj','/CN=127.0.0.1','-addext','subjectAltName=IP:127.0.0.1'],{stdio:'ignore'})
@@ -49,7 +52,7 @@ const server=createServer({key:await fs.readFile(`${certDir}/key.pem`),cert:awai
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const endpoint=`https://127.0.0.1:${server.address().port}/api`
 process.env.VITE_ADMIN_API_URL=endpoint
 const config=resolve('.tools/d10-public.vite.config.ts')
-await fs.writeFile(config,"import base from '../vite.config'; export default env => ({ ...base(env), cacheDir: '.tools/d10-public-cache', server: { host: '127.0.0.1', port: 5193, strictPort: true, hmr: false } })\n")
+await fs.writeFile(config,"import base from '../vite.config'; export default env => ({ ...base(env), define: { ...base(env).define, 'import.meta.env.VITE_PUBLIC_FALLBACK_API_URL': '\"\"', 'import.meta.env.VITE_PUBLIC_FALLBACK_FUNCTION': '\"\"' }, cacheDir: '.tools/d10-public-cache', server: { host: '127.0.0.1', port: 5193, strictPort: true, hmr: false } })\n")
 const adminVite=await createViteServer({configFile:'admin/vite.config.ts',mode:'test',cacheDir:resolve('.tools/d10-admin-cache'),server:{host:'127.0.0.1',port:5194,strictPort:true,hmr:false}});await adminVite.listen()
 const publicServer=spawn('node',['node_modules/@dcloudio/vite-plugin-uni/bin/uni.js','--config',config,'--host','127.0.0.1','--port','5193'],{detached:true,env:{...process.env,CHOKIDAR_USEPOLLING:'true',VITE_COMPETITION_API_URL:endpoint},stdio:['ignore','pipe','pipe']})
 let publicLog='';for(const stream of [publicServer.stdout,publicServer.stderr])stream.on('data',b=>publicLog+=b)

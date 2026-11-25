@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-25",
+  "generatedAt": "2026-11-25T01:42:48.556Z",
+  "status": "local-development-verified; customer deployment and real destinations pending",
+  "source": {
+    "baseCommit": "bd08e405e7509bc5eeb306ff48f80364f7acd815",
+    "uncommittedWorkingTree": true,
+    "sha256": {
+      "admin/src/Backups.vue": "dd56134624e894717192be06d20a8bc41d4018beb867af13cc5058c3e1ff0f57",
+      "admin/src/PlatformSettings.vue": "4fe051213df46612f6fffd53ad98db95f2869395cf818884580b337691cc3242",
+      "admin/src/api.ts": "9fb2e0cd41ebd8994aae5322effd11b1cc81680fb97e6cba0830b42e5a24bcbb",
+      "cloudfunctions/adminAuth/http.js": "df84b432e367f814cd40723d070dce89c2b22abec4df9d3379589226f9049ad9",
+      "cloudfunctions/adminAuth/index.js": "8954abc79c220b10bf3c15ba90217d2e56569f82c39fe1fdc8f3b720e3e7780b",
+      "cloudfunctions/adminAuth/news-image-model.js": "70738a03cfc93033a40ea3c65ccbb38745572e5ad36869903972cfb6d7bec4b6",
+      "cloudfunctions/adminAuth/platform-settings-schema.json": "31a9a7dbd243cb97cce6517a82964beac75d552a09a8369a19098010df631eda",
+      "cloudfunctions/adminAuth/platform-settings.js": "15e50f47887922769b7494e3fa09846ede06b01f5ca9fe515898ff0e2b9ec44c",
+      "cloudfunctions/adminAuth/recovery-model.js": "c59edf3f39ab9995f60f068cb6c8f7b94cf85d27fa938b8010da2df1ee1cae53",
+      "cloudfunctions/adminAuth/recovery-store.js": "3ac9198a791c51296ca0bbdd05db87ba5b8f0aaaf9bb2576eba659b22eaa41bc",
+      "cloudfunctions/publicRead/http.js": "df84b432e367f814cd40723d070dce89c2b22abec4df9d3379589226f9049ad9",
+      "package.json": "83c99d55b2d46300e17ba0ccd2f44c3895cbbecf49d04e14f09ee128a8fcfc9a",
+      "scripts/verify-recovery.mjs": "2ed19921d100766aa5be697e1de52ab82da62a9aeca21203460269deacc58546",
+      "scripts/verify-settings.mjs": "7ac8423b80428a2e2971ae7b0a58cb639275156d08cde0f11dba7a476f225806",
+      "src/domain/news-image.ts": "f103fb90ce89490bb56a85316be112844ac7c2cfdc2c2d6dca8c5d317701f492",
+      "src/domain/personal-appearance.ts": "284591e8bb861e97b415f0cb065fae42f16e693300730547c2f96c213941d145",
+      "src/domain/platform-settings-schema.json": "31a9a7dbd243cb97cce6517a82964beac75d552a09a8369a19098010df631eda",
+      "src/domain/platform-settings.ts": "ad995c8d422880087fb5291e99c0c813065f7a4fe7e7444cf819c06d27c68415",
+      "src/domain/recovery.ts": "c37bea21b537934a6899d762378f62cd92f7fee327083a94de70dc17ec59f027",
+      "src/pages.json": "b3b1446ff5a12b8bce79fe7a3bf2bc21628e0ada8af270cdd81102d0682f301f",
+      "src/views/HomeView.vue": "2d236e18f98c1b136ea5be271d703db67e3604c6823719bcb6acc5de3a564923",
+      "tests/helpers/content-store.cjs": "410ba83a445fff95cc63c42fa862e3131f655fdee70cf2b34ed6048d055d995c",
+      "tests/recovery.test.ts": "7237e30069f1bd4741c42f4ba278639d6a281e4665d1b2f540fddfe86fb59a17",
+      "admin/src/ExternalEntriesEditor.vue": "d4b1b6ec59190b2cc57133bb1b66c0811f7cc8b6a91a3ce5ad6d2533250fb0fa",
+      "admin/src/ExternalTargetEditor.vue": "70c36aa88c3c622f7628b0f3f508f34ee9d54e66418c78107e89a3a4285e19b7",
+      "admin/src/platform-images.ts": "1ac3277c3b81f27eca249ac53f8cb1fe52aef11168d73b54f1e4980166ffdd85",
+      "cloudfunctions/adminAuth/external-entries.js": "bace2b334ce0c510a95f7ca77ef567d6f2e0fd5cb029d7bbbef57960fbb71d8a",
+      "scripts/verify-external-entries.mjs": "78c5f16eaaa5f1bc0fcac5eecb130ed41defb3312c5383ac1255a8beff9ad218",
+      "src/components/ExternalEntries.vue": "e82ffd90f5ac5e0acc2511e3f9b8e982e6884f94d2f09f82148beff624326c38",
+      "src/domain/external-entries.ts": "8b69005da3793878335aa51e00e0932f53463b56aa9f4fdad42e5998a2952cf9",
+      "src/domain/external-navigation.ts": "086b7ce87a0ed0ce86a356ad9504fcf0af942df152834927233647f546785658",
+      "src/pages/external/web.vue": "ba4e0cf55420ab0ba4adbfc621d535c175ceacbda5dee4e0b513e24cdc61a326",
+      "src/pages/insurance/index.vue": "aefc83e9324ba957fac033df0a83fc8966a0ad0c8def8c4bd27eda4c5aaa2952",
+      "src/services/external-navigation.ts": "dd7642b956aed5a89fa5c18a82f3c6f87116811ae3fb5579cf02e4d61cc45c3d",
+      "tests/external-entries.test.ts": "ac8dc323526fe229bb27fae80806abf16e7ceeb95e44f49a79dae15ef9ee57d1"
+    }
+  },
+  "scope": {
+    "realVueAdmin": true,
+    "realH5": true,
+    "productionHttpHandlers": true,
+    "isolatedTransactionalDatabase": true,
+    "isolatedImageByteStorage": true,
+    "externalHttpsTestPageIntercepted": true,
+    "customerCloudWrites": false,
+    "customerDeployment": false,
+    "realWechatJump": false,
+    "physicalDeviceAcceptance": false
+  },
+  "tests": {
+    "command": "npm test",
+    "passed": 451,
+    "failed": 0,
+    "featureTests": 10
+  },
+  "browser": {
+    "feature": {
+      "date": "2026-11-25",
+      "generatedAt": "2026-11-25T01:39:06.880Z",
+      "checks": [
+        "新后台入口可达，默认关闭隐藏，七个管理动作匿名HTTP均401",
+        "未配置社区和无图投保启用被阻止，H5小程序目标显示明确提示",
+        "假图片被拒绝，真实PNG分片中断原请求重试，上传未保存不影响客户端",
+        "后台保存后首页与投保详情同步，图片引用受保护，取消外跳保留原页面",
+        "HTTPS确认后到达隔离目标并可返回，投保页1440/390/320px无横向溢出",
+        "真实图片加载失败可重新签名读取恢复",
+        "投保图片可打开原图预览",
+        "替换仅保存后切换引用，旧图进入24小时保留期，维护检查保护现图",
+        "保存成功后损坏响应，原请求重试只增加一次设置版本",
+        "故障快照禁用外跳，恢复连接后实时同步重新开放入口",
+        "并发版本冲突阻止覆盖外部配置并要求重新读取",
+        "两端桌面/390/320px无溢出，关闭后首页隐藏且直接访问专栏显示未开放"
+      ],
+      "errors": [],
+      "scope": "Real Vue admin/H5 and HTTPS handlers with isolated transactional stores and byte storage. External HTTPS destination intercepted only in this test context. No customer cloud writes, real mini-program jumps or physical-device acceptance."
+    },
+    "settings": {
+      "generatedAt": "2026-11-25T01:29:03.857Z",
+      "passed": 17,
+      "checks": [
+        "管理员设置入口、匿名写入拒绝和无配置默认外观正常",
+        "未保存修改只更新后台预览，名称图标和排序不提前影响客户端",
+        "真实HTTPS保存后客户端回到前台及重新加载同步，同一保存无重复提交",
+        "六个可配置入口保留真实站内目标，搜索仍打开现有搜索面板",
+        "深色/自选白色/圆角同步，白底选中图标保留深色，320/390/1440px无横向溢出",
+        "网络失败保留已确认的平台设置快照与来源，重新连接后恢复实时同步",
+        "服务端已提交但响应中断时重试复用请求，版本只增加一次",
+        "并发版本冲突阻止覆盖，重新读取后恢复正确内容",
+        "最长名称/副标题/六个四字导航和未填完整颜色安全预览，两端窄屏与桌面无溢出",
+        "恢复默认先预览再保存，客户端与后台回读一致",
+        "我的外观入口可达，游客说明准确，个人未保存仅预览，保存才全局应用",
+        "本机个人选择在刷新、返回个人中心及进入赛事详情后保持",
+        "无效自选色保存被拒绝，放弃修改及未保存离页不改变已保存外观",
+        "三项独立优先级正确：平台更新只改变跟随项，名称与六导航始终同步",
+        "个人自选白色/深色/圆角在320/390/1440px无溢出，全部跟随先预览再保存",
+        "真实页面存储写入失败不改变当前外观，恢复存储后可重试保存",
+        "损坏或身份不匹配的本机记录安全回退，可重新保存修复"
+      ],
+      "errors": []
+    },
+    "recovery": {
+      "date": "2026-11-25",
+      "passed": 19,
+      "checks": [
+        "侧栏入口、部署能力与管理员权限正确",
+        "真实表单导出20类业务JSON（含投保图片），分片下载及校验成功",
+        "上传JSON后预览替换和删除，确认文字未填写时不能执行",
+        "原子恢复、自动回退备份及版本递增通过",
+        "错误环境备份在本机校验阶段拒绝",
+        "旧云端仅返回预览时保留待确认任务，等待匹配版本部署",
+        "预览后有新提交时拒绝覆盖，保留业务状态",
+        "恢复成功但响应丢失时，先检查回执再解除执行锁定",
+        "响应丢失时能区分执行中任务，保持恢复和文件选择锁定",
+        "刷新后台后仍保留当前会话的待确认任务，不允许重复恢复",
+        "执行中任务完成后回读同一回执并清除待确认状态",
+        "恢复后真实客户端赛程与后台使用同一份业务数据",
+        "主服务故障后独立只读云函数回退，明确显示备用来源",
+        "主备均失败后展示带原始时间的本机公开快照",
+        "备份页面与快照提示1440/390/320px无横向溢出",
+        "重新连接主动刷新当前页面，主服务恢复后撤下快照提示",
+        "首次离线且没有快照时显示失败，不回退为演示赛程",
+        "无缓存比赛详情显示连接失败而非比赛不存在，恢复服务后可原页重试",
+        "退出后备份接口拒绝原会话"
+      ],
+      "errors": []
+    }
+  },
+  "checks": {
+    "clientTypecheck": "passed",
+    "adminTypecheck": "passed",
+    "adminBuild": "passed",
+    "h5Build": "passed",
+    "wechatBuild": "passed",
+    "registrationContract": "passed",
+    "recoveryContract": "passed",
+    "diffWhitespace": "passed",
+    "visualReview": {
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "screenshots": "artifacts/external-entries/",
+      "reviewed": [
+        "insurance-1440.png",
+        "insurance-320.png",
+        "home-390.png",
+        "admin-320.png"
+      ]
+    }
+  },
+  "failureHistory": [
+    {
+      "finding": "D10 isolated settings fixture inherited customer public fallback; origin denial prevented local snapshot",
+      "resolution": "Explicitly disabled customer fallback in both settings and F fixtures; 17 settings flows passed on rerun"
+    },
+    {
+      "finding": "External test HTML lacked UTF-8 and preview test used an obsolete selector",
+      "resolution": "Corrected fixture charset and selected actual uni-app H5 preview root; successful navigation/return and preview passed"
+    },
+    {
+      "finding": "Custom client buttons lacked aria-disabled for offline state",
+      "resolution": "Added aria-disabled alongside disabled and guarded click handlers; offline/reconnect passed"
+    }
+  ],
+  "deployment": {
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "functions": [
+      "adminAuth"
+    ],
+    "clients": [
+      "admin",
+      "H5",
+      "mp-weixin"
+    ],
+    "newCollection": {
+      "name": "platformImages",
+      "rules": {
+        "read": false,
+        "write": false
+      }
+    },
+    "newEnvironmentVariable": {
+      "name": "PLATFORM_IMAGE_UPLOADS_ENABLED",
+      "value": "true"
+    },
+    "preserveExistingEnvironmentVariables": true,
+    "adminAuthTimeoutSeconds": 20,
+    "newHttpRoutes": false,
+    "backupCollections": 20,
+    "legacyBackupCollectionsSupported": 19
+  },
+  "pending": [
+    "Customer deployment and independent source readback",
+    "Private collection/storage verification and customer nonempty image/settings acceptance",
+    "Real community mini-program AppID/path and insurance images/destination",
+    "Real target jump success/cancel/unavailable/return, WeChat web business domain and iPhone/Android",
+    "Natural 24-hour expiration deletion in customer environment",
+    "Separate E HTTP deployment confirmation and free authenticated users for successful lifecycle"
+  ],
+  "documentation": "docs/EXTERNAL_ENTRIES_DEVELOPMENT.md"
+}

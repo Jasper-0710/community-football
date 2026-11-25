@@ -1,0 +1,1519 @@
+{
+  "date": "2026-11-25",
+  "recordedAt": "2026-11-25T08:51:06.899Z",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "C完整八强淘汰赛客户云端模拟非空技术验收",
+  "status": "passed",
+  "competitionId": "c_b14a53ef7aa2eb8f8ce3e37f41a90962",
+  "revision": 27,
+  "fixture": {
+    "simulated": true,
+    "competitionInitiallyHidden": true,
+    "competitionFinallyHidden": true,
+    "registrationEnabled": false,
+    "totalTeams": 8,
+    "reusedTeams": 4,
+    "addedTeams": 4,
+    "addedPlayers": 8,
+    "syntheticQualifications": 8,
+    "materialRegistrationsAdded": 4,
+    "nativeDatabaseTasks": [
+      {
+        "collection": "teams",
+        "added": 4,
+        "taskId": "confirmation_cloud_db_write_doc_cbf61008-ced1-456f-bb8b-824926f97f34",
+        "status": "success"
+      },
+      {
+        "collection": "players",
+        "added": 8,
+        "taskId": "confirmation_cloud_db_write_doc_2ee5f88d-42a3-4d1c-9c60-c7f18794231b",
+        "status": "success"
+      },
+      {
+        "collection": "competitions",
+        "added": 1,
+        "taskId": "confirmation_cloud_db_write_doc_60b5d6b6-ff03-43a5-b240-48959c283b8a",
+        "status": "success"
+      },
+      {
+        "collection": "registrationFiles",
+        "added": 4,
+        "taskId": "confirmation_cloud_db_write_doc_209ebc7d-d1e5-4a83-9f06-afe5505203b8",
+        "status": "success"
+      },
+      {
+        "collection": "registrations",
+        "added": 8,
+        "taskId": "confirmation_cloud_db_write_doc_415ace92-5a36-4653-8d2e-1f7382feab90",
+        "status": "success"
+      }
+    ],
+    "material": {
+      "cloudPath": "acceptance/c-eight-20261125/rosters.png",
+      "size": 108359,
+      "sha256": "0422a6d800a4f7f69245a61ca403f33980e5a7cd0a093e3fa5e4e8f6210930f4",
+      "uploaded": true,
+      "downloadedSha256Matches": true,
+      "fileIDSource": "Derived from official successful upload storageCdnDomain and cloudPath; checked against existing same-environment namespace"
+    },
+    "matches": [
+      {
+        "alias": "q1",
+        "id": "m_9cee1c25ea85af79ac0f6dd3cd852db0"
+      },
+      {
+        "alias": "q2",
+        "id": "m_1280fbeaa7ad927bac7d7d04e8e23181"
+      },
+      {
+        "alias": "q3",
+        "id": "m_ced6012f2ed5e81e94cf039f1e6c4a31"
+      },
+      {
+        "alias": "q4",
+        "id": "m_2a7f336b817a0b0d50ae2a6aa1b6efe2"
+      },
+      {
+        "alias": "s1",
+        "id": "m_837857fe2cdfb27a21f403fe398e406c"
+      },
+      {
+        "alias": "s2",
+        "id": "m_d9657918daffdb8a4a5f6f2597284203"
+      },
+      {
+        "alias": "final",
+        "id": "m_07adb8895115c693257bec1b1d6fd5b4"
+      }
+    ],
+    "resultAuditRecords": 20
+  },
+  "cloudSourceChecks": [
+    {
+      "name": "standings.js",
+      "local": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "remote": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "equal": true
+    },
+    {
+      "name": "standings-engine.js",
+      "local": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+      "remote": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+      "equal": true
+    },
+    {
+      "name": "standings-store.js",
+      "local": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+      "remote": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+      "equal": true
+    },
+    {
+      "name": "matches.js",
+      "local": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+      "remote": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+      "equal": true
+    },
+    {
+      "name": "competitions.js",
+      "local": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+      "remote": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+      "equal": true
+    },
+    {
+      "name": "recovery-model.js",
+      "local": "c59edf3f39ab9995f60f068cb6c8f7b94cf85d27fa938b8010da2df1ee1cae53",
+      "remote": "c59edf3f39ab9995f60f068cb6c8f7b94cf85d27fa938b8010da2df1ee1cae53",
+      "equal": true
+    }
+  ],
+  "localVerification": {
+    "targetedTests": 46,
+    "isolatedBracketBrowserChecks": 13,
+    "addedRegression": "Eight-team historical restoration protects both later rounds and republishes the restored winner to champion",
+    "fullSuiteRepeatedDuringCloudAcceptance": false
+  },
+  "acceptance": {
+    "startedAt": "2026-11-25T08:18:01.305Z",
+    "completedAt": "2026-11-25T08:30:22.870Z",
+    "checks": [
+      {
+        "name": "Normal admin browser login reaches customer cloud"
+      },
+      {
+        "name": "Eight valid synthetic qualifications and counters; anonymous mutations rejected"
+      },
+      {
+        "name": "scheduled: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "scheduled: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 7,
+        "championTeamId": null
+      },
+      {
+        "name": "Normal schedule API created seven matches with deliberately crossed source/slot order"
+      },
+      {
+        "name": "live-quarter: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "live-quarter: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 8,
+        "championTeamId": null
+      },
+      {
+        "name": "Live quarterfinal lead does not advance or count in player rankings"
+      },
+      {
+        "name": "q1: actual admin form saved to customer cloud"
+      },
+      {
+        "name": "s2: actual admin form saved to customer cloud"
+      },
+      {
+        "name": "first-champion: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "first-champion: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 15,
+        "championTeamId": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd"
+      },
+      {
+        "name": "first-champion: actual H5 seven-node source graph, champion, mobile jump controls and final-detail navigation"
+      },
+      {
+        "name": "Finished semifinal/final atomically protect an earlier winner"
+      },
+      {
+        "name": "Upstream revocation cannot invalidate finished downstream participants"
+      },
+      {
+        "name": "Live final protects its semifinal winner"
+      },
+      {
+        "name": "Revoking final alone still leaves semifinal protection"
+      },
+      {
+        "name": "corrected-quarter: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "corrected-quarter: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 19,
+        "championTeamId": null
+      },
+      {
+        "name": "corrected-quarter: actual H5 seven-node source graph, champion, mobile jump controls and final-detail navigation"
+      },
+      {
+        "name": "corrected-champion: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "corrected-champion: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 21,
+        "championTeamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7"
+      },
+      {
+        "name": "Historical quarterfinal restoration is blocked by both later rounds"
+      },
+      {
+        "name": "Historical restoration stays blocked until relevant semifinal is revoked"
+      },
+      {
+        "name": "Preview becomes stale after another legitimate match correction"
+      },
+      {
+        "name": "Actual admin history preview/confirmation restores a quarterfinal winner"
+      },
+      {
+        "name": "A changed retry payload cannot reuse the restore request"
+      },
+      {
+        "name": "restored-quarter: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "restored-quarter: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 25,
+        "championTeamId": null
+      },
+      {
+        "name": "restored-quarter: actual H5 seven-node source graph, champion, mobile jump controls and final-detail navigation"
+      },
+      {
+        "name": "republished-champion: trusted WeChat cloud call and production parser agree"
+      },
+      {
+        "name": "republished-champion: all seven public details, main/fallback and authoritative standings agree",
+        "revision": 27,
+        "championTeamId": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd"
+      },
+      {
+        "name": "republished-champion: actual H5 seven-node source graph, champion, mobile jump controls and final-detail navigation"
+      },
+      {
+        "name": "Hand-counted goal/assist values and equal ranks match; shootout kicks excluded"
+      },
+      {
+        "name": "A new request cannot submit against stale match/competition versions"
+      },
+      {
+        "name": "Same request ID cannot change its result"
+      },
+      {
+        "name": "Result retry is idempotent and stale/changed payloads are rejected"
+      }
+    ],
+    "phases": [
+      "baseline",
+      "schedule",
+      "live-quarter",
+      "first-champion",
+      "downstream-protection",
+      "corrected-champion",
+      "history-restore",
+      "republished-champion",
+      "retry-and-stale"
+    ],
+    "pageErrors": [],
+    "mainAndFallback": [
+      {
+        "label": "scheduled",
+        "elapsedMs": 3142,
+        "observations": [
+          {
+            "at": "2026-11-25T08:18:51.765Z",
+            "revision": 7,
+            "source": "fallback",
+            "expiresAt": 1795594842449
+          }
+        ]
+      },
+      {
+        "label": "live-quarter",
+        "elapsedMs": 788,
+        "observations": [
+          {
+            "at": "2026-11-25T08:19:07.431Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          }
+        ]
+      },
+      {
+        "label": "first-champion",
+        "elapsedMs": 87870,
+        "observations": [
+          {
+            "at": "2026-11-25T08:19:43.805Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:19:47.194Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:19:51.375Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:19:54.850Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:19:58.189Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:03.687Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:07.044Z",
+            "revision": 7,
+            "source": "fallback",
+            "expiresAt": 1795594842449
+          },
+          {
+            "at": "2026-11-25T08:20:10.407Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:13.750Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:17.168Z",
+            "revision": 7,
+            "source": "fallback",
+            "expiresAt": 1795594842449
+          },
+          {
+            "at": "2026-11-25T08:20:21.475Z",
+            "revision": 7,
+            "source": "fallback",
+            "expiresAt": 1795594842449
+          },
+          {
+            "at": "2026-11-25T08:20:24.951Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:28.543Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:31.891Z",
+            "revision": 7,
+            "source": "fallback",
+            "expiresAt": 1795594842449
+          },
+          {
+            "at": "2026-11-25T08:20:35.347Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:39.615Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:43.280Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:46.758Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:20:50.180Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:53.755Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:20:58.948Z",
+            "revision": 8,
+            "source": "fallback",
+            "expiresAt": 1795594863291
+          },
+          {
+            "at": "2026-11-25T08:21:02.927Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:21:06.397Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:21:10.108Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          }
+        ]
+      },
+      {
+        "label": "corrected-quarter",
+        "elapsedMs": 102434,
+        "observations": [
+          {
+            "at": "2026-11-25T08:22:00.540Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:04.022Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:07.659Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:11.303Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:14.652Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:19.230Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:22.662Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:26.067Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:29.674Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:33.154Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:37.412Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:40.838Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:44.349Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:47.770Z",
+            "revision": 15,
+            "source": "fallback",
+            "expiresAt": 1795594976537
+          },
+          {
+            "at": "2026-11-25T08:22:51.180Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:22:55.730Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:00.316Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:03.724Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:07.152Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:10.535Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:14.800Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:18.211Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:21.897Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:25.274Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:28.719Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:34.771Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:38.163Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:23:41.999Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          }
+        ]
+      },
+      {
+        "label": "corrected-champion",
+        "elapsedMs": 95642,
+        "observations": [
+          {
+            "at": "2026-11-25T08:24:07.705Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:11.102Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:14.505Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:24:17.896Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:21.319Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:25.514Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:28.827Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:24:32.470Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:35.764Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:24:39.143Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:43.206Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:46.670Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:50.031Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:24:53.361Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:24:56.769Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:25:05.883Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:09.318Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:12.712Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:16.012Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:19.353Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:24.065Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:27.496Z",
+            "revision": 19,
+            "source": "fallback",
+            "expiresAt": 1795595132575
+          },
+          {
+            "at": "2026-11-25T08:25:31.573Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:25:35.018Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:25:38.445Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:25:43.007Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          }
+        ]
+      },
+      {
+        "label": "restored-quarter",
+        "elapsedMs": 80742,
+        "observations": [
+          {
+            "at": "2026-11-25T08:26:23.677Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:26:27.026Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:30.334Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:33.745Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:37.115Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:26:42.484Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:45.846Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:49.201Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:52.653Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:26:56.179Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:00.303Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:03.813Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:07.287Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:27:10.738Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:14.146Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:18.342Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:27:21.701Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:25.002Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:28.584Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:31.966Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:36.877Z",
+            "revision": 21,
+            "source": "fallback",
+            "expiresAt": 1795595260764
+          },
+          {
+            "at": "2026-11-25T08:27:40.209Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:27:44.096Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          }
+        ]
+      },
+      {
+        "label": "republished-champion",
+        "elapsedMs": 98923,
+        "observations": [
+          {
+            "at": "2026-11-25T08:28:10.569Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:14.047Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:17.532Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:21.011Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:24.391Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:28.387Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:31.795Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:35.214Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:38.584Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:42.108Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:46.560Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:49.894Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:53.221Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:28:56.606Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:00.743Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:05.795Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:09.163Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:12.521Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:16.004Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:19.323Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:23.515Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:27.005Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:30.440Z",
+            "revision": 25,
+            "source": "fallback",
+            "expiresAt": 1795595374527
+          },
+          {
+            "at": "2026-11-25T08:29:33.772Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:29:37.186Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:29:41.455Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:29:44.774Z",
+            "code": "SERVICE_UNAVAILABLE"
+          },
+          {
+            "at": "2026-11-25T08:29:48.650Z",
+            "revision": 27,
+            "source": "fallback",
+            "expiresAt": 1795595499537
+          }
+        ]
+      }
+    ],
+    "finalChampionTeamId": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd",
+    "goals": [
+      {
+        "teamId": "t_1754c38406c95e961fab18493d1d219c9053acb18e3a2bdbddbdfe31aa8261bf",
+        "teamName": "【C八强模拟1125】H队",
+        "playerId": "p_cbc097c3feb2e63d51c8aa7eb9cabbe5",
+        "playerName": "模拟H球员1",
+        "number": 1,
+        "goals": 5,
+        "assists": 0,
+        "value": 5,
+        "rank": 1
+      },
+      {
+        "teamId": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd",
+        "teamName": "【测试】冬日浦东联队",
+        "playerId": "p_7f0d2b55d7ba66298e6354dffe1fe102",
+        "playerName": "测试浦东01",
+        "number": 1,
+        "goals": 3,
+        "assists": 0,
+        "value": 3,
+        "rank": 2
+      },
+      {
+        "teamId": "t_140c838a6ab8df080eee9df93761944211494e4969e92bcd7a9919ae885c7933",
+        "teamName": "【测试】冬日徐汇联队",
+        "playerId": "p_976d3c80ddd2fb3f3a609799d49775ab",
+        "playerName": "测试徐汇01",
+        "number": 1,
+        "goals": 2,
+        "assists": 0,
+        "value": 2,
+        "rank": 3
+      },
+      {
+        "teamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "teamName": "云端验证队伍",
+        "playerId": "p_abcdef0123456789abcdef0123456789",
+        "playerName": "测试球员",
+        "number": 10,
+        "goals": 1,
+        "assists": 0,
+        "value": 1,
+        "rank": 4
+      },
+      {
+        "teamId": "t_ecf62c6a03acf47111d3b5434232e2d41589e4402f5480588f12ecab4c9c9e2d",
+        "teamName": "【C八强模拟1125】E队",
+        "playerId": "p_ebaafbcf22bdbbed80f77e20924d4c76",
+        "playerName": "模拟E球员1",
+        "number": 1,
+        "goals": 1,
+        "assists": 0,
+        "value": 1,
+        "rank": 4
+      }
+    ],
+    "assists": [
+      {
+        "teamId": "t_1754c38406c95e961fab18493d1d219c9053acb18e3a2bdbddbdfe31aa8261bf",
+        "teamName": "【C八强模拟1125】H队",
+        "playerId": "p_24acc455a2d652d889b10c532631acc7",
+        "playerName": "模拟H球员2",
+        "number": 2,
+        "goals": 0,
+        "assists": 5,
+        "value": 5,
+        "rank": 1
+      },
+      {
+        "teamId": "t_aeb6a0078412605aaf6db8b60c4cae519fb8ec6a748592a7c9c330c36d0f8bbd",
+        "teamName": "【测试】冬日浦东联队",
+        "playerId": "p_c27ed30cc2f10125b04badf03d134ef9",
+        "playerName": "测试浦东02",
+        "number": 2,
+        "goals": 0,
+        "assists": 3,
+        "value": 3,
+        "rank": 2
+      },
+      {
+        "teamId": "t_140c838a6ab8df080eee9df93761944211494e4969e92bcd7a9919ae885c7933",
+        "teamName": "【测试】冬日徐汇联队",
+        "playerId": "p_e864e0f46baa59c8f5b94c739081036a",
+        "playerName": "测试徐汇02",
+        "number": 2,
+        "goals": 0,
+        "assists": 2,
+        "value": 2,
+        "rank": 3
+      },
+      {
+        "teamId": "t_ecf62c6a03acf47111d3b5434232e2d41589e4402f5480588f12ecab4c9c9e2d",
+        "teamName": "【C八强模拟1125】E队",
+        "playerId": "p_0fad36ec8a197f220f6dd0c0f9369f1c",
+        "playerName": "模拟E球员2",
+        "number": 2,
+        "goals": 0,
+        "assists": 1,
+        "value": 1,
+        "rank": 4
+      },
+      {
+        "teamId": "t_ad6f727966e2445d5e11a3bcb1cca58b74dcb61f581914bf4f7532e294a3a5b7",
+        "teamName": "云端验证队伍",
+        "playerId": "p_c0a351ad5622f92aa9c34a8017df246c",
+        "playerName": "他不敢",
+        "number": 55,
+        "goals": 0,
+        "assists": 1,
+        "value": 1,
+        "rank": 4
+      }
+    ],
+    "normalBrowserFormsUsed": [
+      {
+        "key": "q1-first-penalty",
+        "action": "standings.saveResult"
+      },
+      {
+        "key": "first-s2",
+        "action": "standings.saveResult"
+      },
+      {
+        "key": "restore-quarter-history",
+        "action": "standings.restoreResult"
+      }
+    ],
+    "attempts": [
+      {
+        "startedAt": "2026-11-25T08:18:11.604Z",
+        "loggedOut": true,
+        "oldSessionRejected": true
+      }
+    ],
+    "independentReadback": {
+      "at": "2026-11-25T08:49:47.177Z",
+      "environment": "cloud1-d6gzg20x709d7f6c1",
+      "competitionId": "c_b14a53ef7aa2eb8f8ce3e37f41a90962",
+      "collections": [
+        {
+          "collection": "users",
+          "originalRows": 2,
+          "addedRows": 0,
+          "afterRows": 2,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "leaderTeamBindings",
+          "originalRows": 2,
+          "addedRows": 0,
+          "afterRows": 2,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "teams",
+          "originalRows": 5,
+          "addedRows": 4,
+          "afterRows": 9,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "players",
+          "originalRows": 33,
+          "addedRows": 8,
+          "afterRows": 41,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "competitions",
+          "originalRows": 12,
+          "addedRows": 1,
+          "afterRows": 13,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "registrations",
+          "originalRows": 13,
+          "addedRows": 8,
+          "afterRows": 21,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "registrationFiles",
+          "originalRows": 11,
+          "addedRows": 4,
+          "afterRows": 15,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "matches",
+          "originalRows": 13,
+          "addedRows": 7,
+          "afterRows": 20,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "resultRevisions",
+          "originalRows": 65,
+          "addedRows": 20,
+          "afterRows": 85,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "newsArticles",
+          "originalRows": 3,
+          "addedRows": 0,
+          "afterRows": 3,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "newsImages",
+          "originalRows": 6,
+          "addedRows": 0,
+          "afterRows": 6,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "teamBadges",
+          "originalRows": 4,
+          "addedRows": 0,
+          "afterRows": 4,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "platformSettings",
+          "originalRows": 1,
+          "addedRows": 0,
+          "afterRows": 1,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "matchLiveEntries",
+          "originalRows": 31,
+          "addedRows": 0,
+          "afterRows": 31,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "matchLiveImages",
+          "originalRows": 8,
+          "addedRows": 0,
+          "afterRows": 8,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "evaluationConfigs",
+          "originalRows": 1,
+          "addedRows": 0,
+          "afterRows": 1,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "playerRatings",
+          "originalRows": 0,
+          "addedRows": 0,
+          "afterRows": 0,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "playerComments",
+          "originalRows": 0,
+          "addedRows": 0,
+          "afterRows": 0,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "playerAwards",
+          "originalRows": 1,
+          "addedRows": 0,
+          "afterRows": 1,
+          "expectedFactsMatch": true
+        },
+        {
+          "collection": "platformImages",
+          "originalRows": 0,
+          "addedRows": 0,
+          "afterRows": 0,
+          "expectedFactsMatch": true
+        }
+      ],
+      "completedAt": "2026-11-25T08:50:25.874Z",
+      "originalRecords": 211,
+      "existingFactsUnchanged": true,
+      "exactReferencedTeamVersionCounters": true,
+      "scopedAuditCount": 20,
+      "completeAuditChainsValid": true,
+      "recoveryDataValid": true,
+      "assets": 30,
+      "finalPublicSnapshotReproduced": true,
+      "matchOrdering": "Official raw collection rows sorted by _id, matching production standings-store.allMatches orderBy(_id, asc)"
+    },
+    "readbackHarnessCorrection": {
+      "recordedAt": "2026-11-25T08:49:47.053Z",
+      "firstAttempt": "All twenty collection/baseline, audit, version-counter and recovery checks passed; final snapshot comparison failed on raw collection match order.",
+      "cause": "Official collection reads did not specify ordering; production standings-store.allMatches orders by _id ascending.",
+      "correction": "Sort independently read raw matches by _id before calling the unchanged production view.",
+      "savedOfficialDataReproducesPublicSnapshot": true,
+      "businessSourceChanged": false,
+      "businessDataRepairRequired": false
+    },
+    "supplementalViewportCapture": {
+      "startedAt": "2026-11-25T08:40:00.175Z",
+      "competitionId": "c_b14a53ef7aa2eb8f8ce3e37f41a90962",
+      "files": [
+        "capture-final-390-四分之一决赛.png",
+        "capture-final-390-半决赛.png",
+        "capture-final-390-决赛.png",
+        "capture-final-390-冠军.png",
+        "capture-final-320-四分之一决赛.png",
+        "capture-final-320-半决赛.png",
+        "capture-final-320-决赛.png",
+        "capture-final-320-冠军.png",
+        "capture-final-desktop-champion.png"
+      ],
+      "checks": [
+        {
+          "width": 390,
+          "round": "四分之一决赛",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.890625,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 390,
+          "round": "半决赛",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.890625,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 390,
+          "round": "决赛",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.890625,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 390,
+          "round": "冠军",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 93,
+            "y": 277.890625,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 320,
+          "round": "四分之一决赛",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.828125,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 320,
+          "round": "半决赛",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.828125,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 320,
+          "round": "决赛",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.828125,
+            "width": 264,
+            "height": 288
+          }
+        },
+        {
+          "width": 320,
+          "round": "冠军",
+          "fullTargetAboveBottomNavigation": true,
+          "bounds": {
+            "x": 33,
+            "y": 277.828125,
+            "width": 264,
+            "height": 288
+          }
+        }
+      ],
+      "pageErrors": [],
+      "previousAttempts": [
+        {
+          "startedAt": "2026-11-25T08:30:45.700Z",
+          "failure": {
+            "message": "page.waitForFunction: Timeout 25000ms exceeded.",
+            "at": "2026-11-25T08:33:58.154Z"
+          },
+          "hiddenInPrimary": true,
+          "fallbackExpired": true,
+          "loggedOut": true,
+          "oldSessionRejected": true,
+          "capturedFiles": [
+            "capture-final-390-四分之一决赛.png",
+            "capture-final-390-半决赛.png",
+            "capture-final-390-决赛.png"
+          ]
+        },
+        {
+          "startedAt": "2026-11-25T08:36:57.379Z",
+          "failure": {
+            "message": "fetch failed",
+            "at": "2026-11-25T08:38:42.853Z"
+          },
+          "hiddenInPrimary": true,
+          "fallbackExpired": true,
+          "loggedOut": true,
+          "oldSessionRejected": true,
+          "capturedFiles": []
+        }
+      ],
+      "capturesCompletedAt": "2026-11-25T08:45:31.506Z",
+      "hiddenInPrimary": true,
+      "fallbackExpired": true,
+      "loggedOut": true,
+      "oldSessionRejected": true,
+      "completedAt": "2026-11-25T08:47:34.325Z"
+    },
+    "cleanup": {
+      "hiddenInPrimary": true,
+      "fallbackExpired": true,
+      "loggedOut": true,
+      "oldSessionRejected": true
+    },
+    "visualReview": {
+      "passed": true,
+      "files": [
+        "capture-final-390-四分之一决赛.png",
+        "capture-final-390-决赛.png",
+        "capture-final-320-半决赛.png",
+        "capture-final-320-冠军.png",
+        "h5-republished-champion-desktop.png",
+        "capture-final-desktop-champion.png",
+        "admin-final-results.png"
+      ],
+      "observations": [
+        "Actual final customer-cloud H5 graph matches the seven-match snapshot, source links, 0:3 quarterfinal, final 1:1 and 4:5 shootout, and B champion.",
+        "390px and 320px selected match/champion cards are fully visible above the fixed bottom navigation after scrolling settles.",
+        "Desktop graph uses horizontal scrolling; a separate actual viewport capture shows the complete champion card.",
+        "Actual admin screenshot shows eight approved teams, seven finished matches and the historical quarterfinal penalty result."
+      ],
+      "limitations": [
+        "H5 desktop/mobile-width browser evidence; not physical-phone or native-picker interaction acceptance."
+      ]
+    },
+    "screenshots": {
+      "storage": "Private ignored .tools/customer-eight-20261125 directory",
+      "count": 46
+    }
+  },
+  "changes": {
+    "businessSourceChangedForC": false,
+    "businessCodeDeployedForC": false,
+    "clientUploadedForC": false,
+    "gitCommitted": false,
+    "gitPushed": false
+  },
+  "limitations": [
+    "Explicitly synthetic qualifications; not a real-user D05 registration-path acceptance",
+    "Local development admin/H5 connect to actual customer HTTPS; no public hosting or physical-phone acceptance",
+    "Trusted WeChat function call/production parser verified; native picker/scroll/tap interactions and physical iPhone/Android acceptance remain separate",
+    "Existing D08 and winter-cup business facts remain intact; this is not formal customer competition-rule or whole-project signoff"
+  ]
+}

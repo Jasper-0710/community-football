@@ -14,7 +14,7 @@ export function parseBackupStatus(value:any):BackupStatus{
  return{enabled:value.enabled,guardsReady:value.guardsReady,environment:value.environment,limits:{...value.limits}}
 }
 export function parseRestorePlan(value:any):RestorePlan{
- if(!value||!/^rp_[a-f0-9]{32}$/.test(value.id)||!/^b_[a-f0-9]{32}$/.test(value.backupId)||!iso(value.expiresAt)||!integer(value.totalChanges,80)||!integer(value.assetCount,32)||value.confirmation!==`恢复 ${value.backupId}`||!Array.isArray(value.summary)||value.summary.length!==19)throw new BackupClientError()
+ if(!value||!/^rp_[a-f0-9]{32}$/.test(value.id)||!/^b_[a-f0-9]{32}$/.test(value.backupId)||!iso(value.expiresAt)||!integer(value.totalChanges,80)||!integer(value.assetCount,32)||value.confirmation!==`恢复 ${value.backupId}`||!Array.isArray(value.summary)||![19,20].includes(value.summary.length))throw new BackupClientError()
  const names=new Set<string>(),summary=value.summary.map((row:any)=>{if(typeof row.collection!=='string'||names.has(row.collection)||!['created','updated','removed','unchanged'].every(key=>integer(row[key],2000)))throw new BackupClientError();names.add(row.collection);return{collection:row.collection,created:row.created,updated:row.updated,removed:row.removed,unchanged:row.unchanged}})
  if(summary.reduce((n:number,r:any)=>n+r.created+r.updated+r.removed,0)!==value.totalChanges)throw new BackupClientError()
  return{id:value.id,backupId:value.backupId,expiresAt:value.expiresAt,totalChanges:value.totalChanges,assetCount:value.assetCount,confirmation:value.confirmation,summary}

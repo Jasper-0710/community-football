@@ -1,0 +1,280 @@
+{
+  "date": "2026-11-25",
+  "generatedAt": "2026-11-25T02:32:40.586Z",
+  "status": "client and adminAuth deployed; image configuration, real destinations and physical-device acceptance pending",
+  "environment": {
+    "appid": "wx3230f06c755cef3a",
+    "envId": "cloud1-d6gzg20x709d7f6c1",
+    "adminEntry": "http://127.0.0.1:5174",
+    "adminPublicHosting": false,
+    "h5PublicHosting": false
+  },
+  "source": {
+    "baseCommit": "bd08e405e7509bc5eeb306ff48f80364f7acd815",
+    "uncommittedWorkingTree": true,
+    "localTestEvidence": "2026-11-25-external-entries.json",
+    "testedSourceHashesRecheckedBeforeDeployment": true,
+    "cloudDriftFromHeadAndLocal": [],
+    "cloudBeforeDownloaded": true,
+    "changedCloudFiles": [
+      "external-entries.js",
+      "http.js",
+      "index.js",
+      "news-image-model.js",
+      "platform-settings-schema.json",
+      "platform-settings.js",
+      "recovery-model.js",
+      "recovery-store.js"
+    ]
+  },
+  "deployment": {
+    "client": {
+      "status": "success",
+      "version": "0.1.1",
+      "uploadedBytes": 1786284,
+      "inputFiles": 306,
+      "inputBytes": 1690827,
+      "inputManifestSha256": "582f8503d7fbc9ef476e6f85a3823bd0e285c58c6a495bd944d3386e767cbb28",
+      "submittedForReview": false,
+      "designatedExperienceVersionVerified": false
+    },
+    "phonePreview": {
+      "status": "success",
+      "delivery": "auto_preview to currently logged-in developer WeChat",
+      "physicalOpenVerified": false
+    },
+    "adminAuth": {
+      "status": "success",
+      "taskId": "confirmation_cloud_fn_deploy_5a67d228-610b-49b8-bd81-d579c4427b42",
+      "files": 38,
+      "downloadedSha256Matches": 38,
+      "runtime": {
+        "name": "adminAuth",
+        "status": "Active",
+        "timeout": 20,
+        "runtime": "Nodejs16.13"
+      },
+      "filesSha256": {
+        "README.md": "df918da2a93b3d8cd9b04dcc093e17092bb960f5f5365a16114b8ad1bfec809e",
+        "competitions.js": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+        "content-store.js": "2fafb19e22158d849e6c31ef160807a5c55f12242aa70a9bf492d25b86f2a28c",
+        "content.js": "705e9adc3896e4b4c1e2de65e3179b814ae1306c9b6b76f8efe318449eebded1",
+        "evaluations.js": "2cb9e3b90a6b98b998248b862db3728d81d60e3f28e9ff12655e2b3a5cca541c",
+        "external-entries.js": "bace2b334ce0c510a95f7ca77ef567d6f2e0fd5cb029d7bbbef57960fbb71d8a",
+        "http.js": "df84b432e367f814cd40723d070dce89c2b22abec4df9d3379589226f9049ad9",
+        "index.js": "8954abc79c220b10bf3c15ba90217d2e56569f82c39fe1fdc8f3b720e3e7780b",
+        "match-live-images.js": "7a492893f3c32e0c92f89498e47973abccc075f50e7d410b402930dee0d00b3d",
+        "match-live.js": "cdb95b91c0986eb731fce31b5d529e80ee5a8ddfb76c44741fb72b9d2a64f6a1",
+        "matches.js": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+        "news-image-model.js": "70738a03cfc93033a40ea3c65ccbb38745572e5ad36869903972cfb6d7bec4b6",
+        "news-image-validation.js": "93b40f14f1f46b5a035e366ce5bf0e4d9789a3785ab5062244daeffd78030e55",
+        "news-images.js": "df388b3ee0d3f502dac7a7e683f8fb33ea33cfe0f2262aa585544c8053fe2e26",
+        "package.json": "96a6874169e044fdfaeb39d560642765c8a653cd200375f61a5548eafc94a53a",
+        "platform-settings-schema.json": "31a9a7dbd243cb97cce6517a82964beac75d552a09a8369a19098010df631eda",
+        "platform-settings.js": "15e50f47887922769b7494e3fa09846ede06b01f5ca9fe515898ff0e2b9ec44c",
+        "public-cache.js": "7ab7686ebccd64773c5fdd660369b92587d8beb951494e095110a404b26a13ab",
+        "public-directory.js": "d2c0c110a5090ef3c455ab904facfe0090b4c3ae8b4cadf2e5d34cc5e7e7462c",
+        "recovery-guard.js": "04e8e85ce3b1414aa9faddd494e829e4ce3c6f4d81963fee3ab7fcb70533c6c5",
+        "recovery-model.js": "c59edf3f39ab9995f60f068cb6c8f7b94cf85d27fa938b8010da2df1ee1cae53",
+        "recovery-store.js": "3ac9198a791c51296ca0bbdd05db87ba5b8f0aaaf9bb2576eba659b22eaa41bc",
+        "recovery.js": "5b995114e7aee027142fde2fa9c04e8c14d08e75c0ba35c07260a30f275bf3e2",
+        "registration-cleanup.js": "fe0bda26f438003eb84fe872d94a981758b69e236b0e2384e895a72f6e3e9cca",
+        "registration-model.js": "59e092b41d8bf4ff54763417db2fc4a85a7b98bd9522e24b40e9cd364983f048",
+        "registration-storage.js": "34bd7c8fed21fc5cc38ec2afc7e4261662e0194943ec456e7ed142da2449c04e",
+        "registrations.js": "8e762d0fa889fb951f5ff7e921bae7371169df011ad439238dddf6f92dfa5af8",
+        "result-restore.js": "b1109c39fb0e2f3c5ba8cdd6cd38ec5be5f856e63e81d655b420967c99f2469c",
+        "search-engine.js": "bdf557824ff6c78c4ac920aa7083a9545cd3842aa2b4866e805251d18c39291a",
+        "service.js": "19da01a71f16a4fa464c2f672e101c701cf006207dd84cc25e43d9fdd48bf8d0",
+        "standings-engine.js": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+        "standings-store.js": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+        "standings.js": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+        "team-badge-cleanup.js": "a21f667dda3e4a5b759dda0e93a46627fc3f6fdbf852d181ad44e2797862c190",
+        "team-badge-model.js": "fdec2f13c0da90678e260c657cd931eac4bdaa85d4d99020895583ed7456306f",
+        "team-profile-model.js": "7d337875f4a8c2e4c11f8ad34d9f7725f60d194d2c78afcc66e6d588c031f307",
+        "team-store.js": "21d624c3772856a158f7e7ac8acad320f94b0019bcbcf29e2b243eaa34305f68",
+        "teams.js": "1bae71971de011b53f8ddba6e532b1aee24fb679234f030cf514f05d61e230ae"
+      }
+    },
+    "publicRead": {
+      "updatedThisPhase": false,
+      "runtime": {
+        "name": "publicRead",
+        "status": "Active",
+        "timeout": 3,
+        "runtime": "Nodejs16.13"
+      }
+    },
+    "collection": {
+      "name": "platformImages",
+      "status": "success",
+      "taskId": "confirmation_cloud_db_write_struct_4855628e-9c1f-4929-900c-4975b5e2f297",
+      "independentReadbackTotal": 0
+    },
+    "localBackend": {
+      "origin": "http://127.0.0.1:5174",
+      "type": "existing Vite server serves current source",
+      "modules": [
+        {
+          "name": "PlatformSettings.vue",
+          "status": 200,
+          "bytes": 49792,
+          "moduleLoaded": true
+        },
+        {
+          "name": "ExternalEntriesEditor.vue",
+          "status": 200,
+          "bytes": 49389,
+          "moduleLoaded": true
+        },
+        {
+          "name": "ExternalTargetEditor.vue",
+          "status": 200,
+          "bytes": 10992,
+          "moduleLoaded": true
+        },
+        {
+          "name": "platform-images.ts",
+          "status": 200,
+          "bytes": 2199,
+          "moduleLoaded": true
+        }
+      ]
+    }
+  },
+  "customerChecks": {
+    "publicSettings": {
+      "at": "2026-11-25T02:29:57.455Z",
+      "publicOrigin": "http://127.0.0.1:5173",
+      "https": {
+        "mainStatus": 200,
+        "fallbackStatus": 200,
+        "mainVersion": 2,
+        "fallbackVersion": 2,
+        "sameExternal": true,
+        "communityEnabled": false,
+        "insuranceEnabled": false
+      },
+      "trustedWechat": {
+        "mainOk": true,
+        "fallbackOk": true,
+        "mainVersion": 2,
+        "fallbackVersion": 2,
+        "sameExternal": true,
+        "communityEnabled": false,
+        "insuranceEnabled": false
+      },
+      "businessWrites": false
+    },
+    "nativeSimulator": {
+      "scope": "WeChat developer tools simulator with actual customer service; no mocked API, no physical device",
+      "checks": [
+        {
+          "name": "Client parser reads customer settings with both unavailable entries off",
+          "passed": true
+        },
+        {
+          "name": "platformImages direct client read denied",
+          "passed": false,
+          "code": -502005
+        },
+        {
+          "name": "Homepage loads new external-entry component from deployed client package",
+          "passed": true
+        },
+        {
+          "name": "New insurance page is navigable with customer entries disabled",
+          "passed": true
+        },
+        {
+          "name": "Native return returns to homepage",
+          "passed": true
+        }
+      ],
+      "visualReview": "native-insurance-disabled.jpg shows 保障介绍暂未开放; homepage return inspected",
+      "buttonTapAcceptance": false
+    },
+    "anonymousManagementDenied": 7,
+    "anonymousManagementActions": [
+      "settings.getAdmin",
+      "settings.images.config",
+      "settings.images.start",
+      "settings.images.chunk",
+      "settings.images.finish",
+      "settings.images.get",
+      "settings.images.cleanup"
+    ],
+    "administratorLogoutSucceeded": true,
+    "loggedOutSessionRejected": true,
+    "settingsVersion": 2,
+    "communityEnabled": false,
+    "insuranceEnabled": false,
+    "configuredImages": 0
+  },
+  "configuration": {
+    "collectionExists": true,
+    "privateReadConfirmed": false,
+    "directClientReadCurrentlyAllowed": true,
+    "directClientWriteTested": false,
+    "requiredRule": {
+      "read": false,
+      "write": false
+    },
+    "PLATFORM_IMAGE_UPLOADS_ENABLED": false,
+    "flagMustBeExactLowercaseTrue": true,
+    "otherEnvironmentVariablesReadbackAvailable": false,
+    "securityRulesChangedByAgent": false,
+    "environmentVariablesChangedByAgent": false
+  },
+  "realDestinations": {
+    "community": "user explicitly has no real AppID/path or HTTPS destination",
+    "insurance": "real material and target not supplied",
+    "placeholderConfigured": false,
+    "realJumpVerified": false
+  },
+  "physicalDevice": {
+    "verified": false,
+    "deviceModel": null,
+    "osVersion": null,
+    "WeChatVersion": null,
+    "reason": "preview push succeeded; no physical-device connection/open/result provided"
+  },
+  "customerBusinessWrites": false,
+  "settingsSavedByAgent": false,
+  "imageBytesUploaded": false,
+  "GitCommitOrPush": false,
+  "priorEHttpTask": {
+    "taskId": "confirmation_cloud_fn_inc_deploy_6560d3ae-09dc-46d9-9736-93ae839f3487",
+    "status": "success",
+    "filesCount": 1,
+    "businessStatusRetest": false
+  },
+  "retainedFailures": [
+    {
+      "step": "collection existence discovery",
+      "detail": "checkCollection/describeCollection misleadingly claimed existence; SDK -502005 and independent document query confirmed absent. Explicit creation succeeded; independent readback now empty."
+    },
+    {
+      "step": "initial native private-read check",
+      "code": -502005,
+      "detail": "missing collection is not permission success. After creation, read was allowed; private rules remain required."
+    },
+    {
+      "step": "capability stdin harness",
+      "detail": "non-TTY stdin was closed before credentials; no login attempted. Raw-mode TTY used successfully."
+    },
+    {
+      "step": "fallback origin in capability harness",
+      "status": 403,
+      "code": "ORIGIN_DENIED",
+      "detail": "used backend origin 5174; corrected public origin 5173 passed HTTPS and trusted WeChat comparison. Original report retained; no whitelist change."
+    }
+  ],
+  "remaining": [
+    "Save private platformImages rules and prove direct client read/write denied",
+    "Set adminAuth PLATFORM_IMAGE_UPLOADS_ENABLED=true and verify enabled capability",
+    "Use approved actual insurance images for upload/replacement/public sync/preview; not performed while permissions are open",
+    "Provide actual community/insurance target and required business-domain configuration before real jump tests",
+    "Open preview on iPhone/Android, record model/OS/WeChat version and actual device results",
+    "Designate intended experience build and complete release process separately; no review submitted"
+  ]
+}

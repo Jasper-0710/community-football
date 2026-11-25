@@ -69,6 +69,19 @@
         "navigationStyle": "custom",
         "navigationBarTitleText": "球员档案"
       }
+    },
+    {
+      "path": "pages/insurance/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "运动保障"
+      }
+    },
+    {
+      "path": "pages/external/web",
+      "style": {
+        "navigationBarTitleText": "外部服务"
+      }
     }
   ],
   "globalStyle": {

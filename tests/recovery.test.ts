@@ -23,7 +23,7 @@ function fixture(){
  const preview=async(b:any)=>{const r=await call('backup.preview',{id:b.id,digest:b.digest});assert.equal(r.ok,true,JSON.stringify(r));return r.plan}
  return{...f,put,call,create,preview,service,setReady(v:boolean){ready=v},advance(ms:number){now+=ms},now:()=>now}
 }
-test('D13 export freezes all 19 business collections, private final files and canonical chunk digest; excludes auth and recovery metadata',async()=>{
+test('D13 export freezes all business collections (including platform images), private final files and canonical chunk digest; excludes auth and recovery metadata',async()=>{
  const f=fixture(),asset=await f.storage.upload('users/avatar.png',Buffer.from('avatar'))
  f.collections.users.get(uid).avatarFileId=asset
  const backup=await f.create(),manifest=await f.store.read(M.backupKey(backup.id)),payload=JSON.parse((await f.storage.download(manifest.fileID)).toString())

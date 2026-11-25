@@ -9,6 +9,7 @@ import { useRecoveryRefresh } from '@/services/public-data'
 import CompetitionList from '@/components/CompetitionList.vue'
 import PublicMatchCard from '@/components/PublicMatchCard.vue'
 import AppIcon from '@/components/AppIcon.vue'
+import ExternalEntries from '@/components/ExternalEntries.vue'
 import PublicStandings from '@/components/PublicStandings.vue'
 import { useNews } from '@/composables/useNews'
 const emit = defineEmits<{ navigate: [tab: Tab, view?: string] }>()
@@ -56,6 +57,7 @@ function article(id: string) { uni.navigateTo({ url: `/pages/article/detail?id=$
       <view class="home-standings"><PublicStandings compact /><button hover-class="none" role="button" tabindex="0" class="ui-button text-button" @click="emit('navigate', 'stats')">查看完整榜单<AppIcon name="arrow" :size="17" /></button></view>
     </view>
     <view class="community-banner home-community"><view class="community-copy"><text class="community-eyebrow">MEET YOUR NEIGHBOURS</text><text class="community-title">身边的球队，共同的热爱。</text><text class="muted">认识身边的球队，找到属于你的主场。</text></view><button hover-class="none" role="button" tabindex="0" class="ui-button outline-button" @click="emit('navigate', 'tournament', 'real-teams')">认识球队<AppIcon name="arrow" :size="17" /></button><view v-if="home?.teams.length" class="home-team-previews"><button v-for="item in home.teams" :key="item.id" role="button" tabindex="0" hover-class="none" class="ui-button home-team-preview" @click="team(item.id)"><view class="home-team-crest"><image v-if="item.badgeUrl && !failedBadges.includes(item.id)" :src="item.badgeUrl" mode="aspectFit" @error="failedBadges.push(item.id)"/><text v-else>{{ item.name.slice(0,1) }}</text></view><view><text class="h3">{{ item.name }}</text><text class="muted small-text">{{ item.district }} · {{ item.playerCount }} 人</text></view><AppIcon name="chevron" tone="green" :size="16"/></button></view><text v-else class="muted home-team-state">{{ busy ? '正在读取公开球队…' : error ? '球队资料暂未读取成功，可在比赛日区域重试。' : '暂无公开参赛球队，报名通过并公开赛事后将在这里展示。' }}</text></view>
+    <ExternalEntries />
     <view class="demo-footnote"><AppIcon name="info" :size="14" tone="muted" /><text>赛程、球队与资讯均来自公开业务内容；标有“验收”的内容为模拟业务资料。头图仅为视觉示意。</text></view>
   </view>
 </template>

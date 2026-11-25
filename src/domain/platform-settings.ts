@@ -1,10 +1,11 @@
 import schema from './platform-settings-schema.json'
+import {parseExternalEntries,parsePlatformDisplayImage,type ExternalEntries,type PlatformDisplayImage} from './external-entries'
 export const themes=schema.themes
 export const navigationIcons=schema.icons
 export type NavigationTarget='home'|'tournament'|'news'|'stats'|'search'|'profile'
 export interface NavigationItem {id:NavigationTarget;label:string;icon:string}
-export interface PlatformForm {title:string;subtitle:string;theme:string;customColor:string;mode:'light'|'dark';radius:'square'|'soft'|'round';navigation:NavigationItem[]}
-export interface PlatformSettings {version:number;updatedAt:string|null;form:PlatformForm}
+export interface PlatformForm {title:string;subtitle:string;theme:string;customColor:string;mode:'light'|'dark';radius:'square'|'soft'|'round';navigation:NavigationItem[];external:ExternalEntries}
+export interface PlatformSettings {version:number;updatedAt:string|null;form:PlatformForm;insuranceImages?:PlatformDisplayImage[]}
 export class SettingsClientError extends Error {constructor(public readonly code:string,message:string){super(message);this.name='SettingsClientError'}}
 export const defaultPlatformForm=():PlatformForm=>JSON.parse(JSON.stringify(schema.defaults))
 const object=(v:any)=>v!==null&&typeof v==='object'&&!Array.isArray(v)
@@ -13,11 +14,18 @@ export function parsePlatformForm(v:any):PlatformForm {
  const invalid=()=>{throw new SettingsClientError('INVALID_RESPONSE','平台设置格式异常，请重新读取。')}
  if(!object(v)||!text(v.title,16)||!text(v.subtitle,24)||!['custom',...themes.map(t=>t.id)].includes(v.theme)||typeof v.customColor!=='string'||!/^#[a-fA-F0-9]{6}$/.test(v.customColor)||!['light','dark'].includes(v.mode)||!['square','soft','round'].includes(v.radius))return invalid()
  if(!Array.isArray(v.navigation)||v.navigation.length!==6||v.navigation.some((n:any)=>!object(n)||!schema.defaults.navigation.some(s=>s.id===n.id)||!text(n.label,4)||!navigationIcons.includes(n.icon))||new Set(v.navigation.map((n:any)=>n.id)).size!==6)return invalid()
- return {title:v.title,subtitle:v.subtitle,theme:v.theme,customColor:v.customColor.toLowerCase(),mode:v.mode,radius:v.radius,navigation:v.navigation.map((n:any)=>({id:n.id,label:n.label,icon:n.icon}))}
+ let external:ExternalEntries
+ try{external=parseExternalEntries(v.external)}catch(e){throw new SettingsClientError('INVALID_RESPONSE',e instanceof Error?e.message:'外部入口设置异常。')}
+ return {title:v.title,subtitle:v.subtitle,theme:v.theme,customColor:v.customColor.toLowerCase(),mode:v.mode,radius:v.radius,navigation:v.navigation.map((n:any)=>({id:n.id,label:n.label,icon:n.icon})),external}
 }
 export function parsePlatformSettings(v:any):PlatformSettings {
  if(!object(v)||!Number.isSafeInteger(v.version)||v.version<0||(v.version===0?v.updatedAt!==null:typeof v.updatedAt!=='string'||!Number.isFinite(Date.parse(v.updatedAt))))throw new SettingsClientError('INVALID_RESPONSE','平台设置版本异常，请重新读取。')
- return {version:v.version,updatedAt:v.updatedAt,form:parsePlatformForm(v.form)}
+ const form=parsePlatformForm(v.form),ids=form.external.insurance.images.map(x=>x.imageId)
+ if(!ids.length){if(v.insuranceImages!==undefined&&(!Array.isArray(v.insuranceImages)||v.insuranceImages.length))throw new SettingsClientError('INVALID_RESPONSE','投保图片与平台设置不一致。');return {version:v.version,updatedAt:v.updatedAt,form}}
+ if(!Array.isArray(v.insuranceImages)||v.insuranceImages.length!==ids.length)throw new SettingsClientError('INVALID_RESPONSE','投保图片缺失，请重新读取。')
+ const insuranceImages=v.insuranceImages.map(parsePlatformDisplayImage)
+ if(insuranceImages.some((x:PlatformDisplayImage,i:number)=>x.id!==ids[i]))throw new SettingsClientError('INVALID_RESPONSE','投保图片与平台设置不一致。')
+ return {version:v.version,updatedAt:v.updatedAt,form,insuranceImages}
 }
 export function themeTokens(form:PlatformForm):Record<string,string> {
  const candidate=form.theme==='custom'?form.customColor:themes.find(t=>t.id===form.theme)?.color

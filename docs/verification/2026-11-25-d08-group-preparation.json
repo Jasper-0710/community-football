@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-11-25T03:01:05.873Z",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "status": "local-passed-cloud-fixture-confirmation-pending",
+  "scope": "D08 standalone group standings and qualification acceptance preparation",
+  "tests": {
+    "passed": 31,
+    "failed": 0,
+    "files": [
+      "tests/standings.test.ts",
+      "tests/bracket.test.ts",
+      "tests/matches.test.ts"
+    ],
+    "newRegressionCases": 2,
+    "fullSuiteRerun": false
+  },
+  "source": {
+    "file": "tests/standings.test.ts",
+    "sha256": "c34fd2d08969883083140f4cf1d376c53a445d400c1c3bb9362ad4dab8c2216e"
+  },
+  "cloudSourceChecks": {
+    "standings.js": {
+      "local": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "remote": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+      "equal": true
+    },
+    "standings-engine.js": {
+      "local": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+      "remote": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+      "equal": true
+    },
+    "standings-store.js": {
+      "local": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+      "remote": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+      "equal": true
+    },
+    "matches.js": {
+      "local": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+      "remote": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+      "equal": true
+    },
+    "competitions.js": {
+      "local": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+      "remote": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+      "equal": true
+    }
+  },
+  "baselineCounts": {
+    "competitions": 11,
+    "teams": 5,
+    "registrations": 9,
+    "matches": 4,
+    "resultRevisions": 42
+  },
+  "fixture": {
+    "competitionId": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5",
+    "name": "【D08模拟验收1125】小组积分与晋级联动",
+    "initiallyVisible": false,
+    "teamCount": 4,
+    "qualificationPath": "Explicit simulation fixture, not real user registration acceptance",
+    "creationTask": {
+      "tool": "cloud_db_write_doc",
+      "taskId": "confirmation_cloud_db_write_doc_8b8fe297-db45-40e2-85dc-db39b2ae4d31",
+      "status": "pending"
+    }
+  },
+  "businessAlgorithmChanged": false,
+  "functionsDeployed": false,
+  "cloudAcceptanceRun": false,
+  "limitations": [
+    "Cloud fixture creation requires developer-tools confirmation",
+    "Nonempty customer group-result loop has not run this phase",
+    "No eight-team customer bracket or physical-device acceptance"
+  ]
+}

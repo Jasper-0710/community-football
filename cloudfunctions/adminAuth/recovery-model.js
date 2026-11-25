@@ -1,7 +1,7 @@
 'use strict'
 const { createHash } = require('node:crypto')
 const { calculateStandings, validateRules } = require('./standings-engine')
-const COLLECTIONS = ['users', 'leaderTeamBindings', 'teams', 'players', 'competitions', 'registrations', 'registrationFiles', 'matches', 'resultRevisions', 'newsArticles', 'newsImages', 'teamBadges', 'platformSettings', 'matchLiveEntries', 'matchLiveImages', 'evaluationConfigs', 'playerRatings', 'playerComments', 'playerAwards']
+const COLLECTIONS = ['users', 'leaderTeamBindings', 'teams', 'players', 'competitions', 'registrations', 'registrationFiles', 'matches', 'resultRevisions', 'newsArticles', 'newsImages', 'teamBadges', 'platformSettings', 'matchLiveEntries', 'matchLiveImages', 'evaluationConfigs', 'playerRatings', 'playerComments', 'playerAwards', 'platformImages']
 const MAX_RECORDS = 2000, MAX_BYTES = 2 * 1024 * 1024, MAX_CHANGES = 80, CHUNK_BYTES = 32768, MAX_ASSETS = 32, MAX_ASSET_BYTES = 32 * 1024 * 1024
 class RecoveryError extends Error { constructor(code, message) { super(message); this.code = code } }
 const fail = (code, message) => { throw new RecoveryError(code, message) }
@@ -11,6 +11,9 @@ const backupKey = id => 'recovery_backup_' + id
 const planKey = id => 'recovery_plan_' + id
 function normalize(data) { return Object.fromEntries(COLLECTIONS.map(name => [name, [...(data[name] || [])].sort((a,b) => a._id.localeCompare(b._id))])) }
 function validateData(data) {
+  // Pre-F archives have exactly the original 19 collections. Only this known
+  // addition may be absent; never silently accept missing/unknown business data.
+  if (data && !Array.isArray(data) && !Object.hasOwn(data, 'platformImages')) data = {...data,platformImages:[]}
   if (!data || Array.isArray(data) || Object.keys(data).length !== COLLECTIONS.length || COLLECTIONS.some(name => !Array.isArray(data[name]))) fail('INVALID_BACKUP', '备份集合范围或格式不完整。')
   let count = 0
   const maps = Object.fromEntries(COLLECTIONS.map(name => [name, new Map(data[name].map(row => [row?._id, row]))]))
@@ -29,6 +32,10 @@ function validateData(data) {
   }
   if (count > MAX_RECORDS || Buffer.byteLength(canonical(data)) > MAX_BYTES) fail('LIMIT_EXCEEDED', '备份超出当前支持的2000条记录或2MiB范围。')
   if (data.platformSettings.some(row => row._id !== 'primary')) fail('INVALID_BACKUP', '备份不能包含认证、恢复控制或审计记录。')
+  for (const row of data.platformSettings) for (const image of row.form?.external?.insurance?.images || []) {
+    const file = link('platformImages', image.imageId, '投保图片')
+    if (!file || file.settingsId !== 'primary' || file.status !== 'ready' || !file.referenced) fail('INVALID_BACKUP', '备份投保图片引用无效。')
+  }
   for (const row of data.leaderTeamBindings) { link('users', row._id, '领队用户'); link('teams', row.teamId, '领队球队') }
   for (const row of data.teams) { owner(row, row.leaderUserId, '球队领队'); if (!Array.isArray(row.roster)) fail('INVALID_BACKUP', '球队名单格式无效。'); for (const p of row.roster) link('players', p.id, '球员档案'); link('teamBadges', row.badgeId, '球队队徽') }
   for (const row of data.players) link('teams', row.teamId, '球员球队')
@@ -47,7 +54,7 @@ function assetIds(data) {
   for (const u of data.users) add(u.avatarFileId)
   for (const t of data.teams) add(t.badgeFileId)
   for (const r of data.registrations) for (const a of r.attachments || []) add(a.fileID)
-  for (const name of ['registrationFiles', 'newsImages', 'teamBadges', 'matchLiveImages']) for (const row of data[name]) if (row.status === 'ready') add(row.fileID)
+  for (const name of ['registrationFiles', 'newsImages', 'teamBadges', 'matchLiveImages', 'platformImages']) for (const row of data[name]) if (row.status === 'ready') add(row.fileID)
   if (ids.size > MAX_ASSETS) fail('LIMIT_EXCEEDED', '本轮备份最多支持32个最终文件，请先安排分批归档方案。')
   return [...ids].sort()
 }

@@ -1,0 +1,107 @@
+{
+  "date": "2026-11-25",
+  "recordedAt": "2026-11-25T08:51:07.018Z",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "competitionId": "c_b14a53ef7aa2eb8f8ce3e37f41a90962",
+  "status": "passed; see final evidence",
+  "preparationEvidence": "2026-11-25-eight-team-preparation.json",
+  "material": {
+    "uploadTaskId": "confirmation_cloud_manage_storage_429254da-56dc-42cf-b530-98e762d7e132",
+    "uploadStatus": "success",
+    "cloudPath": "acceptance/c-eight-20261125/rosters.png",
+    "size": 108359,
+    "sha256": "0422a6d800a4f7f69245a61ca403f33980e5a7cd0a093e3fa5e4e8f6210930f4",
+    "downloadedSha256Matches": true,
+    "fileIDSource": "Derived from official successful upload storageCdnDomain and cloudPath; checked against existing same-environment namespace",
+    "verified": true
+  },
+  "validation": {
+    "productionRegistrationParsers": 8,
+    "productionTeamParsers": 4,
+    "prospectiveRecoveryDataValid": true,
+    "prospectiveAssets": 30,
+    "maxAssets": 32,
+    "readyForDatabaseSubmission": true
+  },
+  "pendingTasks": [],
+  "cloudBusiness": {
+    "fixtureWriteRequestsSubmitted": 5,
+    "fixtureCompletion": "Five original tasks successful; twenty collections independently verified",
+    "matchesCreated": 7,
+    "resultOperations": 20,
+    "adminSessionCreated": true,
+    "businessCodeDeployed": false,
+    "clientUploaded": false,
+    "phase": "complete",
+    "completedPhases": [
+      "baseline",
+      "schedule",
+      "live-quarter",
+      "first-champion",
+      "downstream-protection",
+      "corrected-champion",
+      "history-restore",
+      "republished-champion",
+      "retry-and-stale"
+    ],
+    "businessAcceptanceCompletedAt": "2026-11-25T08:30:22.870Z",
+    "independentReadbackCompletedAt": "2026-11-25T08:50:25.874Z",
+    "cleanup": {
+      "hiddenInPrimary": true,
+      "fallbackExpired": true,
+      "loggedOut": true,
+      "oldSessionRejected": true
+    }
+  },
+  "localWork": {
+    "targetedTests": 46,
+    "isolatedBrowserChecks": 13,
+    "eightTeamHistoryRestorationRegression": true,
+    "acceptanceScriptPrepared": true,
+    "acceptanceScriptExecuted": true,
+    "finalReadbackScriptPrepared": true
+  },
+  "nextStep": "Final cloud technical evidence: 2026-11-25-eight-team-cloud-acceptance.json",
+  "limitations": [
+    "Synthetic qualifications are not real-user registration-path acceptance",
+    "Native UI interactions, physical-phone acceptance, public hosting and whole-project signoff remain separate"
+  ],
+  "fixtureTasks": [
+    {
+      "collection": "teams",
+      "count": 4,
+      "tool": "cloud_db_write_doc",
+      "taskId": "confirmation_cloud_db_write_doc_cbf61008-ced1-456f-bb8b-824926f97f34",
+      "status": "success"
+    },
+    {
+      "collection": "players",
+      "count": 8,
+      "tool": "cloud_db_write_doc",
+      "taskId": "confirmation_cloud_db_write_doc_2ee5f88d-42a3-4d1c-9c60-c7f18794231b",
+      "status": "success"
+    },
+    {
+      "collection": "competitions",
+      "count": 1,
+      "tool": "cloud_db_write_doc",
+      "taskId": "confirmation_cloud_db_write_doc_60b5d6b6-ff03-43a5-b240-48959c283b8a",
+      "status": "success"
+    },
+    {
+      "collection": "registrationFiles",
+      "count": 4,
+      "tool": "cloud_db_write_doc",
+      "taskId": "confirmation_cloud_db_write_doc_209ebc7d-d1e5-4a83-9f06-afe5505203b8",
+      "status": "success"
+    },
+    {
+      "collection": "registrations",
+      "count": 8,
+      "tool": "cloud_db_write_doc",
+      "taskId": "confirmation_cloud_db_write_doc_415ace92-5a36-4653-8d2e-1f7382feab90",
+      "status": "success"
+    }
+  ],
+  "finalEvidence": "2026-11-25-eight-team-cloud-acceptance.json"
+}

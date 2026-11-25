@@ -1,0 +1,200 @@
+{
+  "date": "2026-11-25",
+  "recordedAt": "2026-11-25T07:34:30.546Z",
+  "status": "preparation-only; material upload awaiting native confirmation; customer full-eight business acceptance not completed",
+  "scope": "C full eight-team knockout customer-cloud acceptance",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "competitionId": "c_b14a53ef7aa2eb8f8ce3e37f41a90962",
+  "competitionInitiallyVisible": false,
+  "preflight": {
+    "collections": [
+      {
+        "collection": "users",
+        "count": 2
+      },
+      {
+        "collection": "leaderTeamBindings",
+        "count": 2
+      },
+      {
+        "collection": "teams",
+        "count": 5
+      },
+      {
+        "collection": "players",
+        "count": 33
+      },
+      {
+        "collection": "competitions",
+        "count": 12
+      },
+      {
+        "collection": "registrations",
+        "count": 13
+      },
+      {
+        "collection": "registrationFiles",
+        "count": 11
+      },
+      {
+        "collection": "matches",
+        "count": 13
+      },
+      {
+        "collection": "resultRevisions",
+        "count": 65
+      },
+      {
+        "collection": "newsArticles",
+        "count": 3
+      },
+      {
+        "collection": "newsImages",
+        "count": 6
+      },
+      {
+        "collection": "teamBadges",
+        "count": 4
+      },
+      {
+        "collection": "platformSettings",
+        "count": 1
+      },
+      {
+        "collection": "matchLiveEntries",
+        "count": 31
+      },
+      {
+        "collection": "matchLiveImages",
+        "count": 8
+      },
+      {
+        "collection": "evaluationConfigs",
+        "count": 1
+      },
+      {
+        "collection": "playerRatings",
+        "count": 0
+      },
+      {
+        "collection": "playerComments",
+        "count": 0
+      },
+      {
+        "collection": "playerAwards",
+        "count": 1
+      },
+      {
+        "collection": "platformImages",
+        "count": 0
+      }
+    ],
+    "totalRecords": 211,
+    "recoveryBaselineValid": true,
+    "baselineAssets": 29,
+    "unresolvedRegistrationOwners": 0,
+    "sourceChecks": [
+      {
+        "name": "standings.js",
+        "local": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+        "remote": "206a4975fd1a40951ca3068fbe7904024d655fcac080e6fe1739aef6810bf555",
+        "equal": true
+      },
+      {
+        "name": "standings-engine.js",
+        "local": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+        "remote": "219975b3fa2bed5864fc33a85778422d6d8c6a799a97d287c13d1bbfc0627f21",
+        "equal": true
+      },
+      {
+        "name": "standings-store.js",
+        "local": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+        "remote": "c0cb92e53319aa315c5b1652577f11fa67a2daad7fc79dfc85d2bd9914a64349",
+        "equal": true
+      },
+      {
+        "name": "matches.js",
+        "local": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+        "remote": "8c1b88f87c6c7f8c1538a8670479859a2a33f9a2fddd4572727d0fd990bcbf81",
+        "equal": true
+      },
+      {
+        "name": "competitions.js",
+        "local": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+        "remote": "ae986703a924a888cabc92a475e6775c8080aeb3188c8d6ffd2c35bb6dbf3c2e",
+        "equal": true
+      },
+      {
+        "name": "recovery-model.js",
+        "local": "c59edf3f39ab9995f60f068cb6c8f7b94cf85d27fa938b8010da2df1ee1cae53",
+        "remote": "c59edf3f39ab9995f60f068cb6c8f7b94cf85d27fa938b8010da2df1ee1cae53",
+        "equal": true
+      }
+    ]
+  },
+  "localValidation": {
+    "productionRegistrationParsers": 8,
+    "productionTeamParsers": 4,
+    "productionCompetitionParser": true,
+    "prospectiveRecoveryDataValid": true,
+    "prospectiveAssets": 30,
+    "maxAssets": 32,
+    "targetedTests": {
+      "passed": 46,
+      "failed": 0,
+      "newEightTeamHistoricalRestorationTest": true
+    },
+    "isolatedBracketBrowserChecks": 13,
+    "physicalDevice": false
+  },
+  "fixturePlan": {
+    "newTeams": 4,
+    "newPlayers": 8,
+    "newCompetitions": 1,
+    "newRegistrationFiles": 4,
+    "newApprovedSyntheticQualifications": 8,
+    "newRealUsers": 0,
+    "newLeaderBindings": 0,
+    "newPhysicalStorageFiles": 1,
+    "existingTeamsReused": 4,
+    "plannedMatches": 7,
+    "registrationPathAccepted": false
+  },
+  "material": {
+    "name": "C八强模拟E至H四队名单-合成非真实报名.png",
+    "size": 108359,
+    "sha256": "0422a6d800a4f7f69245a61ca403f33980e5a7cd0a093e3fa5e4e8f6210930f4",
+    "renderedAndVisuallyReviewed": true,
+    "cloudPath": "acceptance/c-eight-20261125/rosters.png",
+    "uploadConfirmed": false,
+    "downloadHashVerified": false
+  },
+  "pendingTask": {
+    "taskId": "confirmation_cloud_manage_storage_429254da-56dc-42cf-b530-98e762d7e132",
+    "tool": "cloud_manage_storage",
+    "action": "upload",
+    "status": "pending",
+    "nonSensitiveSummary": "One explicitly synthetic roster PNG for the isolated eight-team acceptance; no database fixture writes submitted"
+  },
+  "customerCloudWrites": {
+    "materialUpload": "pending native confirmation; success unknown",
+    "databaseFixturesSubmitted": 0,
+    "matchesCreated": 0,
+    "resultOperations": 0,
+    "businessCodeDeployed": false,
+    "clientUploaded": false
+  },
+  "protectedScope": {
+    "existingUsersBindingsRostersCompetitionsResultsUnchangedByThisCPreparation": true,
+    "originalWinterCup": "c_9f5427d27b4acc8ecac2aad615d663a9",
+    "completedD08Sample": "c_4a5e26a33928cab20f9d8e2a8b0f6ec5"
+  },
+  "nextSteps": [
+    "After user native confirmation, query original upload task once; never resubmit a pending task",
+    "Verify actual returned fileID and downloaded bytes; rerun official fixture parsers",
+    "Confirm additive fixture writes and independently read back all planned/baseline associations",
+    "Use normal admin schedule/result/history APIs for seven matches and full two-round downstream protection",
+    "Compare real main/fallback/WeChat parser results, inspect actual admin/H5 UI and native controls within available scope",
+    "Hide isolated event, let fallback expire naturally, close acceptance session, independently read back and publish final evidence"
+  ]
+}

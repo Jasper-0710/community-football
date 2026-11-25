@@ -5,7 +5,9 @@ function createRecoveryStore(database) {
     if (name === 'platformSettings') { const row = (await database.collection(name).doc('primary').get()).data; return row ? [row] : [] }
     const rows = []; let cursor
     for (;;) {
-      const page = (await database.collection(name).where(cursor ? { _id: database.command.gt(cursor) } : {}).orderBy('_id', 'asc').limit(100).get()).data
+      let page
+      try { page = (await database.collection(name).where(cursor ? { _id: database.command.gt(cursor) } : {}).orderBy('_id', 'asc').limit(100).get()).data }
+      catch (error) { if (name === 'platformImages' && error?.errCode === -502005 && !rows.length) return []; throw error }
       rows.push(...page)
       if (rows.length > MAX_RECORDS) throw new Error('Recovery inventory exceeds supported bound')
       if (page.length < 100) return rows

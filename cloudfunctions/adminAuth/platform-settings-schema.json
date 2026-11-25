@@ -1,25 +1,126 @@
 {
   "themes": [
-    {"id":"forest","name":"球场绿","color":"#1e6b48"},
-    {"id":"ocean","name":"海湾蓝","color":"#176390"},
-    {"id":"indigo","name":"夜空靛","color":"#4b4e9c"},
-    {"id":"plum","name":"紫藤","color":"#79518c"},
-    {"id":"rose","name":"玫瑰红","color":"#aa3e62"},
-    {"id":"amber","name":"暖阳橙","color":"#925517"},
-    {"id":"slate","name":"城市灰","color":"#475b6d"},
-    {"id":"teal","name":"湖水青","color":"#14746c"}
+    {
+      "id": "forest",
+      "name": "球场绿",
+      "color": "#1e6b48"
+    },
+    {
+      "id": "ocean",
+      "name": "海湾蓝",
+      "color": "#176390"
+    },
+    {
+      "id": "indigo",
+      "name": "夜空靛",
+      "color": "#4b4e9c"
+    },
+    {
+      "id": "plum",
+      "name": "紫藤",
+      "color": "#79518c"
+    },
+    {
+      "id": "rose",
+      "name": "玫瑰红",
+      "color": "#aa3e62"
+    },
+    {
+      "id": "amber",
+      "name": "暖阳橙",
+      "color": "#925517"
+    },
+    {
+      "id": "slate",
+      "name": "城市灰",
+      "color": "#475b6d"
+    },
+    {
+      "id": "teal",
+      "name": "湖水青",
+      "color": "#14746c"
+    }
   ],
-  "icons":["home","calendar","news","trophy","search","user","ball","users","bracket"],
+  "icons": [
+    "home",
+    "calendar",
+    "news",
+    "trophy",
+    "search",
+    "user",
+    "ball",
+    "users",
+    "bracket"
+  ],
   "defaults": {
-    "title":"中国社超","subtitle":"上海赛区赛事平台",
-    "theme":"forest","customColor":"#1e6b48","mode":"light","radius":"soft",
-    "navigation":[
-      {"id":"home","label":"首页","icon":"home"},
-      {"id":"tournament","label":"赛事","icon":"calendar"},
-      {"id":"news","label":"动态","icon":"news"},
-      {"id":"stats","label":"数据","icon":"trophy"},
-      {"id":"search","label":"搜索","icon":"search"},
-      {"id":"profile","label":"我的","icon":"user"}
-    ]
+    "title": "中国社超",
+    "subtitle": "上海赛区赛事平台",
+    "theme": "forest",
+    "customColor": "#1e6b48",
+    "mode": "light",
+    "radius": "soft",
+    "navigation": [
+      {
+        "id": "home",
+        "label": "首页",
+        "icon": "home"
+      },
+      {
+        "id": "tournament",
+        "label": "赛事",
+        "icon": "calendar"
+      },
+      {
+        "id": "news",
+        "label": "动态",
+        "icon": "news"
+      },
+      {
+        "id": "stats",
+        "label": "数据",
+        "icon": "trophy"
+      },
+      {
+        "id": "search",
+        "label": "搜索",
+        "icon": "search"
+      },
+      {
+        "id": "profile",
+        "label": "我的",
+        "icon": "user"
+      }
+    ],
+    "external": {
+      "community": {
+        "enabled": false,
+        "label": "社区交流",
+        "description": "在球场之外，遇见更多热爱足球的朋友。",
+        "target": {
+          "kind": "miniProgram",
+          "appId": "",
+          "path": "",
+          "url": ""
+        }
+      },
+      "insurance": {
+        "enabled": false,
+        "title": "运动保障",
+        "description": "参赛前，了解运动保障与投保说明。",
+        "buttonLabel": "查看投保入口",
+        "target": {
+          "kind": "none",
+          "appId": "",
+          "path": "",
+          "url": ""
+        },
+        "images": []
+      }
+    }
+  },
+  "externalRules": {
+    "appId": "^wx[a-f0-9]{16}$",
+    "path": "^[A-Za-z0-9_-]+(?:/[A-Za-z0-9_-]+)*(?:\\?[^\\s#\\\\]*)?$",
+    "https": "^https://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}(?::443)?(?:[/?#][^\\s\\\\<>\"`]*)?$"
   }
 }

@@ -2,6 +2,7 @@ import {parseBackup,parseBackupStatus,parseRestorePlan,parseRestoreResult,Backup
 import {parseBadgeCleanup} from '../../src/domain/team-badge'
 import {parseLeaderPage,parseTeamMutation,type TeamMutation} from '../../src/domain/team-maintenance'
 import {parsePlatformSettings,type PlatformForm} from '../../src/domain/platform-settings'
+import {platformImageId,parsePlatformUploadedImage} from '../../src/domain/external-entries'
 import {parseCleanupResult} from './registration-maintenance'
 import { parseMatch, parseMatchPage, type MatchScheduleForm } from '../../src/domain/match'
 import { parseStandings, parseResultHistory, parseResultRestorePreview, parseResultRestoreAck, type ResultRestoreTarget, type ResultRestoreRequest, type StandingsRules, type ResultInput } from '../../src/domain/standings'
@@ -77,6 +78,11 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async liveImage(token: string, id: string, entryId: string) { return parseLiveUploadedImage((await request('live.images.get', { id, entryId }, token)).image) },
     async cleanupLiveImages(token: string, dryRun = true, cursor?: string) { const r = parseLiveImageCleanup(await request('live.images.cleanup', { dryRun, ...(cursor ? { cursor } : {}) }, token)); if (r.dryRun !== dryRun) throw new AdminApiError('INVALID_RESPONSE', '直播图片清理回执异常。'); return r },
     async platformSettings(token:string){return parsePlatformSettings((await request('settings.getAdmin',{},token)).settings)},
+    async platformImageConfig(token:string){return parseNewsImageConfig(await request('settings.images.config',{},token))},
+    async startPlatformImage(token:string,fields:{requestId:string;name:string;size:number;mime:string;sha256:string}){return parseNewsImageUpload(await request('settings.images.start',{...fields,settingsId:'primary'},token),platformImageId)},
+    async platformImageChunk(token:string,id:string,index:number,data:string){const r=await request('settings.images.chunk',{id,index,data},token);if(r.index!==index)throw new AdminApiError('INVALID_RESPONSE','图片分片回执异常，请重试。')},
+    async finishPlatformImage(token:string,id:string){return parsePlatformUploadedImage((await request('settings.images.finish',{id},token)).image)},
+    async cleanupPlatformImages(token:string,dryRun=true,cursor?:string){const r=parseNewsImageCleanup(await request('settings.images.cleanup',{dryRun,...(cursor?{cursor}:{})},token),platformImageId);if(r.dryRun!==dryRun)throw new AdminApiError('INVALID_RESPONSE','图片清理回执异常。');return r},
     async savePlatformSettings(token:string,expectedVersion:number,requestId:string,form:PlatformForm){return parsePlatformSettings((await request('settings.update',{expectedVersion,requestId,form},token)).settings)},
     async newsImageConfig(token: string) { return parseNewsImageConfig(await request('news.images.config',{},token)) },
     async startNewsImage(token: string, fields: {articleId:string;requestId:string;name:string;size:number;mime:string;sha256:string}) { return parseNewsImageUpload(await request('news.images.start',fields,token)) },

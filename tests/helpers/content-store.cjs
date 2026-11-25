@@ -1,6 +1,6 @@
 'use strict'
 function createContentMemoryStore() {
-  const collections = Object.fromEntries(['newsArticles', 'newsImages', 'competitions', 'teams', 'matches', 'registrations', 'platformSettings', 'matchLiveEntries', 'matchLiveImages', 'evaluationConfigs', 'playerRatings', 'playerComments', 'playerAwards'].map(name => [name, new Map()]))
+  const collections = Object.fromEntries(['newsArticles', 'newsImages', 'competitions', 'teams', 'matches', 'registrations', 'platformSettings', 'platformImages', 'matchLiveEntries', 'matchLiveImages', 'evaluationConfigs', 'playerRatings', 'playerComments', 'playerAwards'].map(name => [name, new Map()]))
   const failures = { scan: false, read: false, write: false }
   const copy = value => value == null ? value : structuredClone(value)
   let queue = Promise.resolve()

@@ -28,7 +28,7 @@ function scopedObject(file, object, storage) {
 function inventory(file) { const removed = new Set(file.removedFileIDs || []); return (file.objects || []).filter(o => !removed.has(o.fileID)) }
 // Live updates share the proven upload lifecycle, with their own IDs, owners,
 // collection and storage scope. News defaults and existing records stay intact.
-function createImageModel({ imagePattern, ownerPattern, ownerKey, collection, pathPrefix, ids }) {
+function createImageModel({ imagePattern, ownerPattern, ownerKey, collection, pathPrefix, ids, referenceMessage = '图片不存在、已过期或不属于这条直播，请重新上传。' }) {
   return {
     IMAGE_ID: imagePattern, ARTICLE_ID: ownerPattern, MAX_BYTES, CHUNK, TTL, LEASE, NewsImageError, fail, inventory, imageIds: ids,
     scopedObject(file, object, storage) {
@@ -41,7 +41,7 @@ function createImageModel({ imagePattern, ownerPattern, ownerKey, collection, pa
       const before = ids(previous), after = next?.deletedAt ? [] : ids(next)
       for (const id of new Set([...before, ...after])) {
         const file = await tx.get(collection, id), referenced = after.includes(id)
-        if (referenced && (!file || file[ownerKey] !== owner || file.status !== 'ready' || !file.referenced && file.expiresAt <= now)) fail('INVALID_ARGUMENT', '图片不存在、已过期或不属于这条直播，请重新上传。')
+        if (referenced && (!file || file[ownerKey] !== owner || file.status !== 'ready' || !file.referenced && file.expiresAt <= now)) fail('INVALID_ARGUMENT', referenceMessage)
         if (!file || file[ownerKey] !== owner) continue
         await tx.set(collection, id, { ...file, referenced, expiresAt: referenced ? null : now + TTL, updatedAt: now })
       }

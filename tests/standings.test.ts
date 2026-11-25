@@ -264,3 +264,58 @@ test('concurrent result submissions serialize on one competition revision and pr
   const results = await Promise.all([f.standings(first), f.standings({ ...first, requestId: f.rid(), result: f.result(0, 1) })])
   assert.equal(results.filter(r => r.ok).length, 1); assert.equal(results.find(r => !r.ok).error.code, 'CONFLICT'); assert.equal(f.revisions.size, 1)
 })
+
+test('four-team round robin uses points, goal difference and goals scored, leaving tied qualification places unresolved', async () => {
+  const f = fixture(), groups = [{ id: 'A', teamIds: [1, 2, 3, 4].map(tid) }]
+  await f.rules(groups)
+  const pairs = [[1, 2, 2, 0], [1, 3, 0, 1], [1, 4, 1, 1], [2, 3, 3, 0], [2, 4, 0, 0], [3, 4, 1, 2]]
+  const ids: string[] = []
+  for (const [home, away] of pairs) ids.push(await f.create(home, away))
+  const semi1 = await f.create(null, null, { stage: 'semi', groupId: null, scheduledAt: '2026-11-21T08:00:00.000Z' })
+  const semi2 = await f.create(null, null, { stage: 'semi', groupId: null, scheduledAt: '2026-11-21T09:00:00.000Z' })
+  await f.bind(semi1, { groupId: 'A', rank: 1 }, { groupId: 'A', rank: 4 })
+  await f.bind(semi2, { groupId: 'A', rank: 2 }, { groupId: 'A', rank: 3 })
+  for (const [index, [home, away, hs, as]] of pairs.entries()) {
+    assert.equal((await f.save(ids[index], f.result(hs, as, home, away))).ok, true)
+    if (index < 5) {
+      const s = await f.snapshot()
+      assert.equal(s.groups[0].complete, false)
+      assert.equal(s.matches.find(m => m.id === semi1)!.homeTeamId, null)
+    }
+  }
+  let s = await f.snapshot()
+  assert.equal(s.groups[0].complete, true)
+  const row = (n: number) => s.groups[0].rows.find(r => r.teamId === tid(n))!
+  assert.deepEqual([1, 2, 3, 4].map(n => {
+    const r = row(n); return [r.played, r.won, r.drawn, r.lost, r.goalsFor, r.goalsAgainst, r.difference, r.points, r.rank]
+  }), [[3, 1, 1, 1, 3, 2, 1, 4, 2], [3, 1, 1, 1, 3, 2, 1, 4, 2], [3, 1, 0, 2, 2, 5, -3, 3, 4], [3, 1, 2, 0, 3, 2, 1, 5, 1]])
+  assert.deepEqual([s.matches.find(m => m.id === semi2)!.homeTeamId, s.matches.find(m => m.id === semi2)!.awayTeamId], [null, null])
+  assert.equal((await f.save(semi2, f.result(0, 0, 1, 2, [4, 3]))).error.code, 'INVALID_ARGUMENT')
+  // Both teams still have four points and +1; goals scored breaks their tie.
+  await f.save(ids[3], f.result(4, 1, 2, 3)); s = await f.snapshot()
+  assert.deepEqual(s.groups[0].rows.map(r => [r.teamId, r.rank]), [[tid(4), 1], [tid(2), 2], [tid(1), 3], [tid(3), 4]])
+  assert.deepEqual([s.matches.find(m => m.id === semi2)!.homeTeamId, s.matches.find(m => m.id === semi2)!.awayTeamId], [tid(2), tid(1)])
+  // Teams 2 and 4 now share four points; +1 beats 0 before goals scored.
+  await f.save(ids[2], f.result(2, 1, 1, 4)); s = await f.snapshot()
+  assert.deepEqual(s.groups[0].rows.map(r => [r.teamId, r.points, r.difference]), [[tid(1), 6, 2], [tid(2), 4, 1], [tid(4), 4, 0], [tid(3), 3, -3]])
+  assert.equal((await f.revoke(ids[5])).ok, true); s = await f.snapshot()
+  assert.equal(s.groups[0].complete, false)
+  for (const m of s.matches.filter(m => m.stage === 'semi')) assert.deepEqual([m.homeTeamId, m.awayTeamId], [null, null])
+})
+
+test('double round robin requires every configured pair twice and does not mistake missing pairs for a complete schedule', async () => {
+  const f = fixture(), groups = [{ id: 'A', teamIds: [1, 2, 3].map(tid) }]
+  await f.rules(groups, { legs: 2 })
+  const semi = await f.create(null, null, { stage: 'semi', groupId: null, scheduledAt: '2026-11-21T08:00:00.000Z' })
+  await f.bind(semi, { groupId: 'A', rank: 1 }, { groupId: 'A', rank: 2 })
+  const pairs = [[1, 2], [2, 1], [1, 3], [3, 1], [2, 3]]
+  for (const [home, away] of pairs) { const id = await f.create(home, away); await f.save(id, f.result(home < away ? 1 : 0, home < away ? 0 : 1, home, away)) }
+  let s = await f.snapshot()
+  assert.deepEqual([s.groups[0].expectedMatches, s.groups[0].scheduledMatches, s.groups[0].complete], [6, 5, false])
+  const last = await f.create(3, 2); await f.save(last, f.result(0, 1, 3, 2)); s = await f.snapshot()
+  assert.equal(s.groups[0].complete, true)
+  assert.deepEqual(s.groups[0].rows.map(r => [r.teamId, r.played, r.points]), [[tid(1), 4, 12], [tid(2), 4, 6], [tid(3), 4, 0]])
+  const duplicate = await f.create(1, 2); await f.save(duplicate, f.result(1, 0)); s = await f.snapshot()
+  assert.equal(s.groups[0].complete, false)
+  assert.equal(s.matches.find(m => m.id === semi)!.homeTeamId, null)
+})
