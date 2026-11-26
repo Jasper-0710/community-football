@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-25T11:48:37.491947+00:00",
+  "date": "2026-11-25",
+  "timezone": "Asia/Shanghai",
+  "progressVersion": "v2.56",
+  "sourceCommit": "700df4269c2cc37275670ffee9b2951e1260dbd2",
+  "scope": "F图片配置接续核查与当前进度同步；不代表F整项验收或正式上线",
+  "environment": {
+    "appid": "wx3230f06c755cef3a",
+    "envId": "cloud1-d6gzg20x709d7f6c1"
+  },
+  "function": {
+    "name": "adminAuth",
+    "status": "Active",
+    "timeoutSeconds": 20,
+    "runtime": "Nodejs16.13",
+    "deployedInThisCheck": false
+  },
+  "platformImages": {
+    "privilegedReadSucceeded": true,
+    "count": 2,
+    "readyCount": 2,
+    "referencedCount": 0,
+    "existingRecordsModified": false,
+    "doesNotEstablishUploadAcceptance": true
+  },
+  "admin": {
+    "checkedAt": "2026-11-25T11:40:16.563Z",
+    "envId": "cloud1-d6gzg20x709d7f6c1",
+    "appid": "wx3230f06c755cef3a",
+    "login": {
+      "status": 200,
+      "ok": true
+    },
+    "imageConfig": {
+      "status": 200,
+      "data": {
+        "ok": true,
+        "enabled": true,
+        "maxBytes": 2097152,
+        "chunkSize": 65536,
+        "maxEdge": 4096,
+        "maxPixels": 8000000
+      }
+    },
+    "settings": {
+      "status": 200,
+      "ok": true,
+      "version": 7,
+      "keys": [
+        "version",
+        "updatedAt",
+        "form"
+      ]
+    },
+    "logout": {
+      "status": 200,
+      "ok": true
+    },
+    "oldSession": {
+      "status": 401,
+      "ok": false
+    }
+  },
+  "settings": {
+    "version": 7,
+    "communityEnabled": false,
+    "insuranceEnabled": false,
+    "realCommunityTargetConfigured": false,
+    "realInsuranceTargetConfigured": false,
+    "insuranceImageCount": 0,
+    "savedInThisCheck": false
+  },
+  "publicEndpoints": [
+    {
+      "name": "primary",
+      "status": 200,
+      "ok": true,
+      "version": 7,
+      "sameFormAsAdmin": true,
+      "communityEnabled": false,
+      "insuranceEnabled": false,
+      "insuranceImageCount": 0
+    },
+    {
+      "name": "fallback",
+      "status": 503,
+      "ok": false,
+      "sameFormAsAdmin": false,
+      "errorCode": "SERVICE_UNAVAILABLE"
+    }
+  ],
+  "fallback": {
+    "status": 503,
+    "errorCode": "SERVICE_UNAVAILABLE",
+    "message": "云端备用内容尚未生成或已过期，请稍后重试。",
+    "testedAfterSuccessfulPrimaryRead": true,
+    "cause": "未定位；不能据此断定环境变量关闭或业务故障",
+    "currentAcceptance": "待复查快照生成、存储与环境配置"
+  },
+  "simulator": {
+    "projectWindow": "reuse/s0",
+    "openHomePage": "success",
+    "distRuntimeError": "cant find runtimeid by projectpath",
+    "rootEvaluate": "50秒超时，无stdout；复开首页后复测仍超时",
+    "directClientRead": "本轮未取得结果",
+    "directClientWrite": "未执行",
+    "permissionAcceptance": "未完成；既不能判为允许也不能判为拒绝"
+  },
+  "notExecuted": [
+    "新图片上传",
+    "图片配置保存",
+    "图片替换",
+    "引用保护业务验证",
+    "自然24小时到期清理",
+    "真实目标跳转",
+    "iPhone原生验收",
+    "Android验收",
+    "云函数重新部署",
+    "小程序重新上传",
+    "正式发布"
+  ],
+  "boundaries": {
+    "tlsCertificateVerification": true,
+    "authenticationSessionLoggedOut": true,
+    "oldSessionStatus": 401,
+    "businessRecordsChanged": false,
+    "configurationChanged": false,
+    "screenshotsOrImageInspection": false,
+    "publicReadMayPublishSnapshotPerExistingCode": true,
+    "gitCommitOrPush": false
+  },
+  "next": [
+    "恢复模拟器自动化并复测platformImages客户端直接读写均拒绝",
+    "权限确认后验证实际图片上传、草稿保存、替换、引用保护与原配置恢复",
+    "复查当前备用接口503及新鲜快照生成链路",
+    "E已部署业务错误状态复测",
+    "客户真实目标与素材到位后验收公开图片与外跳，再做真机和上线专项"
+  ],
+  "historicalEvidence": "2026-11-25-external-entries-client-deployment.json"
+}

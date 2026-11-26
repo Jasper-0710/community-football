@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-26",
+  "timezone": "Asia/Shanghai",
+  "progressVersion": "2.57",
+  "sourceCommit": "700df4269c2cc37275670ffee9b2951e1260dbd2",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "scope": "Strict-TLS public snapshot publication/read chain and deployed E business rejections; F runtime/permission recheck incomplete.",
+  "publicSnapshotChain": {
+    "checkedAt": "2026-11-26T01:18:38.519Z",
+    "strictTlsVerification": true,
+    "order": [
+      "baseline object",
+      "primary settings.getPublic",
+      "object readback",
+      "fallback settings.getPublic"
+    ],
+    "baseline": {
+      "ok": true,
+      "success": true,
+      "bytes": 1101,
+      "schemaVersion": 1,
+      "environmentMatches": true,
+      "queryMatches": true,
+      "savedAt": 1795607175841,
+      "expiresAt": 1795607295841,
+      "fresh": false,
+      "version": 7
+    },
+    "primary": {
+      "startedAt": "2026-11-26T01:18:40.213Z",
+      "finishedAt": "2026-11-26T01:18:42.545Z",
+      "status": 200,
+      "ok": true,
+      "version": 7
+    },
+    "after": {
+      "ok": true,
+      "success": true,
+      "bytes": 1101,
+      "schemaVersion": 1,
+      "environmentMatches": true,
+      "queryMatches": true,
+      "savedAt": 1795655921790,
+      "expiresAt": 1795656041790,
+      "fresh": true,
+      "version": 7
+    },
+    "refreshed": true,
+    "fallback": {
+      "startedAt": "2026-11-26T01:18:43.573Z",
+      "finishedAt": "2026-11-26T01:18:45.984Z",
+      "status": 200,
+      "ok": true,
+      "version": 7,
+      "recovery": {
+        "source": "fallback",
+        "savedAt": 1795655921790,
+        "expiresAt": 1795656041790
+      }
+    },
+    "pass": true,
+    "previous503Reproduced": false,
+    "previous503RootCauseEstablished": false,
+    "failoverDrillPassedThisRound": false
+  },
+  "eBusinessRejections": {
+    "checkedAt": "2026-11-26T01:29:11.483Z",
+    "tests": [
+      {
+        "name": "referenced team protection",
+        "action": "teams.checkDissolutionAdmin",
+        "status": 409,
+        "code": "TEAM_IN_USE",
+        "expectedStatus": 409,
+        "expectedCode": "TEAM_IN_USE",
+        "pass": true
+      },
+      {
+        "name": "same team number in use",
+        "action": "teams.savePlayerAdmin",
+        "status": 409,
+        "code": "NUMBER_IN_USE",
+        "expectedStatus": 409,
+        "expectedCode": "NUMBER_IN_USE",
+        "pass": true
+      },
+      {
+        "name": "player confirmation mismatch",
+        "action": "teams.removePlayerAdmin",
+        "status": 400,
+        "code": "CONFIRMATION_REQUIRED",
+        "expectedStatus": 400,
+        "expectedCode": "CONFIRMATION_REQUIRED",
+        "pass": true
+      },
+      {
+        "name": "stale team version",
+        "action": "teams.checkDissolutionAdmin",
+        "status": 409,
+        "code": "CONFLICT",
+        "expectedStatus": 409,
+        "expectedCode": "CONFLICT",
+        "pass": true
+      },
+      {
+        "name": "invalid team identifier",
+        "action": "teams.getAdmin",
+        "status": 404,
+        "code": "NOT_FOUND",
+        "expectedStatus": 404,
+        "expectedCode": "NOT_FOUND",
+        "pass": true
+      },
+      {
+        "name": "zero player number",
+        "action": "teams.savePlayerAdmin",
+        "status": 400,
+        "code": "INVALID_ARGUMENT",
+        "expectedStatus": 400,
+        "expectedCode": "INVALID_ARGUMENT",
+        "pass": true
+      }
+    ],
+    "passed": 6,
+    "total": 6,
+    "fixture": {
+      "type": "existing explicitly marked simulated team",
+      "teamVersionBefore": 34,
+      "teamVersionAfter": 34,
+      "activePlayerCount": 8
+    },
+    "businessBaseline": {
+      "teams": {
+        "beforeCount": 1,
+        "afterCount": 1,
+        "unchanged": true,
+        "beforeSha256": "ac63dc775a7f5e569af8195b184e3f6ad7f33a8cff15645f2c7fb585da2356c2",
+        "afterSha256": "ac63dc775a7f5e569af8195b184e3f6ad7f33a8cff15645f2c7fb585da2356c2"
+      },
+      "players": {
+        "beforeCount": 10,
+        "afterCount": 10,
+        "unchanged": true,
+        "beforeSha256": "4caeed7096de1f87b4aa88f0d36c04da4efc94241f63a705420d23ab6ff30911",
+        "afterSha256": "4caeed7096de1f87b4aa88f0d36c04da4efc94241f63a705420d23ab6ff30911"
+      },
+      "users": {
+        "beforeCount": 0,
+        "afterCount": 0,
+        "unchanged": true,
+        "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "leaderTeamBindings": {
+        "beforeCount": 0,
+        "afterCount": 0,
+        "unchanged": true,
+        "beforeSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "afterSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "baselineLimits": [
+      "Team query returned one record; player query returned ten records including non-active records.",
+      "users and leaderTeamBindings queries for this simulated leader matched zero records before and after.",
+      "Zero matching identity/binding records do not validate real WeChat identity, binding, creation, transfer or successful dissolution."
+    ],
+    "login": {
+      "status": 200,
+      "ok": true
+    },
+    "logout": {
+      "status": 200,
+      "ok": true
+    },
+    "oldSession": {
+      "status": 401,
+      "ok": false
+    },
+    "remaining": [
+      "ALREADY_EXISTS",
+      "real logged-in unbound users: create, transfer leader, successful dissolution",
+      "dissolution confirmation flow",
+      "confirmed ability-score business rules"
+    ]
+  },
+  "fImageAcceptance": {
+    "imageConfig": {
+      "status": 200,
+      "ok": true,
+      "enabled": true,
+      "maxBytes": 2097152,
+      "chunkSize": 65536,
+      "maxEdge": 4096,
+      "maxPixels": 8000000
+    },
+    "settings": {
+      "version": 7,
+      "communityEnabled": false,
+      "insuranceEnabled": false,
+      "imageCount": 0
+    },
+    "existingImageRecords": {
+      "count": 2,
+      "status": "ready",
+      "referenced": false,
+      "modifiedOrCleanedThisRound": false
+    },
+    "runtime": {
+      "refreshAttempts": 1,
+      "projectWindowReopenAttempts": 1,
+      "evaluationTimeoutSeconds": 35,
+      "runtimeReceiptReceived": false,
+      "fullToolQuit": false,
+      "loginCleared": false,
+      "diagnosis": "Startup/automation bridge did not return; logs do not establish builder readiness, an explicit compile failure, a business fault, or corrupt cache.",
+      "minimalRecovery": "Normally quit and reopen the developer tool, open the repository root, wait for an explicit compile completion or error, then perform one simple synchronous probe with a 20-30 second limit."
+    },
+    "permissionProbe": {
+      "uniqueIdScoped": true,
+      "cloudResidualCount": 0,
+      "clientReadDenialVerified": false,
+      "clientWriteDenialVerified": false,
+      "result": "incomplete: runtime timeout; neither permission allowed nor denied is concluded"
+    },
+    "newImageUploadPerformed": false,
+    "settingsSavedThisRound": false,
+    "replacementPerformed": false,
+    "cleanupPerformed": false,
+    "businessLoopPassed": false,
+    "next": [
+      "Manually restore developer-tool compile/runtime.",
+      "Verify platformImages direct client read and write are both rejected.",
+      "Upload separate test images and verify hashes, draft save, replacement, actual references, cleanup dryRun and restore the original full form using the latest version."
+    ],
+    "cleanupBoundary": "Global cleanup has no per-ID execution scope; dryRun only this round, preserve existing images, and do not alter timestamps to imitate natural expiry.",
+    "realTargetsOrMaterialsProvided": false,
+    "entriesRemainDisabled": true,
+    "physicalDeviceAcceptancePassedThisRound": false
+  },
+  "executionBoundary": {
+    "businessSourceModified": false,
+    "cloudFunctionsDeployed": false,
+    "clientUploaded": false,
+    "formalRelease": false,
+    "imagesOrScreenshotsViewed": false,
+    "gitCommitOrPush": false,
+    "businessWritesIntended": false,
+    "queriedTeamAndPlayerSnapshotsUnchanged": true,
+    "expectedMetadataEffects": [
+      "public snapshot refresh",
+      "administrator session bookkeeping",
+      "existing recovery guard lease bookkeeping"
+    ]
+  },
+  "statusCounts": {
+    "requirements": 29,
+    "inDevelopment": 29,
+    "notStarted": 0,
+    "wholeItemDevelopmentComplete": 0,
+    "wholeItemCustomerAccepted": 0
+  },
+  "previousEvidence": [
+    "2026-11-25-f-resume-status.json",
+    "2026-11-25-external-entries-client-deployment.json"
+  ],
+  "sanitization": "No credentials, tokens, signed file links, personal data, fixture identifiers, or private raw responses included."
+}
