@@ -39,6 +39,12 @@ async function open(id:string){
  try{detail.value=await props.auth.authorized((api,token)=>api.registration(token,id));uncertain.value=false;playerCount.value=detail.value.review?.playerCount?.toString()||''}
  catch(e){error.value=explain(e)}finally{busy.value=false}
 }
+async function reloadCurrent(){
+ if(!detail.value||busy.value)return
+ const id=detail.value.id
+ await load()
+ if(!error.value)await open(id)
+}
 async function file(f:RegistrationFile){
  if(!detail.value||busy.value)return
  const tab=window.open('about:blank','_blank');if(tab)tab.opener=null
@@ -106,7 +112,7 @@ onMounted(()=>void loadCompetitions())
       <label class="checkbox-line"><input v-model="checkedMaterials" :disabled="busy||uncertain" type="checkbox" /> 已核对报名材料与参赛要求</label>
       <p v-if="reviewError?.decision==='approved'" id="review-feedback-approved" class="notice review-feedback" role="alert" tabindex="-1">{{ reviewError.message }}</p>
       <button class="primary-button" type="button" :disabled="busy||uncertain" @click="review('approved')">{{ reviewing==='approved'?'正在通过审核…':'审核通过' }}</button>
-      <div v-if="uncertain&&reviewError?.decision==='approved'" class="review-reload"><p class="muted">请先重新读取，核对最新报名与审核状态后再操作。</p><button class="secondary-button" type="button" :disabled="busy" @click="open(detail.id)">重新读取当前报名</button></div>
+      <div v-if="uncertain&&reviewError?.decision==='approved'" class="review-reload"><p class="muted">请先重新读取，核对最新报名与审核状态后再操作。</p><button class="secondary-button" type="button" :disabled="busy" @click="reloadCurrent">重新读取当前报名</button></div>
      </div>
      <div class="review-reject">
       <h4>驳回报名</h4>
@@ -115,7 +121,7 @@ onMounted(()=>void loadCompetitions())
       <textarea id="rejection-reason" v-model="reason" :disabled="busy||uncertain" rows="3" maxlength="500" placeholder="请说明需修改或补充的内容"></textarea>
       <p v-if="reviewError?.decision==='rejected'" id="review-feedback-rejected" class="notice review-feedback" role="alert" tabindex="-1">{{ reviewError.message }}</p>
       <button class="secondary-button danger-button" type="button" :disabled="busy||uncertain" @click="review('rejected')">{{ reviewing==='rejected'?'正在驳回报名…':'驳回报名' }}</button>
-      <div v-if="uncertain&&reviewError?.decision==='rejected'" class="review-reload"><p class="muted">请先重新读取，核对最新报名与审核状态后再操作。</p><button class="secondary-button" type="button" :disabled="busy" @click="open(detail.id)">重新读取当前报名</button></div>
+      <div v-if="uncertain&&reviewError?.decision==='rejected'" class="review-reload"><p class="muted">请先重新读取，核对最新报名与审核状态后再操作。</p><button class="secondary-button" type="button" :disabled="busy" @click="reloadCurrent">重新读取当前报名</button></div>
      </div>
     </fieldset>
    </section>

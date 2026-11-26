@@ -2,10 +2,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
 import { readFile } from 'node:fs/promises'
+import { parseRegistration } from '../src/domain/registration'
 const require = createRequire(import.meta.url)
 const { createRegistrationMemory } = require('./helpers/registration-store.cjs')
 const { createRegistrationFileService } = require('../cloudfunctions/teamManagement/registration-files')
 const { createRegistrationService } = require('../cloudfunctions/teamManagement/registrations')
+const { createAdminRegistrationService } = require('../cloudfunctions/adminAuth/registrations')
 const { createRegistrationCleanupService, OBJECT_LIMIT } = require('../cloudfunctions/adminAuth/registration-cleanup')
 const { createStorageAdapter, UPLOAD_LEASE } = require('../cloudfunctions/teamManagement/registration-storage')
 const { APP_ID, userId } = require('../cloudfunctions/teamManagement/service')
@@ -24,15 +26,16 @@ function fixture() {
   m.seed('users', uid, { appId: APP_ID, openId: 'owner', nickname: '测试领队', registrationUploadSlots: [] })
   m.seed('leaderTeamBindings', uid, { teamId: tid })
   m.seed('teams', tid, { name: '测试球队', district: '黄浦区', contactPhone: '13800000000', leaderUserId: uid, status: 'active', schemaVersion: 1, version: 1, roster: [] })
-  m.seed('competitions', cid, { name: '测试赛事', displayEnabled: true, registrationEnabled: true, registrationStartAt: '2026-11-01T00:00:00Z', registrationEndAt: '2026-11-25T00:00:00Z', registrationConfig: { projects: ['男子组'], teamLimit: 16, minPlayers: 5, maxPlayers: 15 }, registrationRulesVersion: 1 })
+  m.seed('competitions', cid, { name: '测试赛事', registrationRequirements: '提交完整参赛材料', displayEnabled: true, registrationEnabled: true, registrationStartAt: '2026-11-01T00:00:00Z', registrationEndAt: '2026-11-25T00:00:00Z', registrationConfig: { projects: ['男子组'], teamLimit: 16, minPlayers: 5, maxPlayers: 15 }, registrationRulesVersion: 1 })
   const authorize = async (token: string) => token === 'test' ? { ok: true, admin: { username: 'admin' } } : { ok: false, error: { code: 'UNAUTHORIZED' } }
   const cleaner = createRegistrationCleanupService({ store: m.registrationStore, storage, authorize, now, logger: { error() {} } })
+  const admin = createAdminRegistrationService({ store: m.registrationStore, storage, authorize, now, uploadsEnabled: true, logger: { error() {} } })
   const makeUploader = (store = m.store) => createRegistrationFileService({ store, storage, now, context: () => ({ APPID: APP_ID, OPENID: 'owner' }), enabled: true, logger: { error() {} } })
   const uploader = makeUploader(), registration = createRegistrationService({ store: m.registrationStore, storage, now, context: () => ({ APPID: APP_ID, OPENID: 'owner' }), uploadsEnabled: true, logger: { error() {} } })
-  const start = (handler = uploader) => handler({ action: 'files.start', competitionId: cid, requestId, name: '材料.pdf', size: pdf.length })
+  const start = (handler = uploader, uploadRequest = requestId) => handler({ action: 'files.start', competitionId: cid, requestId: uploadRequest, name: '材料.pdf', size: pdf.length })
   const send = (id: string, handler = uploader) => handler({ action: 'files.chunk', id, index: 0, data: pdf.toString('base64') })
   const clean = (extra = {}) => cleaner({ action: 'registrations.cleanup', token: 'test', ...extra })
-  const submit = (id: string) => registration({ action: 'registrations.submit', competitionId: cid, expectedVersion: 0, rulesVersion: 1, requestId: 'b'.repeat(32), attachmentIds: [id], form: { teamName: '测试球队', district: '黄浦区', project: '男子组', leaderName: '测试领队', contactPhone: '13800000000' } })
+  const submit = (id: string, extra = {}) => registration({ action: 'registrations.submit', competitionId: cid, expectedVersion: 0, rulesVersion: 1, requestId: 'b'.repeat(32), attachmentIds: [id], form: { teamName: '测试球队', district: '黄浦区', project: '男子组', leaderName: '测试领队', contactPhone: '13800000000' }, ...extra })
   const expire = () => { clock.value += 86400001 }
   function seed(index: number, extra: any = {}) {
     const id = 'f_' + index.toString(16).padStart(32, '0'), path = `registration-materials/${index.toString(16).padStart(48, '0')}.pdf`
@@ -40,7 +43,7 @@ function fixture() {
     files.set(path, pdf)
     return { id, path }
   }
-  return { ...m, clock, now, files, storage, uploader, makeUploader, start, send, clean, cleaner, submit, expire, seedFile: seed }
+  return { ...m, clock, now, files, storage, uploader, makeUploader, start, send, clean, cleaner, submit, registration, admin, expire, seedFile: seed }
 }
 
 test('cleanup authenticates first, rejects injected IDs/cursors, and defaults to a read-only preview', async () => {
@@ -65,15 +68,47 @@ test('expired and discarded sessions clean idempotently, release upload slots, a
   assert.equal((await s.clean({ dryRun: false })).removedObjects, 1); assert.equal(s.files.has(expired.path), false); assert.equal(s.files.has(active.path), true)
 })
 
-test('current and historical bound materials remain while their staging and losing finals can be removed', async () => {
-  const s = fixture(), f = await s.start(); await s.send(f.id); const ready = await s.uploader({ action: 'files.finish', id: f.id }); assert.equal(ready.ok, true)
-  const submitted = await s.submit(f.id); assert.equal(submitted.ok, true)
-  const canonical = s.read('registrationFiles', f.id).fileID
-  // A bound file remains historical even when absent from the latest form.
-  const record = s.read('registrations', submitted.registration.id); s.seed('registrations', record._id, { ...record, attachments: [] })
-  s.expire(); const r = await s.clean({ dryRun: false })
-  assert.equal(r.retainedSessions, 1); assert.equal(r.removedObjects, 1); assert.equal(s.files.has(canonical), true); assert.equal(s.files.size, 1)
-  assert.equal(s.read('registrationFiles', f.id).status, 'ready'); assert.equal(s.read('registrationFiles', f.id).registrationId, record._id)
+test('upload, approve, replace, cancel and re-register retain every bound final while cleanup removes temporary and discarded objects', async () => {
+  const s = fixture()
+  const upload = async (n: number) => {
+    const started = await s.start(s.uploader, n.toString(16).repeat(32)); assert.equal(started.ok, true)
+    assert.equal((await s.send(started.id)).ok, true)
+    assert.equal((await s.uploader({ action: 'files.finish', id: started.id })).ok, true)
+    return { id: started.id, path: s.read('registrationFiles', started.id).fileID }
+  }
+  const first = await upload(1), submitted = await s.submit(first.id); assert.equal(submitted.ok, true)
+  const approved = await s.admin({ action: 'registrations.review', token: 'test', id: submitted.registration.id, expectedVersion: 1, requestId: 'c'.repeat(32), decision: 'approved', reason: '', playerCount: 8 })
+  assert.equal(approved.ok, true); assert.equal(approved.registration.status, 'approved')
+  const second = await upload(2), replaced = await s.submit(second.id, { expectedVersion: 2, requestId: 'd'.repeat(32) })
+  assert.equal(replaced.ok, true); assert.equal(parseRegistration(replaced.registration).status, 'pending')
+  assert.equal(replaced.registration.review, null); assert.deepEqual(replaced.registration.attachments.map((f: any) => f.id), [second.id])
+  assert.deepEqual(s.read('competitions', cid).registrationStats, { pending: 1, approved: 0, occupied: 1 })
+  const cancelled = await s.registration({ action: 'registrations.cancel', id: submitted.registration.id, expectedVersion: 3, requestId: 'e'.repeat(32) })
+  assert.equal(cancelled.ok, true); assert.equal(cancelled.registration.status, 'cancelled')
+  assert.deepEqual(s.read('competitions', cid).registrationStats, { pending: 0, approved: 0, occupied: 0 })
+  const third = await upload(3), resubmitted = await s.submit(third.id, { expectedVersion: 4, requestId: 'f'.repeat(32) })
+  assert.equal(resubmitted.ok, true)
+  const current = parseRegistration(resubmitted.registration)
+  assert.equal(current.version, 5); assert.equal(current.status, 'pending'); assert.equal(current.history.length, 5)
+  assert.deepEqual(current.attachments.map(f => f.id), [third.id])
+  const discarded = await upload(4)
+  assert.equal((await s.uploader({ action: 'files.discard', id: discarded.id })).ok, true)
+  s.expire()
+  const before = structuredClone([...s.records]), fileCount = s.files.size, preview = await s.clean()
+  assert.equal(preview.ok, true); assert.equal(preview.candidateObjects, 5)
+  assert.equal(s.files.size, fileCount); assert.deepEqual([...s.records], before)
+  const cleaned = await s.clean({ dryRun: false })
+  assert.equal(cleaned.ok, true); assert.equal(cleaned.retainedSessions, 3); assert.equal(cleaned.removedObjects, 5); assert.equal(cleaned.cleanedSessions, 1)
+  assert.equal(s.files.size, 3); assert.equal(s.files.has(discarded.path), false)
+  for (const file of [first, second, third]) {
+    assert.equal(s.files.has(file.path), true)
+    assert.equal(s.read('registrationFiles', file.id).status, 'ready')
+    assert.equal(s.read('registrationFiles', file.id).registrationId, current.id)
+  }
+  assert.equal(s.read('users', uid).registrationUploadSlots.length, 0)
+  assert.equal((await s.clean({ dryRun: false })).removedObjects, 0)
+  assert.equal(parseRegistration((await s.registration({ action: 'registrations.getMine', id: current.id })).registration).attachments[0].id, third.id)
+  assert.deepEqual(s.read('competitions', cid).registrationStats, { pending: 1, approved: 0, occupied: 1 })
 })
 
 test('every upload is durably reserved before bytes; failing the reservation cannot create an orphan', async () => {

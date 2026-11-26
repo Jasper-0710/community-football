@@ -1,0 +1,156 @@
+{
+  "generatedAt": "2026-11-26T07:09:48.850Z",
+  "date": "2026-11-26",
+  "scope": "D05 registration and attachment code fixes; local service/browser verification plus read-only customer attachment parsing.",
+  "customerEnvironment": "cloud1-d6gzg20x709d7f6c1",
+  "changes": [
+    "Attachment parser reuses existing HTTPS validation without requiring the browser URL global; preserves the original signed URL and rejects empty names and unsafe addresses.",
+    "Retrying an attachment upload clears obsolete form errors while preserving uncertain-submission warnings and the reload requirement.",
+    "D05 browser transport now exports and invokes the existing D13 recovery write guard; failure output includes page errors and preview logs."
+  ],
+  "beforeFix": {
+    "clientRegression": {
+      "tests": 6,
+      "passed": 3,
+      "failed": 3,
+      "failures": [
+        "Valid signed link rejected without URL.",
+        "Unsafe links accepted.",
+        "Blank file names accepted."
+      ]
+    },
+    "browserRetry": "After a successful attachment retry, the obsolete upload-failed alert was still rendered; the new assertion failed 1 !== 0 before the fix.",
+    "browserAdapter": "Initial page could not load because the test transport omitted setWechatRecoveryGuard."
+  },
+  "local": {
+    "fullTests": {
+      "total": 463,
+      "passed": 463,
+      "failed": 0
+    },
+    "registrationSubset": {
+      "total": 40,
+      "passed": 40,
+      "subsetOfFullTests": true
+    },
+    "browser": {
+      "groups": 13,
+      "pageErrors": [],
+      "generatedAt": "2026-11-26T07:08:46.361Z",
+      "checks": [
+        "single project defaults correctly; missing leader, invalid phone, missing material and failed upload show visible feedback at 320px without submitting",
+        "320px and 390px form sections, files and buttons have no horizontal overflow and text is at least 14px",
+        "cancel confirmation writes nothing; submission failure stays visible and blocks duplicate submissions until explicit reload; retry reaches pending review",
+        "approval uses the current event player range and requires material confirmation; each missing or invalid field shows nearby visible feedback at 320px without writing a review",
+        "registration submitted under 5–18 is approved for 2 players after the event changes to 2–18; original submission and approval ranges are both retained and the leader can read the result",
+        "a detail left open during another settings change reloads current rules before validation; 2 players is rejected after tightening to 4–18, with no review write",
+        "admin can edit event configuration, reject with reason and release a place; leader sees rejection",
+        "uncertain review failures show a visible reload action and disable repeat decisions until reloaded; a confirmed retry approves exactly once and displays the result",
+        "resubmission returns to review; verified player count and approval feed the final participant list",
+        "editing approved information clears approval; cancellation requires confirmation and releases capacity",
+        "my registrations restores private records and deadline locks self-service actions",
+        "read failures hide stale records and recover through explicit retry",
+        "authenticated maintenance previews without deletion, removes expired temporary files, and retains submitted material at desktop/390/320 widths"
+      ],
+      "scope": "Real Vue pages and actual registration, attachment, competition and admin handlers over an isolated transactional store. File chooser and WeChat transport are test-only adapters; not native/cloud validation."
+    },
+    "concurrency": [
+      "Approve/reject competition accepts one decision.",
+      "Duplicate review and lost committed response are idempotent.",
+      "Failed review writes roll back together."
+    ],
+    "attachmentLifecycle": {
+      "flow": [
+        "upload",
+        "submit",
+        "approve",
+        "replace and re-review",
+        "cancel",
+        "upload and re-register",
+        "cleanup preview",
+        "cleanup execute",
+        "cleanup repeat"
+      ],
+      "boundFinalsRetained": 3,
+      "temporaryAndDiscardedObjectsRemoved": 5,
+      "repeatRemovals": 0,
+      "storage": "Isolated transactional memory store and byte map; actual service handlers."
+    },
+    "typechecks": [
+      "client",
+      "admin"
+    ],
+    "contracts": [
+      "registration"
+    ],
+    "builds": [
+      "admin",
+      "h5",
+      "mp-weixin"
+    ],
+    "visualReview": [
+      "320px client form after successful retry",
+      "320px admin review",
+      "320px cleanup preview"
+    ]
+  },
+  "nativeReadonly": {
+    "startedAt": "2026-11-26T07:03:59.237Z",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "businessWrites": false,
+    "parserSha256": "b63d5787d08248e96fcd1bbf25db825e47e58f889eae76fd01909f7d7254ca5b",
+    "validation": "Current source parser evaluated in the signed-in WeChat simulator with a current-owner cloud-authorized attachment. Read-only cloud calls and HTTPS bytes via wx.request.",
+    "limitations": [
+      "No client deployment or upload.",
+      "No native document opening or physical phone test.",
+      "An earlier wx.downloadFile attempt reached a temporary file but filesystem cleanup was denied by the automation runtime; it is simulator-managed temporary storage.",
+      "No new cloud registration submission, review, cancellation or cleanup."
+    ],
+    "result": {
+      "urlGlobal": "function",
+      "oldParserAccepted": true,
+      "newParserAccepted": true,
+      "signedURLPreserved": true,
+      "extension": "png",
+      "httpStatus": 200,
+      "bytes": 2105,
+      "expectedBytes": 2105,
+      "transport": "wx.request arraybuffer",
+      "registrationCount": 1
+    },
+    "status": "passed",
+    "completedAt": "2026-11-26T07:04:03.651Z",
+    "signedURLsOrCredentialsPersistedInEvidence": false
+  },
+  "deployment": {
+    "cloudFunctionsChanged": false,
+    "cloudFunctionsDeployed": false,
+    "clientUploaded": false,
+    "customerBusinessWrites": false
+  },
+  "remaining": [
+    "Update the client and existing local admin with the patch; physical iPhone/Android file selection, download and native document opening remain unverified.",
+    "Customer-cloud review concurrency and replacement/cancellation/re-registration cleanup require a separate scoped business write acceptance.",
+    "Second real-account login and reverse cross-account checks remain separate from the existing single-runtime ownership rejection evidence.",
+    "Bound historical files are retained; no historical attachment viewer was implemented.",
+    "Earlier wx.downloadFile test reached simulator temporary storage, but filesystem access/cleanup was denied; it is not counted as a complete native file workflow."
+  ],
+  "progress": {
+    "wholeRequirementsDeveloping": 29,
+    "wholeRequirementsSignedOff": 0,
+    "workbookArchiveVersion": "v2.58",
+    "workbookUpdatedByThisPatch": false
+  },
+  "git": {
+    "committed": false,
+    "pushed": false
+  },
+  "sourceHashes": {
+    "src/domain/registration.ts": "b63d5787d08248e96fcd1bbf25db825e47e58f889eae76fd01909f7d7254ca5b",
+    "src/pages/registration/manage.vue": "78e5ed6f85ee7b2ddc1797073dfeea2cb2b4e5b421db23b9dee1123ed8f30e90",
+    "scripts/verify-registrations.mjs": "a5b813b2edf89f1f53d57a9ac2793f35a1f01bc923a2b9c9fcab34e1bbd0e8cf",
+    "tests/registration-client.test.ts": "3624887bccc5213c4da9a07becdc8a608ee63fb8959d7eb0b15b5e0488d91bb5",
+    "tests/registrations.test.ts": "faf76077464ec1b1526d5e3a3e29872a174207b5b99a2ec76813e31be5facaaf",
+    "tests/registration-cleanup.test.ts": "f3704391bea404e0595685a2e2492f6ea80d8781db99194c7d757cab14318afe"
+  }
+}

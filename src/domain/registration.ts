@@ -1,5 +1,5 @@
 import {parseRegistrationConfig,parseRegistrationStats,type RegistrationConfig,type RegistrationStats} from './competition'
-import {teamDistricts} from './team'
+import {safeBadgeUrl,teamDistricts} from './team'
 export const registrationStates={pending:'待审核',approved:'已通过',rejected:'已驳回',cancelled:'已撤销'} as const
 export type RegistrationState=keyof typeof registrationStates
 export interface RegistrationForm {teamName:string;district:string;project:string;leaderName:string;contactPhone:string}
@@ -46,8 +46,7 @@ export function parsePreparation(v:any):RegistrationPreparation {
  return {team:t?{id:t.id,name:t.name,district:t.district,contactPhone:t.contactPhone}:null,registration:v.registration===null?null:parseRegistration(v.registration),uploadsEnabled:v.uploadsEnabled,serverTime:v.serverTime,competition:{id:c.id,name:c.name,registrationEnabled:c.registrationEnabled,registrationStartAt:c.registrationStartAt,registrationEndAt:c.registrationEndAt,registrationConfig:parseRegistrationConfig(c.registrationConfig),rulesVersion:c.rulesVersion,registrationStats:parseRegistrationStats(c.registrationStats)}}
 }
 export function parseFileLink(v:any){
- let u:URL;try{u=new URL(v.url)}catch{return bad()}
- if(u.protocol!=='https:'||u.username||u.password||typeof v.name!=='string'||!['pdf','png','jpg','jpeg','docx','xlsx'].includes(v.extension))bad()
- return {url:u.href,name:v.name as string,extension:v.extension as string}
+ if(!v||!safeBadgeUrl(v.url)||typeof v.name!=='string'||!v.name.trim()||!['pdf','png','jpg','jpeg','docx','xlsx'].includes(v.extension))bad()
+ return {url:v.url as string,name:v.name as string,extension:v.extension as string}
 }
 export const fileSize=(bytes:number)=>bytes>=1024*1024?`${(bytes/1024/1024).toFixed(1)} MB`:`${Math.max(1,Math.ceil(bytes/1024))} KB`

@@ -75,6 +75,52 @@ test('review requires reason or in-range verified count; stale approval races ca
  assert.equal([edit,review].filter(r=>r.ok).length,1);assert.equal([edit,review].find(r=>!r.ok).error.code,'CONFLICT');assert.equal(s.read('competitions',cid).registrationStats.occupied,1)
  const fresh=fixture(),original=(await fresh.submit()).registration;await fresh.submit({expectedVersion:1,requestId:'d'.repeat(32),form:{...form,leaderName:'更新姓名'}});assert.equal((await fresh.review(original)).error.code,'CONFLICT')
 })
+test('concurrent approval and rejection accept one decision and update counters and history once',async()=>{
+ for(const firstDecision of ['approved','rejected']){
+  const s=fixture(),pending=(await s.submit()).registration
+  const decisions=[firstDecision,firstDecision==='approved'?'rejected':'approved']
+  const results=await Promise.all(decisions.map((decision,index)=>s.review(pending,decision,{requestId:String(index+1).repeat(32)})))
+  assert.equal(results.filter(r=>r.ok).length,1)
+  assert.equal(results.find(r=>!r.ok).error.code,'CONFLICT')
+  const winner=results.find(r=>r.ok).registration,record=s.read('registrations',pending.id)
+  assert.equal(record.version,2);assert.equal(record.history.length,2);assert.equal(record.status,winner.status)
+  assert.deepEqual(s.read('competitions',cid).registrationStats,winner.status==='approved'?{pending:0,approved:1,occupied:1}:{pending:0,approved:0,occupied:0})
+ }
+})
+test('concurrent retries of one review are idempotent and changed payloads with that request ID conflict',async()=>{
+ const s=fixture(),pending=(await s.submit()).registration
+ const [first,retry]=await Promise.all([s.review(pending),s.review(pending)])
+ assert.equal(first.ok,true);assert.deepEqual(retry,first)
+ const before=structuredClone([...s.records])
+ assert.equal((await s.review(pending,'approved',{playerCount:9})).error.code,'CONFLICT')
+ assert.deepEqual([...s.records],before)
+ assert.equal(s.read('registrations',pending.id).version,2)
+ assert.equal(s.read('registrations',pending.id).history.length,2)
+ assert.deepEqual(s.read('competitions',cid).registrationStats,{pending:0,approved:1,occupied:1})
+})
+test('a review response lost after commit retries safely, while failed review writes roll back together',async()=>{
+ const s=fixture(),pending=(await s.submit()).registration
+ let loseOnce=true
+ const store={...s.registrationStore,transaction:async(callback:any)=>{
+  const result=await s.registrationStore.transaction(callback)
+  if(loseOnce){loseOnce=false;throw Error('review response lost')}
+  return result
+ }}
+ const admin=createAdminRegistrationService({store,authorize:async()=>({ok:true,admin:{username:'admin'}}),now:()=>s.clock.value,logger:{error(){}}})
+ const review={action:'registrations.review',id:pending.id,expectedVersion:pending.version,requestId:'b'.repeat(32),decision:'approved',reason:'',playerCount:8}
+ assert.equal((await admin(review)).error.code,'SERVICE_UNAVAILABLE')
+ assert.equal(s.read('registrations',pending.id).status,'approved')
+ const committed=structuredClone([...s.records])
+ assert.equal((await admin(review)).ok,true);assert.deepEqual([...s.records],committed)
+ assert.equal(s.read('registrations',pending.id).version,2);assert.equal(s.read('registrations',pending.id).history.length,2)
+ assert.deepEqual(s.read('competitions',cid).registrationStats,{pending:0,approved:1,occupied:1})
+ const t=fixture(),original=(await t.submit()).registration,before=structuredClone([...t.records])
+ t.failures.failAfter=1
+ assert.equal((await t.review(original)).error.code,'SERVICE_UNAVAILABLE');assert.deepEqual([...t.records],before)
+ t.failures.failAfter=Infinity
+ assert.equal((await t.review(original)).ok,true)
+ assert.equal(t.read('registrations',original.id).version,2);assert.equal(t.read('registrations',original.id).history.length,2)
+})
 test('existing pending registration uses current 2–18 rules after submission under 5–18; review keeps both historical ranges',async()=>{
  const s=fixture()
  s.seed('competitions',cid,{...s.read('competitions',cid),registrationConfig:{...config,maxPlayers:18}})

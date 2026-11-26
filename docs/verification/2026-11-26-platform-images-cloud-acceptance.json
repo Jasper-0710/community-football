@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-26",
+  "timezone": "Asia/Shanghai",
+  "progressVersion": "2.58",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "status": "passed-scoped-cloud-image-acceptance",
+  "scope": {
+    "businessSequenceDate": "2026-11-25",
+    "independentClosureDate": "2026-11-26",
+    "customerCloud": true,
+    "actualAdminAndH5": true,
+    "trustedWechatCloudAndProductionParsers": true,
+    "nativeSimulator": true,
+    "physicalDevice": false,
+    "realExternalDestination": false,
+    "formalInsuranceMaterials": false,
+    "customerWholeModuleSignoff": false
+  },
+  "source": {
+    "businessCommit": "700df42",
+    "documentationBaseline": "e47738b",
+    "priorDeployedAdminAuthFiles": 38,
+    "priorSourceHashesEqual": true,
+    "redeployedThisFollowup": false
+  },
+  "configuration": {
+    "uploadEnabled": true,
+    "maxBytes": 2097152,
+    "chunkSize": 65536,
+    "privateReadDenied": true,
+    "privateWriteDenied": true,
+    "denialCode": -502003,
+    "probe": "Update only an independently confirmed nonexistent record; no insert/delete"
+  },
+  "businessEvidence": {
+    "startedAt": "2026-11-25T09:45:08.864Z",
+    "completedAt": "2026-11-25T09:54:32.939Z",
+    "records": [
+      {
+        "name": "Private client read/write denied; enabled upload is reachable in actual admin"
+      },
+      {
+        "name": "Eight anonymous admin actions rejected; forged image ownership rejected without records"
+      },
+      {
+        "name": "Actual multi-chunk PNG upload, exact downloaded bytes, idempotent start/chunk; unsaved image stays private",
+        "imageId": "pi_54206a1fe09717ae29a6167c05e2424b",
+        "size": 253803,
+        "chunks": 4
+      },
+      {
+        "name": "Actual admin publishes image-only introduction after saving",
+        "version": 3
+      },
+      {
+        "name": "Repeated save does not increment twice; stale version and missing image reference cannot overwrite settings"
+      },
+      {
+        "name": "published PNG: main/fallback HTTPS and trusted WeChat production parsers agree",
+        "version": 3,
+        "images": [
+          {
+            "id": "pi_54206a1fe09717ae29a6167c05e2424b",
+            "width": 480,
+            "height": 300
+          }
+        ]
+      },
+      {
+        "name": "published-png: actual admin/H5 image content, preview, 390/320px and native simulator render",
+        "imageId": "pi_54206a1fe09717ae29a6167c05e2424b",
+        "physicalDevice": false
+      },
+      {
+        "name": "Actual cleanup preview/execution protects the saved final image",
+        "protectedImages": 1,
+        "removedObjects": 0
+      },
+      {
+        "name": "Disable introduction while retaining editable private image reference",
+        "version": 4
+      },
+      {
+        "name": "disabled with retained image: main/fallback HTTPS and trusted WeChat production parsers agree",
+        "version": 4,
+        "images": []
+      },
+      {
+        "name": "Actual admin replaces PNG with JPEG only on save",
+        "version": 5
+      },
+      {
+        "name": "Private client read/write denied; enabled upload is reachable in actual admin"
+      },
+      {
+        "name": "Independent interrupted readback confirmed request ownership; reuse the two successful uploads",
+        "version": 5,
+        "imageIds": [
+          "pi_54206a1fe09717ae29a6167c05e2424b",
+          "pi_a76623c870c8e3e14eeb9413754351e4"
+        ]
+      },
+      {
+        "name": "Actual JPEG download matches bytes; replacement releases old image into normal 24-hour retention",
+        "imageId": "pi_a76623c870c8e3e14eeb9413754351e4",
+        "size": 74721,
+        "chunks": 2,
+        "oldImage": "pi_54206a1fe09717ae29a6167c05e2424b",
+        "oldImageExpiresAt": "2026-11-26T09:48:40.012Z"
+      },
+      {
+        "name": "replacement JPEG: main/fallback HTTPS and trusted WeChat production parsers agree",
+        "version": 5,
+        "images": [
+          {
+            "id": "pi_a76623c870c8e3e14eeb9413754351e4",
+            "width": 480,
+            "height": 300
+          }
+        ]
+      },
+      {
+        "name": "replacement-jpg: actual admin/H5 image content, preview, 390/320px and native simulator render",
+        "imageId": "pi_a76623c870c8e3e14eeb9413754351e4",
+        "physicalDevice": false
+      },
+      {
+        "name": "Actual admin removes final image and closes introduction",
+        "version": 6
+      },
+      {
+        "name": "removed final image: main/fallback HTTPS and trusted WeChat production parsers agree",
+        "version": 6,
+        "images": []
+      },
+      {
+        "name": "Actual removal clears public images and keeps both originals for normal retention",
+        "imageCount": 2,
+        "eligibleObjects": 0
+      },
+      {
+        "name": "Restored original settings agree on main/fallback HTTPS, trusted WeChat production parsers and actual disabled H5/native pages",
+        "version": 7
+      }
+    ],
+    "distinctCheckNames": [
+      "Private client read/write denied; enabled upload is reachable in actual admin",
+      "Eight anonymous admin actions rejected; forged image ownership rejected without records",
+      "Actual multi-chunk PNG upload, exact downloaded bytes, idempotent start/chunk; unsaved image stays private",
+      "Actual admin publishes image-only introduction after saving",
+      "Repeated save does not increment twice; stale version and missing image reference cannot overwrite settings",
+      "published PNG: main/fallback HTTPS and trusted WeChat production parsers agree",
+      "published-png: actual admin/H5 image content, preview, 390/320px and native simulator render",
+      "Actual cleanup preview/execution protects the saved final image",
+      "Disable introduction while retaining editable private image reference",
+      "disabled with retained image: main/fallback HTTPS and trusted WeChat production parsers agree",
+      "Actual admin replaces PNG with JPEG only on save",
+      "Independent interrupted readback confirmed request ownership; reuse the two successful uploads",
+      "Actual JPEG download matches bytes; replacement releases old image into normal 24-hour retention",
+      "replacement JPEG: main/fallback HTTPS and trusted WeChat production parsers agree",
+      "replacement-jpg: actual admin/H5 image content, preview, 390/320px and native simulator render",
+      "Actual admin removes final image and closes introduction",
+      "removed final image: main/fallback HTTPS and trusted WeChat production parsers agree",
+      "Actual removal clears public images and keeps both originals for normal retention",
+      "Restored original settings agree on main/fallback HTTPS, trusted WeChat production parsers and actual disabled H5/native pages"
+    ],
+    "pageErrors": [],
+    "followupDidNotRepeatBusinessWrites": true
+  },
+  "independentAudit": {
+    "startedAt": "2026-11-26T02:18:01.681Z",
+    "completedAt": "2026-11-26T02:18:25.005Z",
+    "collections": [
+      {
+        "name": "users",
+        "before": 2,
+        "after": 2,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "leaderTeamBindings",
+        "before": 2,
+        "after": 2,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "teams",
+        "before": 9,
+        "after": 9,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "players",
+        "before": 41,
+        "after": 41,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "competitions",
+        "before": 13,
+        "after": 13,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "registrations",
+        "before": 21,
+        "after": 21,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "registrationFiles",
+        "before": 15,
+        "after": 15,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "matches",
+        "before": 20,
+        "after": 20,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "resultRevisions",
+        "before": 85,
+        "after": 85,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "newsArticles",
+        "before": 3,
+        "after": 3,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "newsImages",
+        "before": 6,
+        "after": 6,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "teamBadges",
+        "before": 4,
+        "after": 4,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "platformSettings",
+        "before": 1,
+        "after": 1,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "matchLiveEntries",
+        "before": 31,
+        "after": 31,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "matchLiveImages",
+        "before": 8,
+        "after": 8,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "evaluationConfigs",
+        "before": 1,
+        "after": 1,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "playerRatings",
+        "before": 0,
+        "after": 0,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "playerComments",
+        "before": 0,
+        "after": 0,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "playerAwards",
+        "before": 1,
+        "after": 1,
+        "originalBusinessPreserved": true
+      },
+      {
+        "name": "platformImages",
+        "before": 0,
+        "after": 2,
+        "originalBusinessPreserved": true
+      }
+    ],
+    "originalBusinessRecords": 263,
+    "finalBusinessRecords": 265,
+    "settings": {
+      "beforeVersion": 2,
+      "afterVersion": 7,
+      "formRestored": true,
+      "normalizedLegacyDefaults": true,
+      "metadataChanged": [
+        "version",
+        "updatedAt",
+        "lastRequestId",
+        "lastFingerprint"
+      ]
+    },
+    "newImages": [
+      {
+        "id": "pi_54206a1fe09717ae29a6167c05e2424b",
+        "mime": "image/png",
+        "size": 253803,
+        "width": 480,
+        "height": 300,
+        "sha256": "822a883ce0f2c706241a834d1dced97426abe545e0e473e207e03450f7122eb8",
+        "independentDownloadMatches": true,
+        "referenced": false,
+        "expiresAt": "2026-11-26T09:48:40.012Z"
+      },
+      {
+        "id": "pi_a76623c870c8e3e14eeb9413754351e4",
+        "mime": "image/jpeg",
+        "size": 74721,
+        "width": 480,
+        "height": 300,
+        "sha256": "a21cb23a83dc9335368713bb22b9c9da42cd2e5ec29df612c0f49bf272f1cd10",
+        "independentDownloadMatches": true,
+        "referenced": false,
+        "expiresAt": "2026-11-26T09:54:31.736Z"
+      }
+    ],
+    "recovery": {
+      "collections": 20,
+      "validReferences": true,
+      "beforeAssets": 30,
+      "afterAssets": 32,
+      "originalAssetsPreserved": true,
+      "maximumFinalFiles": 32,
+      "actualBackupRestoreNotExecuted": true
+    }
+  },
+  "publicReadback": {
+    "completedAt": "2026-11-25T09:59:24.799Z",
+    "mainFallbackAndNativeAgree": true,
+    "finalH5Disabled": true,
+    "finalNativeDisabled": true
+  },
+  "visualReview": {
+    "reviewedThisFollowup": [
+      "settled-jpg-390.png",
+      "settled-jpg-320.png",
+      "replacement-jpg-native.jpg"
+    ],
+    "capturesFrom": "2026-11-25",
+    "note": "Existing settled captures inspected; no physical-phone claim and no new screenshots this follow-up."
+  },
+  "finalState": {
+    "version": 7,
+    "originalFormRestored": true,
+    "communityEnabled": false,
+    "insuranceEnabled": false,
+    "publicImages": 0,
+    "unreferencedReadyImages": 2,
+    "originalAssets": 30,
+    "finalAssets": 32
+  },
+  "sessions": {
+    "businessAttemptsLoggedOut": true,
+    "businessAttemptOldSessionsRejected": true,
+    "followupAdminLoggedOut": true,
+    "followupAdminOldSessionRejected": true,
+    "credentialsPersisted": false
+  },
+  "remaining": [
+    "Real community/insurance destinations and formal material",
+    "iPhone/Android native controls and customer signoff",
+    "Physical deletion after the normal 24-hour retention; no altered timestamps",
+    "Formal hosting and release; no new full D13 cloud restore this follow-up"
+  ],
+  "historicalIncompleteEvidence": "2026-11-26-f-e-cloud-recheck.json records an earlier timeout; current scoped conclusion includes the later successful independent audit."
+}

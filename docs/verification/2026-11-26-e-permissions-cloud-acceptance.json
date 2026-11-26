@@ -1,0 +1,901 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-26",
+  "timezone": "Asia/Shanghai",
+  "progressVersion": "2.58",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "status": "passed-scoped-e-rejections-and-permission-acceptance",
+  "scope": {
+    "actualCustomerCloud": true,
+    "oneSignedInRealWechatActor": true,
+    "otherOwnerEstablishedFromRealUserAndBindingRecords": true,
+    "secondAccountLoginPerformed": false,
+    "physicalDevice": false,
+    "businessWrites": false,
+    "wholeEAccepted": false,
+    "wholeD05Accepted": false
+  },
+  "native": {
+    "startedAt": "2026-11-26T02:27:07.271Z",
+    "completedAt": "2026-11-26T02:29:01.374Z",
+    "checks": [
+      {
+        "name": "simple native runtime evaluation responds",
+        "page": "pages/index/index"
+      },
+      {
+        "name": "21 private collections reject direct client reads and writes",
+        "collections": 21,
+        "denials": 42,
+        "code": -502003,
+        "probeUpdatesExistingOnly": true
+      },
+      {
+        "name": "read own registration",
+        "ok": true
+      },
+      {
+        "name": "read another real user registration",
+        "ok": false,
+        "code": "NOT_FOUND"
+      },
+      {
+        "name": "sign another real user attachment",
+        "ok": false,
+        "code": "NOT_FOUND"
+      },
+      {
+        "name": "cancel another real user registration with deliberately stale version",
+        "ok": false,
+        "code": "NOT_FOUND"
+      },
+      {
+        "name": "write another real user upload with invalid chunk index",
+        "ok": false,
+        "code": "NOT_FOUND"
+      },
+      {
+        "name": "edit another team player with deliberately stale team version",
+        "ok": false,
+        "code": "FORBIDDEN"
+      },
+      {
+        "name": "my registration list contains only the signed-in real owner",
+        "count": 1,
+        "foreignOwnerExcluded": true
+      },
+      {
+        "name": "owner cloud-authorized attachment download matches registered bytes",
+        "status": 200,
+        "bytes": 2105,
+        "sha256Matches": true,
+        "signedLinkPersisted": false
+      },
+      {
+        "name": "direct client cannot sign or download another real user material",
+        "sign": {
+          "allowed": false,
+          "status": 1
+        },
+        "download": {
+          "allowed": false,
+          "code": -403003
+        }
+      }
+    ],
+    "directCollections": [
+      {
+        "collection": "users",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "leaderTeamBindings",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "teams",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "players",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "competitions",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "registrations",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "registrationFiles",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "matches",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "resultRevisions",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "newsArticles",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "newsImages",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "teamBadges",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "platformSettings",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "matchLiveEntries",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "matchLiveImages",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "evaluationConfigs",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "playerRatings",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "playerComments",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "playerAwards",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "platformImages",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      },
+      {
+        "collection": "adminAccounts",
+        "read": {
+          "allowed": false,
+          "code": -502003
+        },
+        "write": {
+          "allowed": false,
+          "code": -502003
+        }
+      }
+    ],
+    "storage": {
+      "sign": {
+        "allowed": false,
+        "status": 1
+      },
+      "download": {
+        "allowed": false,
+        "code": -403003
+      }
+    },
+    "independentAudit": [
+      {
+        "collection": "users",
+        "count": 2,
+        "unchanged": true
+      },
+      {
+        "collection": "leaderTeamBindings",
+        "count": 2,
+        "unchanged": true
+      },
+      {
+        "collection": "teams",
+        "count": 9,
+        "unchanged": true
+      },
+      {
+        "collection": "players",
+        "count": 41,
+        "unchanged": true
+      },
+      {
+        "collection": "competitions",
+        "count": 13,
+        "unchanged": true
+      },
+      {
+        "collection": "registrations",
+        "count": 21,
+        "unchanged": true
+      },
+      {
+        "collection": "registrationFiles",
+        "count": 15,
+        "unchanged": true
+      },
+      {
+        "collection": "matches",
+        "count": 20,
+        "unchanged": true
+      },
+      {
+        "collection": "resultRevisions",
+        "count": 85,
+        "unchanged": true
+      },
+      {
+        "collection": "newsArticles",
+        "count": 3,
+        "unchanged": true
+      },
+      {
+        "collection": "newsImages",
+        "count": 6,
+        "unchanged": true
+      },
+      {
+        "collection": "teamBadges",
+        "count": 4,
+        "unchanged": true
+      },
+      {
+        "collection": "platformSettings",
+        "count": 1,
+        "unchanged": true
+      },
+      {
+        "collection": "matchLiveEntries",
+        "count": 31,
+        "unchanged": true
+      },
+      {
+        "collection": "matchLiveImages",
+        "count": 8,
+        "unchanged": true
+      },
+      {
+        "collection": "evaluationConfigs",
+        "count": 1,
+        "unchanged": true
+      },
+      {
+        "collection": "playerRatings",
+        "count": 0,
+        "unchanged": true
+      },
+      {
+        "collection": "playerComments",
+        "count": 0,
+        "unchanged": true
+      },
+      {
+        "collection": "playerAwards",
+        "count": 1,
+        "unchanged": true
+      },
+      {
+        "collection": "platformImages",
+        "count": 2,
+        "unchanged": true
+      }
+    ],
+    "recordsPreserved": 265,
+    "probeResidue": 0,
+    "probe": "Only updates to independently confirmed absent IDs; no added probe records"
+  },
+  "admin": {
+    "startedAt": "2026-11-26T02:23:45.545Z",
+    "completedAt": "2026-11-26T02:26:09.136Z",
+    "checks": [
+      {
+        "name": "23 team/registration/platform management actions reject anonymous HTTP requests",
+        "actions": 23,
+        "status": 401
+      },
+      {
+        "name": "forged session, body-token injection and untrusted origin rejected",
+        "forgedToken": 401,
+        "bodyToken": 400,
+        "origin": 403
+      },
+      {
+        "name": "current leader availability independently read from authenticated admin",
+        "total": 2,
+        "available": 0,
+        "bound": 2
+      },
+      {
+        "name": "already-bound real WeChat users cannot receive a second admin-created team",
+        "users": 2,
+        "status": 409,
+        "code": "ALREADY_EXISTS"
+      },
+      {
+        "name": "stale admin review cannot overwrite the current registration",
+        "status": 409,
+        "code": "CONFLICT"
+      },
+      {
+        "name": "administrator authorized material downloads match registered hashes",
+        "formats": [
+          "xlsx",
+          "png",
+          "docx"
+        ],
+        "files": 3
+      },
+      {
+        "name": "registration cleanup preview retains submitted material and performs no deletion",
+        "pages": 3,
+        "scanned": 15,
+        "retained": 13,
+        "candidateObjects": 9,
+        "removedObjects": 0,
+        "dryRun": true
+      },
+      {
+        "name": "F restored settings remain version 7; uploads enabled and cleanup preview does not delete",
+        "version": 7,
+        "enabled": true,
+        "removedObjects": 0
+      }
+    ],
+    "requests": [
+      {
+        "action": "login",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "teams.listAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.getAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.leadersAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.createAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.updateAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.savePlayerAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.removePlayerAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.assignLeaderAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.checkDissolutionAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.dissolveAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "registrations.listAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "registrations.getAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "registrations.review",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "registrations.fileLink",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "registrations.cleanup",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.getAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.update",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.images.config",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.images.start",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.images.chunk",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.images.finish",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.images.get",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "settings.images.cleanup",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.listAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      },
+      {
+        "action": "teams.listAdmin",
+        "status": 400,
+        "ok": false,
+        "code": "INVALID_ARGUMENT"
+      },
+      {
+        "action": "teams.listAdmin",
+        "status": 403,
+        "ok": false,
+        "code": "ORIGIN_DENIED"
+      },
+      {
+        "action": "teams.leadersAdmin",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "teams.createAdmin",
+        "status": 409,
+        "ok": false,
+        "code": "ALREADY_EXISTS"
+      },
+      {
+        "action": "teams.createAdmin",
+        "status": 409,
+        "ok": false,
+        "code": "ALREADY_EXISTS"
+      },
+      {
+        "action": "registrations.review",
+        "status": 409,
+        "ok": false,
+        "code": "CONFLICT"
+      },
+      {
+        "action": "registrations.fileLink",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "registrations.fileLink",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "registrations.fileLink",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "registrations.cleanup",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "registrations.cleanup",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "registrations.cleanup",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "settings.images.config",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "settings.images.cleanup",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "settings.getAdmin",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "logout",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "action": "teams.listAdmin",
+        "status": 401,
+        "ok": false,
+        "code": "UNAUTHORIZED"
+      }
+    ],
+    "realUsers": {
+      "total": 2,
+      "available": 0,
+      "bound": 2
+    },
+    "authorizedDownloads": [
+      {
+        "extension": "xlsx",
+        "size": 10329,
+        "httpStatus": 200,
+        "sha256Matches": true
+      },
+      {
+        "extension": "png",
+        "size": 2105,
+        "httpStatus": 200,
+        "sha256Matches": true
+      },
+      {
+        "extension": "docx",
+        "size": 65910,
+        "httpStatus": 200,
+        "sha256Matches": true
+      }
+    ],
+    "registrationCleanup": {
+      "pages": 3,
+      "scanned": 15,
+      "retained": 13,
+      "candidateObjects": 9,
+      "removedObjects": 0,
+      "dryRun": true
+    },
+    "imageCapability": {
+      "enabled": true,
+      "maxBytes": 2097152,
+      "chunkSize": 65536
+    },
+    "platformImageCleanup": {
+      "ok": true,
+      "dryRun": true,
+      "scanned": 2,
+      "eligibleObjects": 6,
+      "removedObjects": 0,
+      "protectedImages": 0,
+      "deferredImages": 0,
+      "nextCursor": null,
+      "httpStatus": 200
+    },
+    "independentAudit": [
+      {
+        "collection": "users",
+        "count": 2,
+        "unchanged": true
+      },
+      {
+        "collection": "leaderTeamBindings",
+        "count": 2,
+        "unchanged": true
+      },
+      {
+        "collection": "teams",
+        "count": 9,
+        "unchanged": true
+      },
+      {
+        "collection": "players",
+        "count": 41,
+        "unchanged": true
+      },
+      {
+        "collection": "competitions",
+        "count": 13,
+        "unchanged": true
+      },
+      {
+        "collection": "registrations",
+        "count": 21,
+        "unchanged": true
+      },
+      {
+        "collection": "registrationFiles",
+        "count": 15,
+        "unchanged": true
+      },
+      {
+        "collection": "matches",
+        "count": 20,
+        "unchanged": true
+      },
+      {
+        "collection": "resultRevisions",
+        "count": 85,
+        "unchanged": true
+      },
+      {
+        "collection": "newsArticles",
+        "count": 3,
+        "unchanged": true
+      },
+      {
+        "collection": "newsImages",
+        "count": 6,
+        "unchanged": true
+      },
+      {
+        "collection": "teamBadges",
+        "count": 4,
+        "unchanged": true
+      },
+      {
+        "collection": "platformSettings",
+        "count": 1,
+        "unchanged": true
+      },
+      {
+        "collection": "matchLiveEntries",
+        "count": 31,
+        "unchanged": true
+      },
+      {
+        "collection": "matchLiveImages",
+        "count": 8,
+        "unchanged": true
+      },
+      {
+        "collection": "evaluationConfigs",
+        "count": 1,
+        "unchanged": true
+      },
+      {
+        "collection": "playerRatings",
+        "count": 0,
+        "unchanged": true
+      },
+      {
+        "collection": "playerComments",
+        "count": 0,
+        "unchanged": true
+      },
+      {
+        "collection": "playerAwards",
+        "count": 1,
+        "unchanged": true
+      },
+      {
+        "collection": "platformImages",
+        "count": 2,
+        "unchanged": true
+      }
+    ],
+    "recordsPreserved": 265,
+    "loggedOut": true,
+    "oldSessionRejected": true
+  },
+  "tooling": {
+    "initialBatch": "A single 21-collection evaluation exceeded the 90-second CLI deadline.",
+    "resolution": "A simple runtime evaluation succeeded; each collection was then evaluated independently with a 30-second bound. All 42 read/write checks returned -502003.",
+    "businessSourceModified": false
+  },
+  "remaining": [
+    "Two logged-in real WeChat users without teams for E create/transfer/dissolve success lifecycle",
+    "Login and reverse-direction tests with the second real account and cross-device checks",
+    "Actual competing successful review requests and registration attachment reference/cleanup remainder",
+    "Physical iPhone/Android document opening and remaining native flows",
+    "Ability-value business rules remain unconfirmed"
+  ]
+}

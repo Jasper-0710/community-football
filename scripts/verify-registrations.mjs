@@ -50,7 +50,7 @@ const http=createHttpHandler(event=>{
  }
  return event.action==='registrations.cleanup'?cleanup(event):event.action?.startsWith('registrations.')?adminRegistrations(event):event.action?.startsWith('competitions.')?competitions(event):auth(event)
 },[adminBase,userBase],PUBLIC_ACTIONS)
-let failChunk=true,failSubmit=true,submitCalls=0,reviewCalls=0,failReview=false
+let failChunk=true,failSubmit=true,submitCalls=0,reviewCalls=0,failReview=false,loseReviewReceipt=false
 const server=createServer({key:await readFile(join(certDir,'key.pem')),cert:await readFile(join(certDir,'cert.pem'))},async(req,res)=>{
  let body='';for await(const chunk of req)body+=chunk
  if(req.url.startsWith('/wx/')){
@@ -62,12 +62,12 @@ const server=createServer({key:await readFile(join(certDir,'key.pem')),cert:awai
   if(event.action==='registrations.submit'){submitCalls++;if(failSubmit){failSubmit=false;res.end(JSON.stringify({ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'模拟报名服务暂不可用，请重新读取报名核对结果。'}}));return}}
   const fn=req.url==='/wx/userProfile'?profile:event.action?.startsWith('registrations.')?registrations:event.action?.startsWith('files.')?files:teams
   res.end(JSON.stringify(await fn(event)))
- }else{const r=await http({httpMethod:req.method,headers:req.headers,body});res.writeHead(r.statusCode,r.headers);res.end(r.body)}
+ }else{const r=await http({httpMethod:req.method,headers:req.headers,body});res.writeHead(r.statusCode,r.headers);if(loseReviewReceipt&&JSON.parse(body||'{}').action==='registrations.review'&&r.statusCode===200){loseReviewReceipt=false;res.end('{')}else res.end(r.body)}
 })
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const endpoint=`https://127.0.0.1:${server.address().port}`
 process.env.VITE_ADMIN_API_URL=endpoint+'/api';process.env.VITE_COMPETITION_API_URL=endpoint+'/api'
 const pdf=Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF'),testConfig=resolve('.tools/d05-browser.vite.config.ts')
-const transport=`export class WechatCloudError extends Error {}\nexport function initializeWechatCloud() {}\nexport async function callWechatCloudFunction(name,data){const r=await fetch(${JSON.stringify(endpoint+'/wx/')}+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json()}`
+const transport=`export class WechatCloudError extends Error {}\nexport function initializeWechatCloud() {}\nlet recoveryGuard=()=>{}\nexport function setWechatRecoveryGuard(check){recoveryGuard=check}\nexport async function callWechatCloudFunction(name,data){recoveryGuard(name,data);const r=await fetch(${JSON.stringify(endpoint+'/wx/')}+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});return r.json()}`
 const chooser=`export async function chooseRegistrationFiles(count:number):Promise<UploadDraft[]>{return [{requestId:teamRequestId(),path:'isolated-material.pdf',name:'球队参赛名单.pdf',size:${pdf.length},progress:0,error:''}]}\n`
 await writeFile(testConfig,`import {defineConfig} from 'vite';import uni from '@dcloudio/vite-plugin-uni';export default defineConfig({cacheDir:'.tools/d05-vite-cache',plugins:[{name:'isolated-d05-transport',enforce:'pre',transform(code,id){if(id.endsWith('/src/services/wechat-cloud.ts'))return ${JSON.stringify(transport)};if(id.endsWith('/src/services/user-profile.ts'))return code.replace(/export function supportsWechatProfile\\(\\): boolean \\{[\\s\\S]*?\\n\\}/,'export function supportsWechatProfile(): boolean { return true }');if(id.endsWith('/src/services/registrations.ts'))return code.replace(/export async function chooseRegistrationFiles[\\s\\S]*?(?=export async function uploadRegistrationFile)/,${JSON.stringify(chooser)}).replace("let data=''",${JSON.stringify('let data='+JSON.stringify(pdf.toString('base64')))});}},uni()],server:{host:'127.0.0.1',port:5198,strictPort:true,hmr:false}})`)
 const vite=await createViteServer({configFile:'admin/vite.config.ts',mode:'test',cacheDir:resolve('.tools/d05-admin-vite-cache'),server:{host:'127.0.0.1',port:5196,strictPort:true,watch:{usePolling:true},hmr:false}});await vite.listen()
@@ -95,7 +95,9 @@ try{
  await fill('registration-phone','021-55556666');await click('提交报名，等待审核');await visibleFeedback('请上传至少一份报名材料');assert.equal(submitCalls,0)
  await click('＋ 选择报名材料（0/5）');await user.getByText('模拟传输中断，请重试上传。',{exact:true}).waitFor();await click('提交报名，等待审核');await visibleFeedback('有材料上传失败');assert.equal(submitCalls,0)
  await click('重试上传');await user.getByText(/上传完成/).waitFor();assert.equal(storageFiles.size,2)
- check('single project defaults correctly; missing leader, invalid phone, missing material and failed upload show visible feedback at 320px without submitting')
+ assert.equal(await feedback.filter({hasText:'有材料上传失败'}).count(),0,'a successful upload retry must clear the obsolete submission error')
+ assert.equal(await user.locator('.uni-toast').isVisible(),false,'the obsolete upload-failed toast must also be dismissed')
+ check('single project defaults correctly; missing leader, invalid phone, missing material and failed upload show visible feedback at 320px without submitting; successful retry dismisses the obsolete alert and toast')
  for(const width of [390,320]){await user.setViewportSize({width,height:844});await noOverflow(user);await snapshot(user,`form-${width}`);const small=await user.locator('.registration-page').evaluate(el=>[...el.querySelectorAll('*')].filter(e=>e.textContent.trim()&&e.children.length===0&&getComputedStyle(e).display!=='none'&&parseFloat(getComputedStyle(e).fontSize)<14).map(e=>e.textContent));assert.deepEqual(small,[])}
  check('320px and 390px form sections, files and buttons have no horizontal overflow and text is at least 14px')
  await click('提交报名，等待审核');await user.locator('.uni-modal__btn').filter({hasText:'取消'}).click();assert.equal(saved(),undefined);assert.equal(submitCalls,0)
@@ -153,10 +155,16 @@ try{
  await admin.waitForFunction(()=>{const box=[...document.querySelectorAll('.review-reload button')].find(el=>el.textContent==='重新读取当前报名')?.getBoundingClientRect();return box&&box.top>=0&&box.bottom<=innerHeight})
  await snapshot(admin,'review-service-failure-320')
  await admin.getByRole('button',{name:'重新读取当前报名',exact:true}).click();await admin.getByLabel('核对后的参赛人数 *').fill('8');await admin.getByLabel('已核对报名材料与参赛要求').check()
- await admin.getByRole('button',{name:'审核通过',exact:true}).click();await admin.getByRole('status').filter({hasText:'审核通过'}).waitFor();assert.equal(saved().status,'approved');assert.equal(reviewCalls,beforeReviewFailure+2)
+ loseReviewReceipt=true
+ await admin.getByRole('button',{name:'审核通过',exact:true}).click();await admin.locator('#review-feedback-approved').waitFor();assert.equal(saved().status,'approved');assert.equal(reviewCalls,beforeReviewFailure+2)
+ assert.equal(await admin.getByRole('button',{name:'审核通过',exact:true}).isDisabled(),true)
+ await admin.getByRole('button',{name:'重新读取当前报名',exact:true}).click();await admin.locator('.review-result').waitFor()
+ assert.deepEqual(await admin.locator('.registration-stat-cards strong').allTextContents(),['0','1','1'],'lost committed receipt recovery must refresh all counters')
+ assert.equal(await admin.locator('.registration-inbox-item .application-status').innerText(),'已通过','lost committed receipt recovery must refresh the inbox status')
+ assert.equal(reviewCalls,beforeReviewFailure+2,'recovery must only read, never submit another review')
  await admin.waitForFunction(()=>{const box=document.querySelector('.review-result')?.getBoundingClientRect();return box&&box.top>=0&&box.bottom<=innerHeight})
  await snapshot(admin,'review-approved-320')
- check('uncertain review failures show a visible reload action and disable repeat decisions until reloaded; a confirmed retry approves exactly once and displays the result')
+ check('uncertain review failures block repeats; committed lost receipts recover detail, inbox status and counters together without another review')
  await admin.getByLabel('报名状态',{exact:true}).selectOption('approved');await admin.locator('.registration-inbox-item').waitFor();assert.equal(await admin.locator('.registration-inbox-item').count(),1)
  check('resubmission returns to review; verified player count and approval feed the final participant list')
  await click('重新读取');await user.locator('.registration-summary .application-status.approved').waitFor();await click('修改报名资料');await fill('registration-leader','更新后的领队');await click('保存修改并重新审核');await user.locator('.uni-modal__btn').filter({hasText:'确认提交'}).click();await user.locator('.registration-summary').waitFor();assert.equal(saved().status,'pending');assert.equal(memory.read('competitions',cid).registrationStats.approved,0)
@@ -184,5 +192,5 @@ try{
  assert.deepEqual(errors,[])
  await writeFile(`${out}/report.json`,JSON.stringify({checks,errors,validation:'Real Vue pages and actual registration, attachment, competition and admin handlers over an isolated transactional store. File chooser and WeChat transport are test-only adapters; not native/cloud validation.',generatedAt:new Date().toISOString()},null,2))
  console.log(`Verified ${checks.length} registration browser flows.`)
-}catch(error){await snapshot(user,'failure-user').catch(()=>{});await snapshot(admin,'failure-admin').catch(()=>{});await writeFile(`${out}/failure.txt`,await user.locator('body').innerText()+'\nADMIN\n'+await admin.locator('body').innerText());throw error}
+}catch(error){await snapshot(user,'failure-user').catch(()=>{});await snapshot(admin,'failure-admin').catch(()=>{});await writeFile(`${out}/failure.txt`,await user.locator('body').innerText()+'\nADMIN\n'+await admin.locator('body').innerText());await writeFile(`${out}/failure.json`,JSON.stringify({message:error.message,errors,previewLog},null,2));console.error(JSON.stringify({pageErrors:errors}));throw error}
 finally{await browser.close();await vite.close();try{process.kill(-userServer.pid,'SIGTERM')}catch{}server.closeAllConnections();await new Promise(r=>server.close(r));await rm(testConfig,{force:true});await rm(certDir,{recursive:true,force:true})}

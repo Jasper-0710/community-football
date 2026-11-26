@@ -80,7 +80,7 @@ async function choose(){
  try{const chosen=await chooseRegistrationFiles(5-drafts.value.length);for(const d of chosen){if(current!==generation||!visible)break;drafts.value.push(d);await upload(drafts.value[drafts.value.length-1],current)}}
  catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)busy.value=false}
 }
-async function retry(d:UploadDraft){if(busy.value)return;const current=generation;busy.value=true;d.error='';try{await upload(d,current)}finally{if(current===generation)busy.value=false}}
+async function retry(d:UploadDraft){if(busy.value)return;const current=generation;busy.value=true;if(!uncertain.value){error.value='';uni.hideToast()}d.error='';try{await upload(d,current)}finally{if(current===generation)busy.value=false}}
 async function remove(d:UploadDraft){if(busy.value)return;const current=generation;busy.value=true;error.value='';try{if(d.id&&!d.existing)await discardRegistrationFile(d.id);if(current===generation&&visible)drafts.value=drafts.value.filter(x=>x!==d)}catch(e){if(current===generation&&visible)error.value=explain(e)}finally{if(current===generation)busy.value=false}}
 async function submit(){
  if(!canSubmit.value)return
