@@ -1,5 +1,5 @@
 import {callWechatCloudFunction,WechatCloudError} from './wechat-cloud'
-import {parseRegistration,parseRegistrationPage,parsePreparation,parseRegistrationFile,parseFileLink,RegistrationClientError,type RegistrationForm,type RegistrationFile} from '@/domain/registration'
+import {parseRegistration,parseRegistrationPage,parsePreparation,parseRegistrationFile,parseRegistrationFileHistory,parseFileLink,RegistrationClientError,type RegistrationForm,type RegistrationFile} from '@/domain/registration'
 import {teamRequestId} from '@/domain/team'
 declare const wx:any
 async function request(data:Record<string,unknown>):Promise<any>{
@@ -17,6 +17,7 @@ export async function getMyRegistration(id:string){const r=await request({action
 export async function submitRegistration(competitionId:string,expectedVersion:number,rulesVersion:number,requestId:string,form:RegistrationForm,attachmentIds:string[]){return parseRegistration((await request({action:'registrations.submit',competitionId,expectedVersion,rulesVersion,requestId,form,attachmentIds})).registration)}
 export async function cancelRegistration(id:string,expectedVersion:number,requestId:string){return parseRegistration((await request({action:'registrations.cancel',id,expectedVersion,requestId})).registration)}
 export async function registrationFileLink(id:string,fileId:string){return parseFileLink(await request({action:'registrations.fileLink',id,fileId}))}
+export async function registrationFileHistory(id:string,expectedVersion:number,cursor?:string){return parseRegistrationFileHistory(await request({action:'registrations.historyFiles',id,expectedVersion,...(cursor?{cursor}:{})}),id,expectedVersion)}
 export interface UploadDraft {requestId:string;path:string;name:string;size:number;id?:string;progress:number;file?:RegistrationFile;error:string;existing?:boolean}
 export async function chooseRegistrationFiles(count:number):Promise<UploadDraft[]>{
  // #ifdef MP-WEIXIN

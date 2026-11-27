@@ -110,6 +110,7 @@ export function createAdminApi(baseUrl: string, fetcher: typeof fetch = fetch, t
     async registration(token:string,id:string) { return parseRegistration((await request('registrations.getAdmin',{id},token)).registration) },
     async reviewRegistration(token:string,id:string,expectedVersion:number,requestId:string,decision:'approved'|'rejected',reason:string,playerCount:number|null) { return parseRegistration((await request('registrations.review',{id,expectedVersion,requestId,decision,reason,playerCount},token)).registration) },
     async registrationFile(token:string,id:string,fileId:string) { return parseFileLink(await request('registrations.fileLink',{id,fileId},token)) },
+    async registrationFileHistory(token:string,id:string,expectedVersion:number,cursor?:string) { return parseRegistrationFileHistory(await request('registrations.historyFiles',{id,expectedVersion,...(cursor?{cursor}:{})},token),id,expectedVersion) },
     async cleanupTeamBadges(token:string,dryRun=true,cursor?:string) {const result=parseBadgeCleanup(await request('teams.badges.cleanup',{dryRun,...(cursor?{cursor}:{})},token));if(result.dryRun!==dryRun)throw new AdminApiError('INVALID_RESPONSE','队徽清理回执异常。');return result},
     async teams(token: string, cursor?: string) { return parseTeamPage(await request('teams.listAdmin', cursor ? { cursor } : {}, token)) },
     async team(token: string, id: string) { return parseManagedTeam((await request('teams.getAdmin', { id }, token)).team) },
@@ -164,5 +165,5 @@ if (import.meta.hot) import.meta.hot.accept(() => window.location.reload())
 import { parseCompetition, parseCompetitionPage, type CompetitionForm } from '../../src/domain/competition'
 
 import { parseTeamPage, parseManagedTeam } from '../../src/domain/team'
-import {parseRegistration,parseRegistrationPage,parseFileLink} from '../../src/domain/registration'
+import {parseRegistration,parseRegistrationPage,parseRegistrationFileHistory,parseFileLink} from '../../src/domain/registration'
 import {parseRegistrationStats} from '../../src/domain/competition'

@@ -4,6 +4,8 @@ export const registrationStates={pending:'待审核',approved:'已通过',reject
 export type RegistrationState=keyof typeof registrationStates
 export interface RegistrationForm {teamName:string;district:string;project:string;leaderName:string;contactPhone:string}
 export interface RegistrationFile {id:string;name:string;size:number;extension:string}
+export interface RegistrationHistoricalFile extends RegistrationFile {uploadedAt:string|null;firstSubmittedAt:string|null}
+export interface RegistrationFileHistory {registrationId:string;version:number;files:RegistrationHistoricalFile[];nextCursor:string|null}
 export interface RegistrationSummary {id:string;competitionId:string;teamId:string;competitionName:string;teamName:string;district:string;project:string;status:RegistrationState;version:number;attachmentCount:number;createdAt:string;submittedAt:string;updatedAt:string}
 export interface RegistrationPlayerRules {minPlayers:number;maxPlayers:number;rulesVersion:number}
 export interface RegistrationDetail extends RegistrationSummary {form:RegistrationForm;attachments:RegistrationFile[];review:{decision:'approved'|'rejected';reason:string;playerCount:number|null;reviewedAt:string;rules:RegistrationPlayerRules|null}|null;reviewRules:RegistrationPlayerRules|null;requirements:string;minPlayers:number;maxPlayers:number;history:{status:RegistrationState;actor:'leader'|'admin';at:string;reason:string}[]}
@@ -16,6 +18,16 @@ const strings=(v:any,keys:string[])=>keys.every(k=>typeof v?.[k]==='string'&&v[k
 export function parseRegistrationFile(f:any):RegistrationFile {
  if(!f||typeof f.id!=='string'||!/^f_[a-f0-9]{32}$/.test(f.id)||typeof f.name!=='string'||!f.name.trim()||!Number.isSafeInteger(f.size)||f.size<1||f.size>10*1024*1024||!['pdf','png','jpg','jpeg','docx','xlsx'].includes(f.extension))bad()
  return {id:f.id,name:f.name,size:f.size,extension:f.extension}
+}
+export function parseRegistrationFileHistory(v:any,id:string,version:number):RegistrationFileHistory {
+ if(!v||v.registrationId!==id||!/^r_[a-f0-9]{64}$/.test(id)||v.version!==version||!Number.isSafeInteger(version)||version<1||!Array.isArray(v.files)||v.files.length>20||v.nextCursor!==null&&(typeof v.nextCursor!=='string'||!/^f_[a-f0-9]{32}$/.test(v.nextCursor)))bad()
+ const files=v.files.map((f:any)=>{
+  const file=parseRegistrationFile(f)
+  if(![f.uploadedAt,f.firstSubmittedAt].every(d=>d===null||iso(d)))bad()
+  return {...file,uploadedAt:f.uploadedAt as string|null,firstSubmittedAt:f.firstSubmittedAt as string|null}
+ })
+ if(new Set(files.map((f:RegistrationHistoricalFile)=>f.id)).size!==files.length||files.some((f:RegistrationHistoricalFile,i:number)=>i>0&&f.id<=files[i-1].id)||v.nextCursor&&files.some((f:RegistrationHistoricalFile)=>f.id>v.nextCursor))bad()
+ return {registrationId:id,version,files,nextCursor:v.nextCursor}
 }
 export function parseRegistrationSummary(r:any):RegistrationSummary {
  if(!r||!/^r_[a-f0-9]{64}$/.test(r.id)||!/^c_[a-f0-9]{32}$/.test(r.competitionId)||!/^t_[a-f0-9]{64}$/.test(r.teamId)||!strings(r,['competitionName','teamName','district','project'])||!status(r.status)||!Number.isSafeInteger(r.version)||r.version<1||!Number.isSafeInteger(r.attachmentCount)||r.attachmentCount<1||r.attachmentCount>5||![r.createdAt,r.submittedAt,r.updatedAt].every(iso))bad()

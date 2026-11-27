@@ -6,6 +6,7 @@ import { transformSync } from 'esbuild'
 import * as vue from 'vue'
 import * as teamDomain from '../src/domain/team'
 import * as registrationDomain from '../src/domain/registration'
+import * as registrationHistory from '../src/composables/useRegistrationFileHistory'
 
 type PageKind = 'team' | 'registration' | 'mine'
 const user = { id: 'current-wechat-user', nickname: '当前用户' }
@@ -31,7 +32,7 @@ function page(t: TestContext, kind: PageKind, services: Record<string, any> = {}
   const exposed = kind === 'team'
     ? 'team,ready,loading,saving,error,notice,editingTeam,editingPlayer,form,player,confirmName,load,startTeam,saveTeam'
     : kind === 'registration'
-      ? 'record,preparation,ready,loading,busy,confirming,submitting,editing,error,notice,drafts,form,load,choose,submit,cancel'
+      ? 'record,preparation,ready,loading,busy,confirming,submitting,editing,error,notice,drafts,form,load,choose,submit,cancel,historyFiles,historyExpanded,historyLoading,historyError,toggleHistory'
       : 'records,cursor,ready,loading,error,load'
   const profile = vue.ref<any>({ ...user }), scope = vue.effectScope()
   const hooks = { show: [] as (() => void)[], unload: [] as (() => void)[] }
@@ -46,6 +47,7 @@ function page(t: TestContext, kind: PageKind, services: Record<string, any> = {}
         onLoad: (fn: (query: any) => void) => fn({ competitionId: 'c-current' }),
       }
       if (name === '@/composables/useUserProfile') return { useUserProfile: () => ({ profile, loading: vue.ref(false), error: vue.ref(''), supported: true, login: async () => {} }) }
+      if (name === '@/composables/useRegistrationFileHistory') return registrationHistory
       if (name === '@/domain/team') return teamDomain
       if (name === '@/domain/registration') return registrationDomain
       if (name === '@/domain/competition') return { competitionTime: () => '' }
@@ -168,4 +170,22 @@ test('registration: logout during file selection clears drafts and ignores a sta
   assert.equal(runtime.state.drafts.value.length, 0)
   assert.equal(uploads, 0)
   assert.equal(runtime.state.error.value, '')
+})
+
+test('registration: logout discards an in-flight private history read in the actual page', async t => {
+  const pending = deferred(), registration = { id: 'r-current', version: 1, attachments: [], form: {} }
+  const runtime = page(t, 'registration', {
+    prepareRegistration: async () => ({ ...preparation, registration }),
+    registrationFileHistory: () => pending.promise,
+  })
+  runtime.show(); await settle()
+  const read = runtime.state.toggleHistory()
+  assert.equal(runtime.state.historyLoading.value, true)
+  runtime.profile.value = null
+  assert.equal(runtime.state.historyExpanded.value, false)
+  pending.resolve({ registrationId: registration.id, version: 1, files: [{ id: 'private-file', name: '旧账号私有名单.pdf' }], nextCursor: null })
+  await read
+  assert.equal(runtime.state.historyFiles.value.length, 0)
+  assert.equal(runtime.state.historyError.value, '')
+  assert.equal(runtime.state.historyLoading.value, false)
 })

@@ -1,10 +1,12 @@
 'use strict'
 const {APP_ID,userId,DISTRICTS}=require('./service')
 const M=require('./registration-model')
+const {historyFiles,findFile}=require('./registration-attachments')
 const actions={
  'registrations.listMine':['cursor'],'registrations.getMine':['id'],'registrations.prepare':['competitionId'],
  'registrations.submit':['competitionId','expectedVersion','rulesVersion','requestId','form','attachmentIds'],
  'registrations.cancel':['id','expectedVersion','requestId'], 'registrations.fileLink':['id','fileId'],
+ 'registrations.historyFiles':['id','expectedVersion','cursor'],
 }
 function createRegistrationService({store,context,storage,uploadsEnabled=false,expectedAppId=APP_ID,now=Date.now,logger=console}){
  async function identity(){const x=context();if(typeof x?.OPENID!=='string'||!x.OPENID||x.APPID!==expectedAppId)M.fail('AUTH_REQUIRED','请在微信小程序中登录后报名。');const uid=userId(x.APPID,x.OPENID);const u=await store.transaction(tx=>tx.get('users',uid));if(!u||u.appId!==x.APPID||u.openId!==x.OPENID)M.fail('AUTH_REQUIRED','请先登录个人中心。');return uid}
@@ -19,11 +21,12 @@ function createRegistrationService({store,context,storage,uploadsEnabled=false,e
    if(records.some(r=>r.ownerUserId!==uid))throw new Error('Unexpected registration owner')
    return {ok:true,registrations:records.slice(0,20).map(M.summary),nextCursor:records.length>20?records[19]._id:null}
   }
-  if(['registrations.getMine','registrations.fileLink'].includes(action)){
+  if(['registrations.getMine','registrations.fileLink','registrations.historyFiles'].includes(action)){
    if(!M.RID.test(event.id))M.fail('NOT_FOUND','报名记录不存在。')
    const r=await store.read(event.id);if(!r||r.ownerUserId!==uid)M.fail('NOT_FOUND','报名记录不存在。')
+   if(action==='registrations.historyFiles')return await historyFiles(store,r,event)
    if(action==='registrations.fileLink'){
-    const file=r.attachments.find(f=>f.id===event.fileId);if(!file)M.fail('NOT_FOUND','附件不存在。')
+    const file=await findFile(store,r,event.fileId)
     if(!uploadsEnabled)M.fail('UPLOAD_UNAVAILABLE','材料查看暂不可用，请稍后再试。')
     return {ok:true,url:await storage.link(file.fileID),name:file.name,extension:file.extension}
    }
@@ -79,7 +82,7 @@ function createRegistrationService({store,context,storage,uploadsEnabled=false,e
    await tx.set('competitions',c._id,M.transition(c,r?.status,'pending'))
    // This write serializes first reference creation against team dissolution.
    await tx.set('teams',team._id,{...team,version:team.version+1})
-   for(const f of attachments){const saved=await tx.get('registrationFiles',f.id);await tx.set('registrationFiles',f.id,{...saved,registrationId:id})}
+   for(const f of attachments){const saved=await tx.get('registrationFiles',f.id);await tx.set('registrationFiles',f.id,{...saved,registrationId:id,...(!saved.registrationId?{firstSubmittedAt:time}:{})})}
    const user=await tx.get('users',uid)
    await tx.set('users',uid,{...user,registrationUploadSlots:(user.registrationUploadSlots||[]).filter(s=>!event.attachmentIds.includes(s.id))})
    await tx.set('registrations',id,updated)

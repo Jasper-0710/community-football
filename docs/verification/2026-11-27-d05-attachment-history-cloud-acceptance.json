@@ -1,0 +1,554 @@
+{
+  "date": "2026-11-27",
+  "generatedAt": "2026-11-27T07:07:11.701Z",
+  "status": "passed-simulated-nonempty-history-acceptance-and-teardown",
+  "scope": "Customer deployment and nonempty simulated technical acceptance of historical registration attachments; whole customer signoff and physical phones are separate.",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "appid": "wx3230f06c755cef3a",
+  "priorBusinessAcceptance": "2026-11-26-d05-cloud-acceptance.json",
+  "localImplementation": "2026-11-27-d05-attachment-history.json",
+  "preflight": {
+    "sourceHashesMatchPriorLocalVerification": true,
+    "functions": [
+      {
+        "name": "teamManagement",
+        "files": 14,
+        "changes": [
+          "index.js",
+          "registration-attachments.js",
+          "registrations.js"
+        ],
+        "remoteDrift": []
+      },
+      {
+        "name": "adminAuth",
+        "files": 39,
+        "changes": [
+          "index.js",
+          "registration-attachments.js",
+          "registrations.js"
+        ],
+        "remoteDrift": []
+      }
+    ],
+    "cloudSourceDrift": false,
+    "originalD05TeardownPassed": true
+  },
+  "deployment": {
+    "verified": {
+      "status": "passed",
+      "at": "2026-11-27T03:10:06.896Z",
+      "functions": [
+        {
+          "name": "teamManagement",
+          "matchedFiles": 14,
+          "status": "Active",
+          "timeout": 60,
+          "runtime": "Nodejs16.13"
+        },
+        {
+          "name": "adminAuth",
+          "matchedFiles": 39,
+          "status": "Active",
+          "timeout": 20,
+          "runtime": "Nodejs16.13"
+        }
+      ],
+      "index": {
+        "name": "registration_history_registrationId_id_asc",
+        "keys": [
+          {
+            "Name": "registrationId",
+            "Direction": "1"
+          },
+          {
+            "Name": "_id",
+            "Direction": "1"
+          }
+        ],
+        "unique": false,
+        "sparse": false
+      },
+      "sourceFilesMatched": 53,
+      "businessWrites": false,
+      "nonemptyHistoryAcceptancePending": true
+    },
+    "nativeTasks": [
+      {
+        "name": "registrationFiles-history-index",
+        "tool": "cloud_db_write_struct",
+        "status": "success"
+      },
+      {
+        "name": "teamManagement",
+        "tool": "cloud_fn_deploy",
+        "status": "success"
+      },
+      {
+        "name": "adminAuth",
+        "tool": "cloud_fn_deploy",
+        "status": "success"
+      }
+    ],
+    "pendingTasks": [],
+    "requiredIndex": {
+      "collection": "registrationFiles",
+      "fields": [
+        [
+          "registrationId",
+          "asc"
+        ],
+        [
+          "_id",
+          "asc"
+        ]
+      ],
+      "unique": false,
+      "sparse": false,
+      "initiallyPresent": false
+    },
+    "newCollections": [],
+    "newEnvironmentVariables": [],
+    "databasePermissionChanges": [],
+    "requestedTimeouts": {
+      "teamManagement": 60,
+      "adminAuth": 20
+    },
+    "clientUploaded": true,
+    "clientVersion": "0.1.2",
+    "clientBytes": 1696402,
+    "reviewSubmitted": false,
+    "officialRelease": false,
+    "publicAdminHosting": false
+  },
+  "localPreparation": {
+    "at": "2026-11-27T02:59:28.364Z",
+    "builds": [
+      {
+        "name": "admin",
+        "directory": "dist/admin",
+        "command": "npm run build:admin",
+        "status": "passed",
+        "fileCount": 133,
+        "totalBytes": 1530058
+      },
+      {
+        "name": "h5",
+        "directory": "dist/build/h5",
+        "command": "npm run build:h5",
+        "status": "passed",
+        "fileCount": 161,
+        "totalBytes": 1897875
+      },
+      {
+        "name": "mpWeixin",
+        "directory": "dist/build/mp-weixin",
+        "command": "npm run build:mp-weixin",
+        "status": "passed",
+        "fileCount": 307,
+        "totalBytes": 1696402
+      }
+    ],
+    "sourceHashes": {
+      "cloudfunctions/teamManagement/registration-attachments.js": "2380cfeac8d29de400ec7ed1e85ae6f76721c2567f794ad6c64b29fd5b935a5f",
+      "cloudfunctions/adminAuth/registration-attachments.js": "2380cfeac8d29de400ec7ed1e85ae6f76721c2567f794ad6c64b29fd5b935a5f",
+      "cloudfunctions/teamManagement/registrations.js": "5661dc1d1bbb2f693d5c02966f8d1c05a379f5f3d905d53152748b096a6ca4e6",
+      "cloudfunctions/adminAuth/registrations.js": "34bd5bdf3e90ecdae23668d6fd53aa50b86e867fe2a3ab429d8a7cf052d65185",
+      "cloudfunctions/teamManagement/index.js": "6eb2f260c2cafbf5ff933d4779fde7e3f359747cdb554d1db074ba3a9b73d43f",
+      "cloudfunctions/adminAuth/index.js": "04be99d671dae587196bd17b0ab225ff4ec50314010932ae12a127556590d29f",
+      "scripts/sync-registration-model.mjs": "dcd1a1447c5a4a988d0c1995f866f233ba4ee0d04153a02e83f993cf0e92a6aa",
+      "src/domain/registration.ts": "a1c4fba7c26e6fde9c06acaf938ce5585952f20b3dfb7b0bc2e4cb99f4c6f47d",
+      "src/composables/useRegistrationFileHistory.ts": "0a04683c9222ccd5bae816a93a73ee7968f5cacad4650bb09f4805c47493990a",
+      "src/services/registrations.ts": "901789006f0fb71ee55137fdc588a235c7498391df9d09ec205e562adbf0ff21",
+      "src/services/recovery-write.ts": "aee0e59fc11a41d94540e75b6200f3a7a38d616103fe62c61c9cd851217369fb",
+      "src/pages/registration/manage.vue": "ac6641c3815dfc7efce833244a5808e98c49308e3fc59ca878f06eb1e96d92b8",
+      "admin/src/Registrations.vue": "4d20296cb17ee2d163b7f60d37d7d258b24a07b317a11d576799ee81dbd9d72a",
+      "admin/src/api.ts": "8acdafd3a991d61322665f072c87b13f34889403797930ef67dc2cbbcec4b607",
+      "src/styles/global.scss": "b78d0e3e7f7934540465e8b669915296bca80ee20ca694c87567aef05f855927",
+      "admin/src/styles.css": "fc5e1b687c8023362a88f9ff400e058903530fad6287fd8f8d41943efd230937",
+      "scripts/verify-registrations.mjs": "f72c74431b9a040a5e9bb8f8a0c5900e64ab17303f54b0f5d36805b20c55cb2b",
+      "tests/registrations.test.ts": "e6bb7b84056566780ccfc345a34817d04c8fb44f542fe6c7427c9df49fad333b",
+      "tests/registration-history-client.test.ts": "c171d238b686a64fa4fdc140e50d768c71f2d02d211b72e070bb8552a78baca6",
+      "tests/profile-pages-lifecycle.test.ts": "f62e5a067d9fc63ac7dafcab033c2b90cc3156310f4de44245487482ad1d2195",
+      "tests/wechat-cloud.test.ts": "0f63d2016a7530d61ace9949538cee119426d783f8777a0c46ce8996094e40ae",
+      "tests/helpers/registration-store.cjs": "e2750a8efb2ef1f216388cccf7f2c41f8275900d19e7bd920befac23524096cc"
+    },
+    "priorVerifiedTests": 473,
+    "priorBrowserGroups": 15,
+    "testsRerunInDeploymentPreparation": false
+  },
+  "inspection": {
+    "status": "passed",
+    "at": "2026-11-27T03:13:49.442Z",
+    "collections": 20,
+    "records": 265,
+    "originalAssets": 32,
+    "previousTeardownBaselineUnchanged": true,
+    "realWechatActorReady": true,
+    "existingOwnerHistoryActionSupported": true,
+    "existingOwnerHistoryCount": 0,
+    "anotherOwnerHistoryDenied": true,
+    "businessWrites": false
+  },
+  "cloudNonemptyHistoryAcceptance": {
+    "executed": true,
+    "businessWrites": true,
+    "status": "passed",
+    "checks": [
+      {
+        "name": "current local backend logs into actual customer HTTPS without mocked success"
+      },
+      {
+        "name": "dedicated simulated event uses existing real owner and team; no schedule or identity created"
+      },
+      {
+        "name": "replacing A with B makes A historical; current B excluded, owner/admin metadata equal and all signed bytes match",
+        "downloads": [
+          {
+            "extension": "pdf",
+            "bytes": 622,
+            "sha256Matches": true,
+            "owner": true
+          },
+          {
+            "extension": "pdf",
+            "bytes": 622,
+            "sha256Matches": true,
+            "owner": false
+          },
+          {
+            "extension": "png",
+            "bytes": 9580,
+            "sha256Matches": true,
+            "owner": true
+          },
+          {
+            "extension": "png",
+            "bytes": 9580,
+            "sha256Matches": true,
+            "owner": false
+          }
+        ],
+        "initialSubmitRetryIdempotent": true,
+        "storageMetadataAbsent": true
+      },
+      {
+        "name": "anonymous/forged session, another owner, cross-registration file, stale version and invalid cursor rejected; valid cursor filters current file"
+      },
+      {
+        "name": "real WeChat simulator expands nonempty historical attachment metadata",
+        "stage": "nonempty-history",
+        "currentAndHistoricalSeparated": true,
+        "firstSubmissionTimeVisible": true,
+        "screenshot": "nonempty-history-native.png"
+      },
+      {
+        "name": "actual backend 1440/390/320 layouts and native page render history; real 409 clears obsolete rows and explicit reload recovers",
+        "mockedSuccess": false,
+        "version": 3,
+        "screenshots": true
+      },
+      {
+        "name": "real WeChat simulator expands nonempty historical attachment metadata",
+        "stage": "closed-history",
+        "currentAndHistoricalSeparated": true,
+        "firstSubmissionTimeVisible": true,
+        "screenshot": "closed-history-native.png"
+      },
+      {
+        "name": "reuse preserves both first-submission timestamps; cancelled/hidden/deadline-locked event keeps authorized historical reading and download",
+        "successfulTeamSubmissions": 4,
+        "registrationVersion": 6
+      },
+      {
+        "name": "cleanup scope contains exactly this run two files and preserves final objects during normal lease",
+        "deferredSessions": 2,
+        "leaseTimestampUnmodified": true
+      },
+      {
+        "name": "normal cleaner removes two staging chunks, protects historical/current final files and repeats with zero removals; downloads still match",
+        "removedObjects": 2,
+        "retainedFinals": 2
+      }
+    ],
+    "failure": null,
+    "pageErrors": [],
+    "loggedOut": true,
+    "oldSessionRejected": true,
+    "completedAt": "2026-11-27T03:36:37.208Z"
+  },
+  "readback": {
+    "startedAt": "2026-11-27T03:36:52.195Z",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "collections": [
+      {
+        "name": "users",
+        "before": 2,
+        "after": 2,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "leaderTeamBindings",
+        "before": 2,
+        "after": 2,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "teams",
+        "before": 9,
+        "after": 9,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "players",
+        "before": 41,
+        "after": 41,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "competitions",
+        "before": 13,
+        "after": 14,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "registrations",
+        "before": 21,
+        "after": 22,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "registrationFiles",
+        "before": 15,
+        "after": 17,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "matches",
+        "before": 20,
+        "after": 20,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "resultRevisions",
+        "before": 85,
+        "after": 85,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "newsArticles",
+        "before": 3,
+        "after": 3,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "newsImages",
+        "before": 6,
+        "after": 6,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "teamBadges",
+        "before": 4,
+        "after": 4,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "platformSettings",
+        "before": 1,
+        "after": 1,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "matchLiveEntries",
+        "before": 31,
+        "after": 31,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "matchLiveImages",
+        "before": 8,
+        "after": 8,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "evaluationConfigs",
+        "before": 1,
+        "after": 1,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "playerRatings",
+        "before": 0,
+        "after": 0,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "playerComments",
+        "before": 0,
+        "after": 0,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "playerAwards",
+        "before": 1,
+        "after": 1,
+        "originalRecordsPreserved": true
+      },
+      {
+        "name": "platformImages",
+        "before": 2,
+        "after": 2,
+        "originalRecordsPreserved": true
+      }
+    ],
+    "retainedFinals": [
+      {
+        "extension": "pdf",
+        "bytes": 622,
+        "sha256": "a1b8eda891523f6a45f6ae9b4bf25982d24162c9592c089a17f603d573e2a3b8",
+        "independentDownloadMatches": true,
+        "historical": true
+      },
+      {
+        "extension": "png",
+        "bytes": 9580,
+        "sha256": "2adb767d5524e8cf09854dc0bac06de7495e3d52a88149cb4d889c9cfede7d0f",
+        "independentDownloadMatches": true,
+        "historical": false
+      }
+    ],
+    "deletedObjects": [
+      {
+        "kind": "staging",
+        "httpStatus": 404,
+        "storageCode": "NoSuchKey"
+      },
+      {
+        "kind": "staging",
+        "httpStatus": 404,
+        "storageCode": "NoSuchKey"
+      }
+    ],
+    "originalBusinessPreserved": true,
+    "referencesValid": true,
+    "teamVersionIncrement": 4,
+    "simulatedEvent": {
+      "hidden": true,
+      "registrationDisabled": true,
+      "countsZero": true,
+      "registrationCancelled": true,
+      "version": 6,
+      "history": 6,
+      "noScheduleCreated": true
+    },
+    "beforeRecords": 265,
+    "afterRecords": 269,
+    "backupCapacity": {
+      "limit": 32,
+      "beforeAssets": 32,
+      "additionalTestFinals": 2,
+      "teardownRequiredBeforeFinalBackup": true,
+      "projectedAssetsAfterTeardown": 32,
+      "backupRestoreNotExecuted": true
+    },
+    "status": "passed",
+    "completedAt": "2026-11-27T03:37:26.338Z"
+  },
+  "teardown": {
+    "status": "passed",
+    "completedAt": "2026-11-27T07:07:01.130Z",
+    "originalRecords": 265,
+    "collections": 20,
+    "originalBusinessPreserved": true,
+    "teamVersionIncrement": 4,
+    "testRecordsRemoved": 4,
+    "testFinalObjectsRemoved": 2,
+    "originalAssetsPreserved": 32,
+    "backupCapacityRestored": true,
+    "wholeBackupRestoreNotExecuted": true
+  },
+  "nativeVisible": {
+    "status": "passed",
+    "at": "2026-11-27T03:28:38.476Z",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "actualSimulator": true,
+    "physicalPhone": false,
+    "nonemptyHistoricalFileVisible": true,
+    "firstSubmittedAtVisible": true,
+    "screenshot": "closed-history-native-visible.png"
+  },
+  "browserDownload": {
+    "startedAt": "2026-11-27T03:31:17.227Z",
+    "scope": "Actual historical download button against customer HTTPS; cancelled, hidden and deadline-locked simulated registration.",
+    "pageErrors": [],
+    "businessWrites": false,
+    "status": "passed",
+    "actualButtonClicked": true,
+    "actualPopupCreated": true,
+    "actualSignedDownloadBytes": 622,
+    "sha256Matches": true,
+    "cancelledHiddenDeadlineLocked": true,
+    "noMockedSuccess": true,
+    "loggedOut": true,
+    "oldSessionRejected": true,
+    "completedAt": "2026-11-27T03:35:59.534Z"
+  },
+  "visualReview": {
+    "status": "passed",
+    "at": "2026-11-27T03:37:23.735Z",
+    "sourceFilesUnchanged": 22,
+    "screenshotsReviewed": [
+      "nonempty-history-1440.png",
+      "nonempty-history-320.png",
+      "history-conflict-390.png",
+      "closed-history-native-visible.png"
+    ],
+    "longNamesWrap": true,
+    "historyTimeAndButtonsVisible": true,
+    "conflictMessageAndReloadVisible": true,
+    "physicalDevice": false
+  },
+  "limitations": [
+    "One real WeChat owner and actual customer administrator; no second genuine account or physical phone.",
+    "Client 0.1.2 uploaded, not submitted for review or officially released.",
+    "Existing local admin at 5174; no public hosting.",
+    "Two genuine cloud attachment records; large pagination remains local 45-record service and 22-record Vue evidence.",
+    "Fixture bytes through real cloud upload APIs; native message-file chooser and document opening are not physically verified."
+  ],
+  "wholeCustomerSignoff": false,
+  "sensitiveMaterialExcluded": true,
+  "teardownTasks": [
+    {
+      "index": 0,
+      "tool": "cloud_db_write_doc",
+      "summary": "remove-own-D05-registrations",
+      "status": "success"
+    },
+    {
+      "index": 1,
+      "tool": "cloud_db_write_doc",
+      "summary": "remove-own-D05-registrationFiles",
+      "status": "success"
+    },
+    {
+      "index": 2,
+      "tool": "cloud_db_write_doc",
+      "summary": "remove-own-D05-competitions",
+      "status": "success"
+    },
+    {
+      "index": 3,
+      "tool": "cloud_manage_storage",
+      "summary": "remove-own-final-f_ff806e0ee70e4dbecd2c8f49ec1ebbb2",
+      "status": "success"
+    },
+    {
+      "index": 4,
+      "tool": "cloud_manage_storage",
+      "summary": "remove-own-final-f_ffe227e3a43c51ef6a4cd37800697943",
+      "status": "success"
+    }
+  ],
+  "pendingTasks": []
+}

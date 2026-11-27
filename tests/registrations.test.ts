@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {createRequire} from 'node:module'
 import {readFile} from 'node:fs/promises'
-import {parseRegistration,parseRegistrationPage,parsePreparation,parseFileLink} from '../src/domain/registration'
+import {parseRegistration,parseRegistrationPage,parsePreparation,parseFileLink,parseRegistrationFileHistory} from '../src/domain/registration'
 const require=createRequire(import.meta.url)
 const {createRegistrationMemory}=require('./helpers/registration-store.cjs')
 const {createRegistrationService,registrationId}=require('../cloudfunctions/teamManagement/registrations')
@@ -30,6 +30,69 @@ test('submission stores five fields and immutable files, requires review, snapsh
  assert.deepEqual(await s.submit(),r);assert.equal(s.read('competitions',cid).registrationStats.occupied,1);assert.equal(s.read('teams','t_'+s.uid).version,2)
  assert.equal(parseRegistrationPage(await s.service({action:'registrations.listMine'})).registrations.length,1);assert.equal(parsePreparation(await s.service({action:'registrations.prepare',competitionId:cid})).registration?.id,r.registration.id)
  assert.equal((await s.review(parsed)).registration.status,'approved');assert.equal((await s.submit()).registration.status,'approved')
+})
+test('replaced attachments remain privately readable, first binding time is stable, and reads change no records',async()=>{
+ const s=fixture(),first=(await s.submit()).registration,firstTime=s.read('registrationFiles',fid).firstSubmittedAt
+ assert.equal(firstTime,new Date(s.clock.value).toISOString())
+ assert.deepEqual(parseRegistrationFileHistory(await s.service({action:'registrations.historyFiles',id:first.id,expectedVersion:first.version}),first.id,first.version).files,[])
+ const nextId='f_'+'d'.repeat(32)
+ s.seed('registrationFiles',nextId,{...s.read('registrationFiles',fid),registrationId:undefined,firstSubmittedAt:undefined,name:'更新名单.xlsx',extension:'xlsx',createdAt:s.clock.value})
+ s.clock.value+=1000
+ const replaced=(await s.submit({attachmentIds:[nextId],expectedVersion:1,requestId:'b'.repeat(32)})).registration
+ const before=structuredClone([...s.records])
+ for(const read of [e=>s.service(e),e=>s.admin({...e,token:'test-token'})]){
+  const result=await read({action:'registrations.historyFiles',id:first.id,expectedVersion:replaced.version})
+  const page=parseRegistrationFileHistory(result,first.id,replaced.version)
+  assert.equal(page.files.length,1);assert.equal(page.files[0].id,fid)
+  assert.equal(page.files[0].firstSubmittedAt,firstTime);assert.equal(page.files[0].uploadedAt,null)
+  assert.equal(JSON.stringify(result).includes('private-original'),false)
+  assert.equal('ownerUserId' in result.files[0],false)
+  assert.equal((await read({action:'registrations.fileLink',id:first.id,fileId:fid})).ok,true)
+ }
+ assert.deepEqual([...s.records],before)
+ s.clock.value+=1000
+ assert.equal((await s.submit({expectedVersion:2,requestId:'c'.repeat(32)})).ok,true)
+ assert.equal(s.read('registrationFiles',fid).firstSubmittedAt,firstTime,'reusing a historical file must not overwrite its first submission time')
+})
+test('historical file listing and signing reject other owners, other registrations, drafts and forged scopes',async()=>{
+ const s=fixture(),r=(await s.submit()).registration,oldId='f_'+'1'.repeat(32)
+ s.seed('registrationFiles',oldId,{...s.read('registrationFiles',fid),name:'历史名单.pdf'})
+ const request={action:'registrations.historyFiles',id:r.id,expectedVersion:r.version}
+ assert.equal((await s.handler('owner-b')(request)).error.code,'NOT_FOUND')
+ assert.equal((await s.admin(request)).error.code,'UNAUTHORIZED')
+ for(const extra of [{ownerUserId:s.uid},{registrationId:r.id},{fileID:'forged'},{cursor:{}},{expectedVersion:0}])assert.equal((await s.service({...request,...extra})).error.code,'INVALID_ARGUMENT')
+ const foreign={...s.read('registrationFiles',oldId),ownerUserId:userId(APP_ID,'owner-b')}
+ for(const extra of [{ownerUserId:foreign.ownerUserId},{competitionId:'c_'+'1'.repeat(32)},{registrationId:'r_'+'1'.repeat(64)},{registrationId:null},{status:'uploading'},{removedFileIDs:['private-original']}]){
+  s.seed('registrationFiles',oldId,{...s.read('registrationFiles',fid),...extra})
+  for(const read of [e=>s.service(e),e=>s.admin({...e,token:'test-token'})])assert.equal((await read({action:'registrations.fileLink',id:r.id,fileId:oldId})).error.code,'NOT_FOUND')
+ }
+ assert.equal((await s.handler('owner-b')({action:'registrations.fileLink',id:r.id,fileId:oldId})).error.code,'NOT_FOUND')
+ s.seed('registrationFiles',oldId,{...s.read('registrationFiles',fid)})
+ assert.equal((await s.handler('owner-a',false)({action:'registrations.fileLink',id:r.id,fileId:oldId})).error.code,'UPLOAD_UNAVAILABLE')
+})
+test('historical attachment pagination remains bounded beyond the twenty-entry activity timeline',async()=>{
+ const s=fixture(),r=(await s.submit()).registration
+ for(let i=1;i<=45;i++)s.seed('registrationFiles','f_'+i.toString(16).padStart(32,'0'),{...s.read('registrationFiles',fid),name:`历史名单${i}.pdf`,createdAt:s.clock.value-i*1000,firstSubmittedAt:undefined})
+ const all:string[]=[];let cursor:string|undefined;let pages=0
+ do{
+  const result=await s.service({action:'registrations.historyFiles',id:r.id,expectedVersion:r.version,...(cursor?{cursor}:{})})
+  const p=parseRegistrationFileHistory(result,r.id,r.version)
+  assert.ok(p.files.length<=20);all.push(...p.files.map(f=>f.id));cursor=p.nextCursor||undefined;pages++
+  assert.ok(p.files.every(f=>f.firstSubmittedAt===null&&f.uploadedAt!==null))
+ }while(cursor)
+ assert.equal(pages,3);assert.equal(all.length,45);assert.equal(new Set(all).size,45);assert.equal(all.includes(fid),false)
+ assert.equal(s.read('registrations',r.id).history.length,1,'file history is independent of the recent-20 activity list')
+})
+test('history pagination rejects stale versions and concurrent changes; old bindings never gain invented dates',async()=>{
+ const s=fixture(),r=(await s.submit()).registration,request={action:'registrations.historyFiles',id:r.id,expectedVersion:1}
+ const file=s.read('registrationFiles',fid);delete file.firstSubmittedAt;s.seed('registrationFiles',fid,file)
+ assert.equal((await s.submit({expectedVersion:1,requestId:'b'.repeat(32)})).ok,true)
+ assert.equal(s.read('registrationFiles',fid).firstSubmittedAt,undefined)
+ assert.equal((await s.service(request)).error.code,'CONFLICT')
+ assert.equal((await s.admin({...request,token:'test-token'})).error.code,'CONFLICT')
+ const store={...s.registrationStore,listBoundFiles:async(args:any)=>{const rows=await s.registrationStore.listBoundFiles(args);s.seed('registrations',r.id,{...s.read('registrations',r.id),version:3});return rows}}
+ const service=createRegistrationService({store,context:()=>({OPENID:'owner-a',APPID:APP_ID}),now:()=>s.clock.value,logger:{error(){}}})
+ assert.equal((await service({...request,expectedVersion:2})).error.code,'CONFLICT')
 })
 test('last-place races never overbook, rejection releases slot and approved edits reenter review',async()=>{
  const s=fixture();const results=await Promise.all([s.submit(),s.handler('owner-b')({...event,attachmentIds:[fid2]})]);assert.equal(results.filter(r=>r.ok).length,1);assert.equal(results[1].error.code,'CAPACITY_FULL')

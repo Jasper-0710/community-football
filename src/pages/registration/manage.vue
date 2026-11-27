@@ -4,14 +4,16 @@ import {onLoad,onShow,onUnload} from '@dcloudio/uni-app'
 import AppShell from '@/components/AppShell.vue'
 import AppIcon from '@/components/AppIcon.vue'
 import {useUserProfile} from '@/composables/useUserProfile'
+import {useRegistrationFileHistory} from '@/composables/useRegistrationFileHistory'
 import {teamDistricts,teamRequestId} from '@/domain/team'
 import {competitionTime} from '@/domain/competition'
 import {registrationStates,fileSize,type RegistrationDetail,type RegistrationPreparation,type RegistrationForm} from '@/domain/registration'
-import {prepareRegistration,getMyRegistration,submitRegistration,cancelRegistration,chooseRegistrationFiles,uploadRegistrationFile,discardRegistrationFile,openRegistrationFile,type UploadDraft} from '@/services/registrations'
+import {prepareRegistration,getMyRegistration,submitRegistration,cancelRegistration,chooseRegistrationFiles,uploadRegistrationFile,discardRegistrationFile,openRegistrationFile,registrationFileHistory,type UploadDraft} from '@/services/registrations'
 const {profile,loading:profileLoading,error:profileError,supported,login}=useUserProfile()
 const confirming=ref(false),submitting=ref(false)
 const ready=ref(false),loading=ref(false),busy=ref(false),editing=ref(false),uncertain=ref(false),error=ref(''),notice=ref(''),locked=ref(false)
 const preparation=ref<RegistrationPreparation|null>(null),record=ref<RegistrationDetail|null>(null),deadline=ref<string|null>(null),drafts=ref<UploadDraft[]>([])
+const {expanded:historyExpanded,loaded:historyLoaded,loading:historyLoading,error:historyError,stale:historyStale,files:historyFiles,cursor:historyCursor,load:loadHistory,toggle:toggleHistory}=useRegistrationFileHistory(record,registrationFileHistory)
 const form=reactive({teamName:'',district:'',project:'',leaderName:'',contactPhone:''})
 let competitionId='',id='',generation=0,visible=true
 const title=computed(()=>record.value?.competitionName||preparation.value?.competition.name||'球队报名')
@@ -131,6 +133,17 @@ async function openFile(fileId:string){if(!record.value||busy.value)return;const
   <view class="registration-facts"><view><text>领队姓名</text><text>{{ record.form.leaderName }}</text></view><view><text>联系方式</text><text>{{ record.form.contactPhone }}</text></view><view><text>提交时间</text><text>{{ competitionTime(record.submittedAt) }}</text></view><view><text>报名截止</text><text>{{ competitionTime(deadline) }}</text></view></view>
   <view class="registration-materials"><text class="h3">已提交材料 · {{ record.attachments.length }}份</text><view v-for="f in record.attachments" :key="f.id" class="registration-file"><view class="file-symbol">{{ f.extension.toUpperCase() }}</view><view class="file-copy"><text>{{ f.name }}</text><text class="muted">{{ fileSize(f.size) }}</text></view><button class="ui-button text-button" :disabled="busy" @click="openFile(f.id)">查看</button></view></view>
   <text v-if="locked" class="info-note">报名已截止，资料修改与撤销已锁定。</text><view v-else class="registration-footer"><text class="muted">修改资料后须重新审核；撤销会释放名额。</text><view><button class="ui-button outline-button" :disabled="busy||uncertain" @click="edit">{{ ['rejected','cancelled'].includes(record.status)?'重新报名':'修改报名资料' }}</button><button v-if="record.status!=='cancelled'" class="ui-button text-button danger-text" :disabled="busy||uncertain" @click="cancel">撤销报名</button></view></view>
+ </view>
+ <view v-if="record&&!editing" class="panel registration-file-history">
+  <view class="section-heading"><view><text class="h3">历史报名材料</text><text class="section-subtitle">查看曾提交、现已替换的附件</text></view><button class="ui-button text-button" :disabled="busy||historyLoading" :aria-expanded="historyExpanded" @click="toggleHistory">{{ historyExpanded?'收起历史材料':'查看历史材料' }}</button></view>
+  <template v-if="historyExpanded">
+   <text class="muted">仅本人和管理员可查看。历史材料仅供查阅，不作为本次审核材料，也不代表完整的历次提交批次。</text>
+   <text v-if="historyLoading" class="info-note" role="status">正在读取历史材料…</text>
+   <view v-if="historyError" class="team-message error" role="alert"><text>{{ historyError }}</text><button class="ui-button outline-button" :disabled="busy||historyLoading" @click="historyStale?load():loadHistory(!!historyCursor)">{{ historyStale?'重新读取报名':'重试读取历史材料' }}</button></view>
+   <view v-for="f in historyFiles" :key="f.id" class="registration-file"><view class="file-symbol">{{ f.extension.toUpperCase() }}</view><view class="file-copy"><text>{{ f.name }}</text><text class="muted">{{ fileSize(f.size) }} · 历史附件</text><text class="muted">{{ f.uploadedAt?`上传于 ${competitionTime(f.uploadedAt)}`:'上传时间未记录' }}</text><text class="muted">{{ f.firstSubmittedAt?`首次提交于 ${competitionTime(f.firstSubmittedAt)}`:'旧材料未记录首次提交时间' }}</text></view><button class="ui-button text-button" :disabled="busy||historyStale" @click="openFile(f.id)">查看</button></view>
+   <text v-if="historyLoaded&&!historyLoading&&!historyFiles.length" class="info-note">{{ historyCursor?'本批没有历史附件，可继续加载。':'暂无已替换的历史附件。' }}</text>
+   <button v-if="historyCursor&&!historyError" class="ui-button outline-button history-more" :disabled="busy||historyLoading" @click="loadHistory(true)">加载更多历史材料</button>
+  </template>
  </view>
  <template v-if="editing&&preparation?.team">
  <view class="panel registration-rules"><text class="h3">本赛事报名须知</text><view v-if="config" class="registration-rule-grid"><view><text class="fact-label">球队名额</text><text>{{ config.teamLimit===null?'不限额':`共${config.teamLimit}队 · 已占${preparation.competition.registrationStats.occupied}队` }}</text></view><view><text class="fact-label">每队参赛人数</text><text>{{ config.minPlayers }}–{{ config.maxPlayers }}人</text></view></view><text class="muted">截止：{{ competitionTime(deadline) }}（北京时间）</text><text class="muted">请在材料中提供完整参赛名单。人数由管理员审核材料时核对。</text><text v-if="!config" class="info-note">赛事报名安排尚未完善，请稍后再试。</text><text v-if="!preparation.uploadsEnabled" class="info-note">报名材料上传暂未开放，暂时无法提交报名。</text><text v-if="locked" class="info-note">报名已截止，当前资料已锁定。</text></view>

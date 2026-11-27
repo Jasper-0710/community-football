@@ -1,0 +1,372 @@
+{
+  "date": "2026-11-26",
+  "generatedAt": "2026-11-27T02:30:39.627Z",
+  "scope": "D05 client patch upload, existing local admin update and actual customer-cloud simulated nonempty registration/attachment business closure. Independent data/storage audit. Not physical-device or whole-customer sign-off.",
+  "environment": "cloud1-d6gzg20x709d7f6c1",
+  "status": "passed-with-device-and-account-limitations",
+  "deployment": {
+    "clientUploaded": true,
+    "clientVersion": "0.1.0",
+    "clientBytes": 1786270,
+    "officialRelease": false,
+    "reviewSubmitted": false,
+    "adminOrigin": "http://127.0.0.1:5174",
+    "adminUpdated": true,
+    "publicAdminHosting": false,
+    "backendChanged": false,
+    "backendRedeploymentNeeded": false,
+    "cloudSourceFilesMatched": 51,
+    "cloudSourceEqual": true
+  },
+  "changes": [
+    "Attachment parser reuses existing HTTPS validation without requiring the browser URL global; preserves the original signed URL and rejects empty names and unsafe addresses.",
+    "Retrying an attachment upload clears obsolete form errors while preserving uncertain-submission warnings and the reload requirement.",
+    "D05 browser transport now exports and invokes the existing D13 recovery write guard; failure output includes page errors and preview logs.",
+    "Admin explicit reload after uncertain review refreshes the list and statistics before reopening the detail; previously the committed approval detail disagreed with stale pending counters."
+  ],
+  "cloud": {
+    "checks": [
+      {
+        "name": "dedicated simulated event is open and real owner preparation confirms uploads enabled"
+      },
+      {
+        "name": "PDF, PNG, DOCX, XLSX and JPG upload, submit and owner/admin signed downloads match registered bytes",
+        "downloads": [
+          {
+            "extension": "pdf",
+            "bytes": 622,
+            "sha256Matches": true,
+            "owner": false
+          },
+          {
+            "extension": "pdf",
+            "bytes": 622,
+            "sha256Matches": true,
+            "owner": true
+          },
+          {
+            "extension": "png",
+            "bytes": 9580,
+            "sha256Matches": true,
+            "owner": false
+          },
+          {
+            "extension": "png",
+            "bytes": 9580,
+            "sha256Matches": true,
+            "owner": true
+          },
+          {
+            "extension": "docx",
+            "bytes": 927,
+            "sha256Matches": true,
+            "owner": false
+          },
+          {
+            "extension": "docx",
+            "bytes": 927,
+            "sha256Matches": true,
+            "owner": true
+          },
+          {
+            "extension": "xlsx",
+            "bytes": 1664,
+            "sha256Matches": true,
+            "owner": false
+          },
+          {
+            "extension": "xlsx",
+            "bytes": 1664,
+            "sha256Matches": true,
+            "owner": true
+          },
+          {
+            "extension": "jpg",
+            "bytes": 74721,
+            "sha256Matches": true,
+            "owner": false
+          },
+          {
+            "extension": "jpg",
+            "bytes": 74721,
+            "sha256Matches": true,
+            "owner": true
+          }
+        ]
+      },
+      {
+        "name": "10 MiB PDF completes 54 chunks; incomplete finish, invalid chunk, repeated start/chunk/finish are handled safely",
+        "bytes": 10485760,
+        "chunks": 54
+      },
+      {
+        "name": "actual admin approval commits once despite a corrupted client receipt; UI blocks repeats, explicit reload recovers and original request retry is idempotent",
+        "version": 2,
+        "history": 2
+      },
+      {
+        "name": "customer transaction accepts exactly one concurrent approve/reject decision; loser gets 409 and winner retry does not duplicate counters",
+        "winner": "approved",
+        "version": 4
+      },
+      {
+        "name": "real owner sees rejection reason, resubmits, cancels once and re-registers into pending; quota and my-registration list follow each transition"
+      },
+      {
+        "name": "real server deadline locks owner changes; isolated event ends cancelled, quota zero, registration disabled and hidden"
+      },
+      {
+        "name": "patched actual admin recovers detail, inbox and 0/1/1 counters after real committed approval loses its receipt; original-request replay is idempotent",
+        "version": 12,
+        "widths": [
+          1440,
+          390,
+          320
+        ]
+      },
+      {
+        "name": "updated simulator navigation reaches actual current cloud registration after connection recovery"
+      },
+      {
+        "name": "scoped preview has exactly seven test sessions and never deletes",
+        "sessions": 7,
+        "boundFinals": 6,
+        "deferredSessions": 0
+      },
+      {
+        "name": "scoped cleanup preserves six bound historical/current final files, removes only own staging/discarded objects, and all pages are idempotent",
+        "removedObjects": 61,
+        "boundFinals": 6
+      }
+    ],
+    "eventClearlyMarkedSimulated": true,
+    "realWechatActorCount": 1,
+    "fabricatedIdentity": false,
+    "formats": [
+      "pdf",
+      "png",
+      "docx",
+      "xlsx",
+      "jpg"
+    ],
+    "maximumAttachmentBytes": 10485760,
+    "maximumAttachmentChunks": 54,
+    "ownerAndAdminSmallFormatDownloads": 10,
+    "allDownloadHashesMatch": true,
+    "concurrentApproveReject": {
+      "winners": 1,
+      "losers": 1,
+      "loserHttpStatus": 409,
+      "winnerRequestRetryIdempotent": true
+    },
+    "lostCommittedReceipt": {
+      "beforePatch": "Detail reloaded as approved while list and cards remained pending 1 / approved 0 / occupied 1.",
+      "afterPatch": "Real committed approval receipt corrupted; explicit reload shows approved detail and inbox with pending 0 / approved 1 / occupied 1.",
+      "noRepeatedReview": true,
+      "originalRequestReplayIdempotent": true
+    },
+    "finalRegistration": {
+      "status": "cancelled",
+      "version": 13,
+      "historyEntries": 13
+    },
+    "finalEvent": {
+      "hidden": true,
+      "registrationDisabled": true,
+      "countsZero": true,
+      "registrationCancelled": true,
+      "version": 13,
+      "history": 13,
+      "noScheduleCreated": true
+    },
+    "normalUploadLeaseRespected": true,
+    "cleanup": {
+      "scope": "Only this run seven upload sessions after the maximum original file registry ID; original sessions excluded.",
+      "sessions": 7,
+      "removedObjects": 61,
+      "retainedBoundFinals": 6,
+      "independentRetainedDownloads": [
+        {
+          "extension": "png",
+          "bytes": 9580,
+          "sha256": "2adb767d5524e8cf09854dc0bac06de7495e3d52a88149cb4d889c9cfede7d0f",
+          "independentDownloadMatches": true,
+          "historical": true
+        },
+        {
+          "extension": "docx",
+          "bytes": 927,
+          "sha256": "b7867747366d52e34821e93de33143b894dbf1ce42c92fc95218a3a2357d24e9",
+          "independentDownloadMatches": true,
+          "historical": true
+        },
+        {
+          "extension": "pdf",
+          "bytes": 10485760,
+          "sha256": "b1daff618e58f0ee720e588bc69784939e558298e6b4516fa9dc4a2e5847fae0",
+          "independentDownloadMatches": true,
+          "historical": false
+        },
+        {
+          "extension": "xlsx",
+          "bytes": 1664,
+          "sha256": "d3625b0dcd8b57b9bcb90d98eabb017d423fbeb7fb58c503eb8e296320c5b3fb",
+          "independentDownloadMatches": true,
+          "historical": true
+        },
+        {
+          "extension": "pdf",
+          "bytes": 622,
+          "sha256": "a1b8eda891523f6a45f6ae9b4bf25982d24162c9592c089a17f603d573e2a3b8",
+          "independentDownloadMatches": true,
+          "historical": true
+        },
+        {
+          "extension": "jpg",
+          "bytes": 74721,
+          "sha256": "a21cb23a83dc9335368713bb22b9c9da42cd2e5ec29df612c0f49bf272f1cd10",
+          "independentDownloadMatches": true,
+          "historical": true
+        }
+      ],
+      "physicalAbsenceChecks": 61,
+      "physicalAbsenceHttp": 404,
+      "physicalAbsenceCode": "NoSuchKey",
+      "repeatRemovals": 0
+    },
+    "pageErrors": [],
+    "allAcceptanceSessionsLoggedOut": true
+  },
+  "audit": {
+    "collections": 20,
+    "beforeRecords": 265,
+    "afterBusinessRecords": 274,
+    "originalBusinessPreserved": true,
+    "teamVersionIncrement": 6,
+    "otherOriginalFieldsUnchanged": true,
+    "validReferences": true,
+    "originalAssets": 32,
+    "testAssetsTemporarilyAdd": 6,
+    "teardown": {
+      "status": "passed",
+      "completedAt": "2026-11-27T02:29:04.877Z",
+      "originalRecords": 265,
+      "collections": 20,
+      "originalBusinessPreserved": true,
+      "teamVersionIncrement": 6,
+      "testRecordsRemoved": 9,
+      "testFinalObjectsRemoved": 6,
+      "originalAssetsPreserved": 32,
+      "backupCapacityRestored": true,
+      "wholeBackupRestoreNotExecuted": true
+    },
+    "wholeBackupRestoreNotExecuted": true
+  },
+  "native": {
+    "startedAt": "2026-11-26T09:35:50.974Z",
+    "environment": "cloud1-d6gzg20x709d7f6c1",
+    "scope": "Updated WeChat developer-tools simulator; current real actor; read-only registration detail. No physical phone or native file chooser/document-open acceptance.",
+    "currentRoute": "pages/registration/manage",
+    "registrationSummaryFound": true,
+    "currentCloudStatus": "cancelled",
+    "deadlineLocked": true,
+    "currentAttachmentBytes": 10485760,
+    "screenshot": "native-final-registration.png",
+    "completedAt": "2026-11-26T09:35:58.078Z",
+    "status": "passed",
+    "visualReview": "Simulator screenshot confirms actual dedicated registration title and cancelled state; deadline and current 10 MiB attachment independently read through owner-authorized cloud call."
+  },
+  "validation": {
+    "priorLocalFullTests": {
+      "total": 463,
+      "passed": 463,
+      "failed": 0
+    },
+    "priorLocalRegistrationSubset": {
+      "total": 40,
+      "passed": 40,
+      "subsetOfFullTests": true
+    },
+    "currentBrowser": {
+      "groups": 13,
+      "checks": [
+        "single project defaults correctly; missing leader, invalid phone, missing material and failed upload show visible feedback at 320px without submitting; successful retry dismisses the obsolete alert and toast",
+        "320px and 390px form sections, files and buttons have no horizontal overflow and text is at least 14px",
+        "cancel confirmation writes nothing; submission failure stays visible and blocks duplicate submissions until explicit reload; retry reaches pending review",
+        "approval uses the current event player range and requires material confirmation; each missing or invalid field shows nearby visible feedback at 320px without writing a review",
+        "registration submitted under 5–18 is approved for 2 players after the event changes to 2–18; original submission and approval ranges are both retained and the leader can read the result",
+        "a detail left open during another settings change reloads current rules before validation; 2 players is rejected after tightening to 4–18, with no review write",
+        "admin can edit event configuration, reject with reason and release a place; leader sees rejection",
+        "uncertain review failures block repeats; committed lost receipts recover detail, inbox status and counters together without another review",
+        "resubmission returns to review; verified player count and approval feed the final participant list",
+        "editing approved information clears approval; cancellation requires confirmation and releases capacity",
+        "my registrations restores private records and deadline locks self-service actions",
+        "read failures hide stale records and recover through explicit retry",
+        "authenticated maintenance previews without deletion, removes expired temporary files, and retains submitted material at desktop/390/320 widths"
+      ],
+      "errors": [],
+      "generatedAt": "2026-11-26T09:29:29.330Z"
+    },
+    "newAdminRegressionBeforeFix": {
+      "actual": [
+        "1",
+        "0",
+        "1"
+      ],
+      "expected": [
+        "0",
+        "1",
+        "1"
+      ]
+    },
+    "currentAdminTypecheck": true,
+    "currentAdminBuild": true,
+    "clientBuildAndTypechecksFromPriorPatch": true
+  },
+  "interruptions": [
+    {
+      "issue": "First large automation payload failed before a chunk was stored.",
+      "reconciled": "Independent registry read showed zero chunks; same original upload request reused with equivalent compact test-fixture serialization."
+    },
+    {
+      "issue": "Large final merge lost its automation receipt.",
+      "reconciled": "Independent registry read showed ready, all 54 chunks and matching SHA-256; no repeated upload."
+    },
+    {
+      "issue": "Dedicated simulated registration window elapsed during interruption.",
+      "reconciled": "Only dedicated test event deadline extended through ordinary admin update; original events unchanged."
+    },
+    {
+      "issue": "Simulator navigation/tool TLS interruption.",
+      "reconciled": "One read-only retry recovered connection; later actual page navigation and screenshot passed."
+    },
+    {
+      "issue": "Ten-record database response truncated at about 64 KiB with full large-file inventory.",
+      "reconciled": "Read one registry at a time with separate metadata and chunk projections; reconstructed complete original records without changing cloud data."
+    }
+  ],
+  "remaining": [
+    "Physical iPhone/Android native message-file chooser, document opening, image preview and legitimate-domain behavior.",
+    "Second real-account login, reverse isolation and cross-device behavior; current scope is one real signed-in actor.",
+    "Two-owner last-place contention remains distinct from same-registration admin approve/reject concurrency.",
+    "Historical attachment browsing was outside the 11/26 cloud acceptance scope. The 11/27 local implementation is complete but remains undeployed; see 2026-11-27-d05-attachment-history.json.",
+    "No formal release/review or public admin hosting."
+  ],
+  "progress": {
+    "wholeRequirementsDeveloping": 29,
+    "wholeRequirementsSignedOff": 0,
+    "workbookArchiveVersion": "v2.58",
+    "workbookUpdatedInThisCloudStage": false
+  },
+  "git": {
+    "archivedCommit": "7499d70",
+    "remotePushVerified": false
+  },
+  "sensitiveMaterialExcluded": true,
+  "sourceHashes": {
+    "admin/src/Registrations.vue": "a3141dd48935695a3a86f57339dca3fbde0acf50f6497f4fcade41e22ccbe572",
+    "src/domain/registration.ts": "b63d5787d08248e96fcd1bbf25db825e47e58f889eae76fd01909f7d7254ca5b",
+    "src/pages/registration/manage.vue": "78e5ed6f85ee7b2ddc1797073dfeea2cb2b4e5b421db23b9dee1123ed8f30e90",
+    "scripts/verify-registrations.mjs": "34dfa3862544d49becec44ecf706977edd50ba938e02823807c10c6de1d45a16"
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "date": "2026-11-27",
+  "generatedAt": "2026-11-27T02:30:39.746Z",
+  "status": "local-passed-customer-deployment-pending",
+  "scope": "Historical registration attachment browsing for the owner and administrator. Local behavior and actual Vue page verification only; prior customer-cloud registration acceptance remains a separate dated artifact.",
+  "baseCommit": "7499d70",
+  "features": {
+    "privateLazyHistory": true,
+    "currentFilesExcluded": true,
+    "boundedPageSize": 20,
+    "compoundIndex": [
+      "registrationId",
+      "_id"
+    ],
+    "noRawStorageIdentifiersOrSignedLinksInHistory": true,
+    "historicalFileAuthorization": [
+      "ownerUserId",
+      "competitionId",
+      "registrationId",
+      "ready status"
+    ],
+    "existingUploadSwitchRespected": true,
+    "firstSubmittedAtRecordedOnlyForNewBindings": true,
+    "noInventedLegacySubmissionTimes": true,
+    "noCompleteSubmissionRevisionClaim": true,
+    "noRestoreOrDeleteActions": true,
+    "versionChangeClearsListAndRequiresReload": true,
+    "lateResponsesDiscardedOnAccountChangeAndUnmount": true,
+    "normalCleanupPreservesHistoricalFinals": true
+  },
+  "validation": {
+    "fullTests": 473,
+    "fullPassed": 473,
+    "newBehaviorTests": 10,
+    "targetedPriorRun": 57,
+    "browser": {
+      "groups": 15,
+      "checks": [
+        "single project defaults correctly; missing leader, invalid phone, missing material and failed upload show visible feedback at 320px without submitting; successful retry dismisses the obsolete alert and toast",
+        "320px and 390px form sections, files and buttons have no horizontal overflow and text is at least 14px",
+        "cancel confirmation writes nothing; submission failure stays visible and blocks duplicate submissions until explicit reload; retry reaches pending review",
+        "approval uses the current event player range and requires material confirmation; each missing or invalid field shows nearby visible feedback at 320px without writing a review",
+        "registration submitted under 5–18 is approved for 2 players after the event changes to 2–18; original submission and approval ranges are both retained and the leader can read the result",
+        "a detail left open during another settings change reloads current rules before validation; 2 players is rejected after tightening to 4–18, with no review write",
+        "admin can edit event configuration, reject with reason and release a place; leader sees rejection",
+        "uncertain review failures block repeats; committed lost receipts recover detail, inbox status and counters together without another review",
+        "resubmission returns to review; verified player count and approval feed the final participant list",
+        "editing approved information clears approval; cancellation requires confirmation and releases capacity",
+        "actual replace-and-resubmit creates a private historical file; leader and admin list 22 files over bounded pages, retry reads, sign old downloads and render at desktop/390/320 without inferring old submission dates",
+        "history paging detects a registration version change, hides stale private files and requires an explicit registration reload",
+        "my registrations restores private records and deadline locks self-service actions",
+        "read failures hide stale records and recover through explicit retry",
+        "authenticated maintenance previews without deletion, removes expired temporary files, and retains submitted material at desktop/390/320 widths"
+      ],
+      "errors": [],
+      "generatedAt": "2026-11-27T01:43:51.141Z",
+      "fileChooserAndWechatTransport": "Isolated test adapters, not physical-device or customer-cloud evidence.",
+      "historyPaginationCount": 22,
+      "backendPaginationCount": 45,
+      "adminHistoricalLinkPopup": "Authorized test-only destination fulfilled by a browser route; not a cloud file download.",
+      "wechatOpen": "Owner-authorized link requested; H5 correctly reports that native opening requires WeChat."
+    },
+    "clientTypecheck": true,
+    "adminTypecheck": true,
+    "registrationContract": true,
+    "builds": {
+      "admin": true,
+      "h5": true,
+      "mpWeixin": true
+    },
+    "visualReview": {
+      "widths": [
+        1440,
+        390,
+        320
+      ],
+      "overflow": false,
+      "reviewedCrops": [
+        "history-320.png: history heading, long names, timestamp fallback and view buttons",
+        "history-admin-320.png: history heading, long names, timestamp fallback and download buttons"
+      ]
+    },
+    "initialIssues": [
+      {
+        "issue": "Sandbox disallowed the tsx local IPC pipe.",
+        "resolution": "Full test run used approved execution outside the sandbox."
+      },
+      {
+        "issue": "Four existing lifecycle harness cases did not recognize the newly imported history composable.",
+        "resolution": "Harness imports the real composable; added actual-page logout with a pending history read. Final full run passes."
+      }
+    ]
+  },
+  "deployment": {
+    "customerFunctionsUpdated": false,
+    "customerIndexVerified": false,
+    "clientUploaded": false,
+    "adminBuilt": true,
+    "officialRelease": false,
+    "publicHosting": false,
+    "requiredFilesPerFunction": [
+      "index.js",
+      "registrations.js",
+      "registration-attachments.js"
+    ],
+    "newCollections": [],
+    "newEnvironmentVariables": [],
+    "databasePermissionChanges": []
+  },
+  "priorCustomerAcceptance": "2026-11-26-d05-cloud-acceptance.json",
+  "priorCustomerTeardown": {
+    "status": "passed",
+    "completedAt": "2026-11-27T02:29:04.877Z",
+    "originalRecords": 265,
+    "collections": 20,
+    "originalBusinessPreserved": true,
+    "teamVersionIncrement": 6,
+    "testRecordsRemoved": 9,
+    "testFinalObjectsRemoved": 6,
+    "originalAssetsPreserved": 32,
+    "backupCapacityRestored": true,
+    "wholeBackupRestoreNotExecuted": true
+  },
+  "remaining": [
+    "Deploy both functions, verify/create the registrationId,_id index and update the client before claiming cloud history browsing.",
+    "Customer nonempty history/download/cleanup verification.",
+    "Second genuine account reverse isolation and cross-device checks; two-owner last-place contention.",
+    "Physical iPhone/Android file chooser, document opening, image preview and domain behavior."
+  ],
+  "git": {
+    "committedInThisTurn": false,
+    "pushedInThisTurn": false
+  },
+  "wholeSignedOff": false,
+  "sourceHashes": {
+    "cloudfunctions/teamManagement/registration-attachments.js": "2380cfeac8d29de400ec7ed1e85ae6f76721c2567f794ad6c64b29fd5b935a5f",
+    "cloudfunctions/adminAuth/registration-attachments.js": "2380cfeac8d29de400ec7ed1e85ae6f76721c2567f794ad6c64b29fd5b935a5f",
+    "cloudfunctions/teamManagement/registrations.js": "5661dc1d1bbb2f693d5c02966f8d1c05a379f5f3d905d53152748b096a6ca4e6",
+    "cloudfunctions/adminAuth/registrations.js": "34bd5bdf3e90ecdae23668d6fd53aa50b86e867fe2a3ab429d8a7cf052d65185",
+    "cloudfunctions/teamManagement/index.js": "6eb2f260c2cafbf5ff933d4779fde7e3f359747cdb554d1db074ba3a9b73d43f",
+    "cloudfunctions/adminAuth/index.js": "04be99d671dae587196bd17b0ab225ff4ec50314010932ae12a127556590d29f",
+    "scripts/sync-registration-model.mjs": "dcd1a1447c5a4a988d0c1995f866f233ba4ee0d04153a02e83f993cf0e92a6aa",
+    "src/domain/registration.ts": "a1c4fba7c26e6fde9c06acaf938ce5585952f20b3dfb7b0bc2e4cb99f4c6f47d",
+    "src/composables/useRegistrationFileHistory.ts": "0a04683c9222ccd5bae816a93a73ee7968f5cacad4650bb09f4805c47493990a",
+    "src/services/registrations.ts": "901789006f0fb71ee55137fdc588a235c7498391df9d09ec205e562adbf0ff21",
+    "src/services/recovery-write.ts": "aee0e59fc11a41d94540e75b6200f3a7a38d616103fe62c61c9cd851217369fb",
+    "src/pages/registration/manage.vue": "ac6641c3815dfc7efce833244a5808e98c49308e3fc59ca878f06eb1e96d92b8",
+    "admin/src/Registrations.vue": "4d20296cb17ee2d163b7f60d37d7d258b24a07b317a11d576799ee81dbd9d72a",
+    "admin/src/api.ts": "8acdafd3a991d61322665f072c87b13f34889403797930ef67dc2cbbcec4b607",
+    "src/styles/global.scss": "b78d0e3e7f7934540465e8b669915296bca80ee20ca694c87567aef05f855927",
+    "admin/src/styles.css": "fc5e1b687c8023362a88f9ff400e058903530fad6287fd8f8d41943efd230937",
+    "scripts/verify-registrations.mjs": "f72c74431b9a040a5e9bb8f8a0c5900e64ab17303f54b0f5d36805b20c55cb2b",
+    "tests/registrations.test.ts": "e6bb7b84056566780ccfc345a34817d04c8fb44f542fe6c7427c9df49fad333b",
+    "tests/registration-history-client.test.ts": "c171d238b686a64fa4fdc140e50d768c71f2d02d211b72e070bb8552a78baca6",
+    "tests/profile-pages-lifecycle.test.ts": "f62e5a067d9fc63ac7dafcab033c2b90cc3156310f4de44245487482ad1d2195",
+    "tests/wechat-cloud.test.ts": "0f63d2016a7530d61ace9949538cee119426d783f8777a0c46ce8996094e40ae",
+    "tests/helpers/registration-store.cjs": "e2750a8efb2ef1f216388cccf7f2c41f8275900d19e7bd920befac23524096cc"
+  },
+  "sensitiveMaterialExcluded": true
+}

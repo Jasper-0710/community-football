@@ -50,7 +50,7 @@ const http=createHttpHandler(event=>{
  }
  return event.action==='registrations.cleanup'?cleanup(event):event.action?.startsWith('registrations.')?adminRegistrations(event):event.action?.startsWith('competitions.')?competitions(event):auth(event)
 },[adminBase,userBase],PUBLIC_ACTIONS)
-let failChunk=true,failSubmit=true,submitCalls=0,reviewCalls=0,failReview=false,loseReviewReceipt=false
+let failChunk=true,failSubmit=true,submitCalls=0,reviewCalls=0,failReview=false,loseReviewReceipt=false,failHistory=false,historyLinkCalls=[]
 const server=createServer({key:await readFile(join(certDir,'key.pem')),cert:await readFile(join(certDir,'cert.pem'))},async(req,res)=>{
  let body='';for await(const chunk of req)body+=chunk
  if(req.url.startsWith('/wx/')){
@@ -58,11 +58,13 @@ const server=createServer({key:await readFile(join(certDir,'key.pem')),cert:awai
   res.setHeader('Access-Control-Allow-Origin',userBase);res.setHeader('Access-Control-Allow-Headers','Content-Type')
   if(req.method==='OPTIONS'){res.writeHead(204);res.end();return}res.setHeader('Content-Type','application/json')
   const event=JSON.parse(body)
+  if(event.action==='registrations.fileLink')historyLinkCalls.push(event.fileId)
+  if(event.action==='registrations.historyFiles'&&failHistory){failHistory=false;res.end(JSON.stringify({ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'模拟历史材料读取中断，请重试。'}}));return}
   if(failChunk&&event.action==='files.chunk'){failChunk=false;res.end(JSON.stringify({ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'模拟传输中断，请重试上传。'}}));return}
   if(event.action==='registrations.submit'){submitCalls++;if(failSubmit){failSubmit=false;res.end(JSON.stringify({ok:false,error:{code:'SERVICE_UNAVAILABLE',message:'模拟报名服务暂不可用，请重新读取报名核对结果。'}}));return}}
   const fn=req.url==='/wx/userProfile'?profile:event.action?.startsWith('registrations.')?registrations:event.action?.startsWith('files.')?files:teams
   res.end(JSON.stringify(await fn(event)))
- }else{const r=await http({httpMethod:req.method,headers:req.headers,body});res.writeHead(r.statusCode,r.headers);if(loseReviewReceipt&&JSON.parse(body||'{}').action==='registrations.review'&&r.statusCode===200){loseReviewReceipt=false;res.end('{')}else res.end(r.body)}
+ }else{if(JSON.parse(body||'{}').action==='registrations.fileLink')historyLinkCalls.push(JSON.parse(body).fileId);const r=await http({httpMethod:req.method,headers:req.headers,body});res.writeHead(r.statusCode,r.headers);if(loseReviewReceipt&&JSON.parse(body||'{}').action==='registrations.review'&&r.statusCode===200){loseReviewReceipt=false;res.end('{')}else res.end(r.body)}
 })
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const endpoint=`https://127.0.0.1:${server.address().port}`
 process.env.VITE_ADMIN_API_URL=endpoint+'/api';process.env.VITE_COMPETITION_API_URL=endpoint+'/api'
@@ -170,6 +172,36 @@ try{
  await click('重新读取');await user.locator('.registration-summary .application-status.approved').waitFor();await click('修改报名资料');await fill('registration-leader','更新后的领队');await click('保存修改并重新审核');await user.locator('.uni-modal__btn').filter({hasText:'确认提交'}).click();await user.locator('.registration-summary').waitFor();assert.equal(saved().status,'pending');assert.equal(memory.read('competitions',cid).registrationStats.approved,0)
  await user.locator('.registration-summary').getByText('撤销报名',{exact:true}).click();await user.locator('.uni-modal__btn').filter({hasText:'取消'}).click();assert.equal(saved().status,'pending');await user.locator('.registration-summary').getByText('撤销报名',{exact:true}).click();await user.locator('.uni-modal__btn').filter({hasText:'撤销报名'}).click();await user.locator('.registration-summary .application-status.cancelled').waitFor();assert.equal(memory.read('competitions',cid).registrationStats.occupied,0)
  check('editing approved information clears approval; cancellation requires confirmation and releases capacity')
+ await click('查看历史材料');await user.getByText('暂无已替换的历史附件。',{exact:true}).waitFor();await click('收起历史材料')
+ const historical=saved().attachments[0]
+ await click('重新报名');await user.locator('.registration-form').waitFor();await user.locator('.upload-file').getByText('移除',{exact:true}).click()
+ await click('＋ 选择报名材料（0/5）');await user.getByText(/上传完成/).waitFor();await click('保存修改并重新审核');await user.locator('.uni-modal__btn').filter({hasText:'确认提交'}).click();await user.locator('.registration-summary').waitFor()
+ assert.notEqual(saved().attachments[0].id,historical.id)
+ failHistory=true;await click('查看历史材料');await user.getByText('模拟历史材料读取中断，请重试。',{exact:true}).waitFor();await click('重试读取历史材料')
+ await user.locator('.registration-file-history .registration-file').waitFor();assert.equal(await user.locator('.registration-file-history .registration-file').count(),1)
+ assert.match(await user.locator('.registration-file-history').innerText(),/首次提交于/)
+ const oldRegistry=memory.read('registrationFiles',historical.id)
+ for(let i=1;i<=21;i++)memory.seed('registrationFiles','f_'+i.toString(16).padStart(32,'0'),{...oldRegistry,name:i===1?'很长的历史报名材料名称用于检查手机窄屏换行与按钮布局.pdf':`旧名单${i}.pdf`,firstSubmittedAt:undefined})
+ await click('收起历史材料');await click('重新读取');await click('查看历史材料')
+ await user.getByText('加载更多历史材料',{exact:true}).waitFor();await click('加载更多历史材料');await user.waitForFunction(()=>document.querySelectorAll('.registration-file-history .registration-file').length===22)
+ assert.match(await user.locator('.registration-file-history').innerText(),/旧材料未记录首次提交时间/)
+ for(const width of [390,320]){await user.setViewportSize({width,height:844});await noOverflow(user);await snapshot(user,`history-${width}`)}
+ await user.locator('.registration-file-history .registration-file').first().getByText('查看',{exact:true}).click();await user.getByText('请在微信小程序中查看材料。',{exact:true}).waitFor();assert.equal(historyLinkCalls.includes('f_'+(1).toString(16).padStart(32,'0')),true)
+ await admin.getByLabel('报名状态',{exact:true}).selectOption('');await admin.getByRole('button',{name:'刷新报名',exact:true}).click();await admin.locator('.registration-inbox-item').click()
+ await admin.getByRole('button',{name:'查看历史材料',exact:true}).click();await admin.getByRole('button',{name:'加载更多历史材料',exact:true}).click();await admin.waitForFunction(()=>document.querySelectorAll('.history-file-row').length===22)
+ for(const width of [1440,390,320]){await admin.setViewportSize({width,height:width===1440?1000:844});await noOverflow(admin);await snapshot(admin,`history-admin-${width}`)}
+ await context.route('https://example.test/material.pdf',route=>route.fulfill({status:200,contentType:'text/html',body:'Authorized test-only historical attachment destination.'}))
+ const popupPromise=admin.waitForEvent('popup');await admin.locator('.history-file-row').first().getByRole('button',{name:'下载',exact:true}).click();const popup=await popupPromise;await popup.waitForURL('https://example.test/material.pdf');await popup.close()
+ assert.ok(historyLinkCalls.length>=2)
+ check('actual replace-and-resubmit creates a private historical file; leader and admin list 22 files over bounded pages, retry reads, sign old downloads and render at desktop/390/320 without inferring old submission dates')
+ // A new review invalidates the version attached to a previously loaded history page.
+ await click('收起历史材料');await click('重新读取');await click('查看历史材料');await user.getByText('加载更多历史材料',{exact:true}).waitFor()
+ const staleVersion=saved().version
+ await admin.getByLabel('核对后的参赛人数 *').fill('8');await admin.getByLabel('已核对报名材料与参赛要求').check();await admin.getByRole('button',{name:'审核通过',exact:true}).click();await admin.locator('.review-result').waitFor();assert.equal(saved().version,staleVersion+1)
+ await click('加载更多历史材料');await user.getByText('报名记录已更新，请重新读取后查看历史材料。',{exact:true}).waitFor();assert.equal(await user.locator('.registration-file-history .registration-file').count(),0)
+ await user.locator('.registration-file-history').getByText('重新读取报名',{exact:true}).click();assert.equal(await user.getByText('收起历史材料',{exact:true}).count(),0)
+ check('history paging detects a registration version change, hides stale private files and requires an explicit registration reload')
+ await user.locator('.registration-summary').getByText('撤销报名',{exact:true}).click();await user.locator('.uni-modal__btn').filter({hasText:'撤销报名'}).click();await user.locator('.registration-summary .application-status.cancelled').waitFor()
  await user.goto(userBase+'/#/pages/registration/mine',{waitUntil:'networkidle'});await user.locator('.registration-list-card').waitFor();await click('查看报名与材料 →');await user.locator('.registration-summary').waitFor()
  clock.value=Date.parse(memory.read('competitions',cid).registrationEndAt);await click('重新读取');await user.getByText('报名已截止，资料修改与撤销已锁定。',{exact:true}).waitFor();assert.equal(await user.getByText('重新报名',{exact:true}).count(),0)
  check('my registrations restores private records and deadline locks self-service actions')

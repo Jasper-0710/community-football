@@ -1,5 +1,5 @@
 import {readFile,writeFile} from 'node:fs/promises'
-for(const name of ['registration-model.js','registration-storage.js','team-badge-model.js']) {
+for(const name of ['registration-model.js','registration-storage.js','registration-attachments.js','team-badge-model.js']) {
  const source=new URL(`../cloudfunctions/teamManagement/${name}`,import.meta.url)
  const target=new URL(`../cloudfunctions/adminAuth/${name}`,import.meta.url)
  const data=await readFile(source)

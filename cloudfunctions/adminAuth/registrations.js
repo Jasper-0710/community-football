@@ -1,6 +1,7 @@
 'use strict'
 const M=require('./registration-model')
-const actions={'registrations.listAdmin':['competitionId','cursor','status'],'registrations.getAdmin':['id'],'registrations.review':['id','expectedVersion','requestId','decision','reason','playerCount'],'registrations.fileLink':['id','fileId']}
+const {historyFiles,findFile}=require('./registration-attachments')
+const actions={'registrations.listAdmin':['competitionId','cursor','status'],'registrations.getAdmin':['id'],'registrations.review':['id','expectedVersion','requestId','decision','reason','playerCount'],'registrations.fileLink':['id','fileId'],'registrations.historyFiles':['id','expectedVersion','cursor']}
 function createAdminRegistrationService({store,authorize,storage,uploadsEnabled=false,now=Date.now,logger=console}){
  return async event=>{try{
   const auth=await authorize(event?.token);if(!auth.ok)return auth
@@ -37,8 +38,9 @@ function createAdminRegistrationService({store,authorize,storage,uploadsEnabled=
    })
   }
   const r=await store.read(event.id);if(!r)M.fail('NOT_FOUND','报名记录不存在。')
+  if(action==='registrations.historyFiles')return await historyFiles(store,r,event)
   if(action==='registrations.fileLink'){
-   const f=r.attachments.find(f=>f.id===event.fileId);if(!f)M.fail('NOT_FOUND','附件不存在。')
+   const f=await findFile(store,r,event.fileId)
    if(!uploadsEnabled)M.fail('UPLOAD_UNAVAILABLE','材料下载暂不可用，请联系平台维护人员。')
    return {ok:true,url:await storage.link(f.fileID),name:f.name,extension:f.extension}
   }

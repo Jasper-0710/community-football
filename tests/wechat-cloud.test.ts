@@ -133,6 +133,6 @@ test('offline write guard rejects before SDK initialization, invocation or timeo
   try {
     for(const [name,action] of [['adminAuth','evaluation.rate'],['teamManagement','registrations.submit'],['teamManagement','files.chunk'],['userProfile','favorites.set']])await assert.rejects(f.call(name,{action}),(e:any)=>e.code==='OFFLINE_READ_ONLY')
     assert.equal(f.requests.length,0);assert.equal(f.initCalls(),0);assert.equal(f.timers.size,0)
-    for(const [name,action] of [['adminAuth','matches.getPublic'],['adminAuth','directory.homePublic'],['adminAuth','directory.teamProfilePublic'],['adminAuth','directory.playerProfilePublic'],['teamManagement','registrations.listMine'],['teamManagement','registrations.getMine'],['teamManagement','registrations.fileLink'],['userProfile','favorites.get']])assert.deepEqual(await f.call(name,{action}),{ok:true})
+    for(const [name,action] of [['adminAuth','matches.getPublic'],['adminAuth','directory.homePublic'],['adminAuth','directory.teamProfilePublic'],['adminAuth','directory.playerProfilePublic'],['teamManagement','registrations.listMine'],['teamManagement','registrations.getMine'],['teamManagement','registrations.fileLink'],['teamManagement','registrations.historyFiles'],['userProfile','favorites.get']])assert.deepEqual(await f.call(name,{action}),{ok:true})
   } finally {setRecoveryWriteCheck(()=>{})}
 })

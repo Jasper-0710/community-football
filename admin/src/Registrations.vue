@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import {computed,nextTick,onMounted,ref,watch} from 'vue'
 import RegistrationMaintenance from './RegistrationMaintenance.vue'
+import {useRegistrationFileHistory} from '../../src/composables/useRegistrationFileHistory'
 import type {createAdminAuth} from './auth'
 import {competitionTime,type AdminCompetition,type RegistrationStats} from '../../src/domain/competition'
 import {registrationStates,fileSize,type RegistrationSummary,type RegistrationDetail,type RegistrationFile} from '../../src/domain/registration'
 const props=defineProps<{auth:ReturnType<typeof createAdminAuth>}>()
 const competitions=ref<AdminCompetition[]>([]),competitionId=ref(''),filter=ref(''),records=ref<RegistrationSummary[]>([]),cursor=ref<string|null>(null),stats=ref<RegistrationStats>({pending:0,approved:0,occupied:0})
 const detail=ref<RegistrationDetail|null>(null),busy=ref(false),error=ref(''),notice=ref(''),uncertain=ref(false),reason=ref(''),playerCount=ref(''),checkedMaterials=ref(false)
+const {expanded:historyExpanded,loaded:historyLoaded,loading:historyLoading,error:historyError,stale:historyStale,files:historyFiles,cursor:historyCursor,load:loadHistory,toggle:toggleHistory}=useRegistrationFileHistory(detail,(id,version,cursor)=>props.auth.authorized((api,token)=>api.registrationFileHistory(token,id,version,cursor)))
 const approvalRules=computed(()=>detail.value?.reviewRules||null)
 const displayedRules=computed(()=>detail.value?.status==='pending'?approvalRules.value:detail.value?.review?.rules||detail.value)
 type ReviewDecision='approved'|'rejected'
@@ -101,6 +103,17 @@ onMounted(()=>void loadCompetitions())
   <section class="registration-inbox"><div class="card-heading"><h2>{{ filter==='approved'?'参赛球队名单':'报名记录' }}</h2><span class="muted">当前已加载 {{ records.length }} 条</span></div><p v-if="busy&&!records.length" class="muted">正在读取报名…</p><div v-else-if="!records.length&&!error" class="account-card competition-empty"><h3>当前没有符合条件的报名</h3><p class="muted">可以切换赛事或报名状态查看。</p></div><button v-for="r in records" :key="r.id" class="registration-inbox-item" :class="{selected:detail?.id===r.id}" :disabled="busy" @click="open(r.id)"><span class="registration-item-top"><strong>{{ r.teamName }}</strong><span class="application-status" :class="r.status">{{ registrationStates[r.status] }}</span></span><span>{{ r.district }} · {{ r.project }}</span><span class="muted">{{ r.attachmentCount }}份材料 · {{ competitionTime(r.updatedAt) }}</span></button><button v-if="cursor" class="secondary-button" :disabled="busy" @click="load(true)">加载更多报名</button></section>
   <article v-if="detail" class="account-card registration-review-detail"><div class="card-heading"><div><span class="eyebrow">报名详情</span><h2>{{ detail.teamName }}</h2></div><span class="application-status" :class="detail.status">{{ registrationStates[detail.status] }}</span></div><dl class="registration-details"><div><dt>所属地区</dt><dd>{{ detail.form.district }}</dd></div><div><dt>报名项目</dt><dd>{{ detail.form.project }}</dd></div><div><dt>领队姓名</dt><dd>{{ detail.form.leaderName }}</dd></div><div><dt>联系方式</dt><dd>{{ detail.form.contactPhone }}</dd></div><div><dt>提交时间</dt><dd>{{ competitionTime(detail.submittedAt) }}</dd></div><div><dt>{{ detail.status==='pending'?'当前人数要求':detail.review?.rules?'审核时人数要求':'提交时人数要求' }}</dt><dd v-if="displayedRules">{{ displayedRules.minPlayers }}–{{ displayedRules.maxPlayers }}人</dd><dd v-else>尚未配置</dd></div></dl><div class="review-requirements"><h3>提交时的参赛说明</h3><p>{{ detail.requirements }}</p><p class="muted">提交时人数要求：{{ detail.minPlayers }}–{{ detail.maxPlayers }}人。审核通过时按赛事最新人数要求核对，历史记录保留。</p></div>
    <section class="review-files"><h3>报名材料 · {{ detail.attachments.length }}份</h3><div v-for="f in detail.attachments" :key="f.id"><span class="review-file-type">{{ f.extension.toUpperCase() }}</span><div><strong>{{ f.name }}</strong><span class="muted">{{ fileSize(f.size) }}</span></div><button class="secondary-button" :disabled="busy" @click="file(f)">下载</button></div></section>
+   <section class="review-files registration-file-history">
+    <h3>历史报名材料</h3><p class="muted">仅本人和管理员可查看已替换的附件。历史材料仅供查阅，不作为本次审核材料，也不代表完整的历次提交批次。</p>
+    <button class="secondary-button" :disabled="busy||historyLoading" :aria-expanded="historyExpanded" @click="toggleHistory">{{ historyExpanded?'收起历史材料':'查看历史材料' }}</button>
+    <template v-if="historyExpanded">
+     <p v-if="historyLoading" class="muted" role="status">正在读取历史材料…</p>
+     <p v-if="historyError" class="notice" role="alert">{{ historyError }}</p><button v-if="historyError" class="secondary-button" :disabled="busy||historyLoading" @click="historyStale?reloadCurrent():loadHistory(!!historyCursor)">{{ historyStale?'重新读取报名':'重试读取历史材料' }}</button>
+     <div v-for="f in historyFiles" :key="f.id" class="history-file-row"><span class="review-file-type">{{ f.extension.toUpperCase() }}</span><div><strong>{{ f.name }}</strong><span class="muted">{{ fileSize(f.size) }} · 历史附件</span><span class="muted">{{ f.uploadedAt?`上传于 ${competitionTime(f.uploadedAt)}`:'上传时间未记录' }}</span><span class="muted">{{ f.firstSubmittedAt?`首次提交于 ${competitionTime(f.firstSubmittedAt)}`:'旧材料未记录首次提交时间' }}</span></div><button class="secondary-button" :disabled="busy||historyStale" @click="file(f)">下载</button></div>
+     <p v-if="historyLoaded&&!historyLoading&&!historyFiles.length" class="muted">{{ historyCursor?'本批没有历史附件，可继续加载。':'暂无已替换的历史附件。' }}</p>
+     <button v-if="historyCursor&&!historyError" class="secondary-button history-more" :disabled="busy||historyLoading" @click="loadHistory(true)">加载更多历史材料</button>
+    </template>
+   </section>
    <section v-if="detail.status==='pending'" class="review-controls">
     <h3>审核处理</h3><p class="muted">先下载并核对材料，再确认参赛人数；资料不完整时可填写原因驳回。</p>
     <fieldset :aria-busy="reviewing!==null">

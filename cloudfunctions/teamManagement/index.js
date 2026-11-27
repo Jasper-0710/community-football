@@ -19,6 +19,7 @@ const context=()=>cloud.getWXContext(),expectedAppId=process.env.WECHAT_APP_ID||
 const uploadsEnabled=process.env.REGISTRATION_UPLOADS_ENABLED==='true'
 const storage=createStorageAdapter(cloud,process.env.TCB_ENV||cloud.getWXContext().ENV||process.env.SCF_NAMESPACE,tcb.init({env:tcb.SYMBOL_CURRENT_ENV}))
 const registrationStore={...store,
+ async listBoundFiles({registrationId,cursor,limit}){return (await db.collection('registrationFiles').where({registrationId,...(cursor?{_id:db.command.gt(cursor)}:{})}).field({_id:true,registrationId:true,ownerUserId:true,competitionId:true,status:true,name:true,size:true,extension:true,fileID:true,removedFileIDs:true,createdAt:true,firstSubmittedAt:true}).orderBy('_id','asc').limit(limit).get()).data},
  async list({ownerUserId,cursor,limit}){return (await db.collection('registrations').where({ownerUserId,...(cursor?{_id:db.command.gt(cursor)}:{})}).orderBy('_id','asc').limit(limit).get()).data},
  async read(id){return (await db.collection('registrations').doc(id).get()).data},
  async competition(id){return (await db.collection('competitions').doc(id).get()).data},
@@ -31,4 +32,4 @@ const files=createRegistrationFileService({store,context,storage,enabled:uploads
 const router=event=>typeof event?.action==='string'&&event.action.startsWith('badges.')?badges(event):typeof event?.action==='string'&&event.action.startsWith('registrations.')?registrations(event):typeof event?.action==='string'&&event.action.startsWith('files.')?files(event):teams(event)
 
 const recoveryGuard=createRecoveryGuard({control:createRecoveryControl(db)})
-exports.main=event=>recoveryGuard(event,router,['mine','checkDissolution','registrations.prepare','registrations.listMine','registrations.getMine','registrations.fileLink','badges.config','badges.get'].includes(event?.action))
+exports.main=event=>recoveryGuard(event,router,['mine','checkDissolution','registrations.prepare','registrations.listMine','registrations.getMine','registrations.fileLink','registrations.historyFiles','badges.config','badges.get'].includes(event?.action))

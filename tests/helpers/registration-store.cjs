@@ -15,5 +15,6 @@ exports.createRegistrationMemory=()=>{
   list:async({publicOnly,cursor,limit})=>{if(memory.failures.read)throw new Error('read unavailable');return [...memory.records].filter(([key,r])=>key.startsWith('competitions/')&&(!publicOnly||r.displayEnabled)&&(!cursor||r._id>cursor)).map(([,r])=>structuredClone(r)).sort((a,b)=>a._id.localeCompare(b._id)).slice(0,limit)},
   transaction:(id,fn)=>memory.store.transaction(async tx=>fn(await tx.get('competitions',id),record=>tx.set('competitions',id,record))),
  }
+ registrationStore.listBoundFiles=async({registrationId,cursor,limit})=>(await registrationStore.listFiles({cursor,limit:Number.MAX_SAFE_INTEGER})).filter(f=>f.registrationId===registrationId).slice(0,limit)
  return {...memory,registrationStore,competitionStore}
 }

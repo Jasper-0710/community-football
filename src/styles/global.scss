@@ -887,6 +887,11 @@ input { font: inherit; min-width: 0; }
 .registration-submit>.primary-button { width:100%; margin-top:4px; }
 .registration-history>view { display:flex; gap:14px; margin-top:20px; }
 .registration-history>view>view { display:flex; flex-direction:column; gap:6px; }
+.registration-file-history>.section-heading { align-items:flex-start; gap:12px; flex-wrap:wrap; }
+.registration-file-history>.section-heading>view { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.registration-file-history>.section-heading>.text-button { margin:0; }
+.registration-file-history .history-more { margin-top:18px; width:100%; }
+.registration-file-history .team-message { display:flex; flex-direction:column; gap:12px; }
 .history-dot { width:8px; height:8px; flex-shrink:0; border-radius:50%; background:#54856b; margin-top:8px; }
 .registration-list-card { display:flex; flex-direction:column; gap:14px; }
 .registration-list-card .section-heading { margin-bottom:0; }

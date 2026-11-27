@@ -128,6 +128,7 @@ const teams = createAdminTeamService({
 })
 const registrationStorage = createStorageAdapter(cloud, process.env.TCB_ENV || cloud.getWXContext().ENV || process.env.SCF_NAMESPACE)
 const registrationStore = {
+  async listBoundFiles({registrationId,cursor,limit}) { return (await database.collection('registrationFiles').where({registrationId,...(cursor?{_id:database.command.gt(cursor)}:{})}).field({_id:true,registrationId:true,ownerUserId:true,competitionId:true,status:true,name:true,size:true,extension:true,fileID:true,removedFileIDs:true,createdAt:true,firstSubmittedAt:true}).orderBy('_id','asc').limit(limit).get()).data },
 
   async listFiles({cursor,limit}) { return (await database.collection('registrationFiles').where(cursor?{_id:database.command.gt(cursor)}:{}).orderBy('_id','asc').limit(limit).get()).data },
   async list({competitionId,cursor,status,limit}) { return (await database.collection('registrations').where({competitionId,...(status?{status}:{}),...(cursor?{_id:database.command.gt(cursor)}:{})}).orderBy('_id','asc').limit(limit).get()).data },
@@ -159,6 +160,7 @@ const recovery = createRecoveryService({store:createRecoveryStore(database),cont
 }})
 const readActions = new Set([...PUBLIC_ACTIONS,...MATCH_PUBLIC_ACTIONS,...STANDINGS_PUBLIC_ACTIONS,...CONTENT_PUBLIC_ACTIONS,...SETTINGS_PUBLIC_ACTIONS,...LIVE_PUBLIC_ACTIONS,'evaluation.getPublic','evaluation.getAdmin','teams.listAdmin','teams.getAdmin','registrations.listAdmin','registrations.getAdmin','registrations.fileLink','matches.listAdmin','matches.getAdmin','standings.getAdmin','standings.history','standings.previewRestoreResult','competitions.listAdmin','competitions.getAdmin','settings.getAdmin','live.listAdmin','news.listAdmin','news.getAdmin','search.admin','content.overview','news.images.config','news.images.get','live.images.config','live.images.get'])
 readActions.add('settings.images.config')
+readActions.add('registrations.historyFiles')
 readActions.add('settings.images.get')
 readActions.add('teams.leadersAdmin')
 readActions.add('teams.checkDissolutionAdmin')
